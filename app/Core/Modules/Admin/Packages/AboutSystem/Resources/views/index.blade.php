@@ -311,4 +311,45 @@
             @endforeach
         </div>
     </div>
+
+    {{-- Directory Permissions --}}
+    @if (!empty($directoryPermissions))
+        @php
+            $hasProblems = collect($directoryPermissions)->contains(fn($d) => $d['problem'] !== null);
+        @endphp
+        <div class="about-sys__group about-sys__group--wide {{ $hasProblems ? 'about-sys__group--warn' : '' }}">
+            <div class="about-sys__group-header">
+                <x-icon path="ph.bold.folder-lock-bold" />
+                <span>{{ __('admin-about-system.sections.permissions.title') }}</span>
+            </div>
+            <div class="about-sys__group-body">
+                @foreach ($directoryPermissions as $dir)
+                    <div class="about-sys__kv {{ $dir['problem'] ? 'about-sys__kv--alert' : '' }}">
+                        <span class="about-sys__kv-label">
+                            @if ($dir['problem'])
+                                <x-icon path="ph.bold.warning-bold" data-tooltip="{{ $dir['problem'] }}" />
+                            @else
+                                <x-icon path="ph.bold.check-circle-bold" />
+                            @endif
+                            <code>{{ $dir['path'] }}</code>
+                            <small style="opacity:.6;margin-left:6px">{{ $dir['hint'] }}</small>
+                        </span>
+                        <span class="about-sys__kv-value">
+                            <span class="about-sys__badge {{ $dir['writable'] ? 'about-sys__badge--ok' : 'about-sys__badge--error' }}">
+                                {{ $dir['perms'] }}
+                            </span>
+                            <span style="margin-left:4px;opacity:.7">{{ $dir['owner'] }}</span>
+                        </span>
+                    </div>
+                @endforeach
+                @if ($hasProblems)
+                    <div class="about-sys__kv" style="border:0;padding-top:8px">
+                        <span class="about-sys__kv-label" style="opacity:.7">
+                            {{ __('admin-about-system.permissions.fix_hint') }}
+                        </span>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
 </div>

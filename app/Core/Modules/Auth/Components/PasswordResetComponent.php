@@ -42,7 +42,7 @@ class PasswordResetComponent extends Component
                 toast()->error(__('auth.too_many_requests'))->push();
 
                 return;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error($e);
 
                 toast()->error(is_debug() ? $e->getMessage() : __('def.unknown_error'))->push();

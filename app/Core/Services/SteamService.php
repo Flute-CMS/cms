@@ -170,7 +170,7 @@ class SteamService
                     $deferred->resolve($info);
                     unset(self::$deferreds[$id64]);
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error('Steam API Batch Request Failed: ' . $e->getMessage());
 
                 foreach (self::$deferreds as $id64 => $deferred) {
@@ -213,7 +213,7 @@ class SteamService
                 } else {
                     $uncachedIds[$normalizedId] = $steamId;
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // invalid steam, ignore
             }
         }
@@ -260,7 +260,7 @@ class SteamService
                             unset($uncachedIds[$normalizedId]);
                         }
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->error('Steam API Error: ' . $e->getMessage());
                 }
             }

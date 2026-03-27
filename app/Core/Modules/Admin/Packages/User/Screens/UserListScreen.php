@@ -363,7 +363,7 @@ class UserListScreen extends Screen
                     );
                 })
                 ->orderBy('id', 'desc');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }

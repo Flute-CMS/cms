@@ -228,7 +228,7 @@ class MarketplaceScreen extends Screen
             }
 
             $this->applyLocalFilters();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         }
@@ -274,7 +274,7 @@ class MarketplaceScreen extends Screen
             // Step 1: Download module, handle expired token
             try {
                 $download = $moduleInstaller->downloadModule($module);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 if ($e->getMessage() === 'MARKETPLACE_BAD_REQUEST') {
                     $this->marketplaceService->clearCache();
                     $allModules = $this->marketplaceService->getModules('', '', true);
@@ -294,7 +294,7 @@ class MarketplaceScreen extends Screen
 
                     try {
                         $download = $moduleInstaller->downloadModule($module);
-                    } catch (Exception $e2) {
+                    } catch (Throwable $e2) {
                         logs()->error($e2);
                         $this->flashMessage($e2->getMessage(), 'error');
                         $this->isLoading = false;
@@ -326,7 +326,7 @@ class MarketplaceScreen extends Screen
             // Шаг 5: Обновление зависимостей Composer
             try {
                 $moduleInstaller->updateComposerDependencies();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $moduleInstaller->rollbackInstallation(
                     $installResult['moduleFolder'],
                     $installResult['backupDir'] ?? null,
@@ -364,7 +364,7 @@ class MarketplaceScreen extends Screen
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
 
             $this->loadModules();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {

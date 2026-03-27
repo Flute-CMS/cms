@@ -103,7 +103,7 @@ class GitHubUpdater
 
         try {
             fs()->remove($zipFile);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->warning($e);
         }
 

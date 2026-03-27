@@ -280,7 +280,7 @@ class PageEditScreen extends Screen
             } else {
                 $this->flashMessage(__('admin-pages.messages.page_updated'), 'success');
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -338,7 +338,7 @@ class PageEditScreen extends Screen
             $this->flashMessage(__('admin-pages.messages.block_add_success'), 'success');
             $this->closeModal();
             $this->initPage();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -396,7 +396,7 @@ class PageEditScreen extends Screen
             $this->initPage();
             $this->flashMessage(__('admin-pages.messages.block_update_success'), 'success');
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -415,7 +415,7 @@ class PageEditScreen extends Screen
                 $this->flashMessage(__('admin-pages.messages.block_delete_success'), 'success');
                 $this->initPage();
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }

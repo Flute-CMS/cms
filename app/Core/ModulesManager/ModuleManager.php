@@ -480,7 +480,7 @@ class ModuleManager
                 'status' => $module->status,
                 'installedVersion' => $module->installedVersion,
             ];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (str_contains($e->getMessage(), 'Duplicate entry')) {
                 logs('modules')->warning(
                     "Module {$moduleInformation->key} already exists in database, skipping create",

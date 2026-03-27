@@ -84,7 +84,7 @@ class PageController extends BaseController
             $this->toast(__('page.seo.saved'), 'success');
 
             return response()->htmx()->setTriggers(['close-modal' => 'page-seo-dialog']);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Failed to save SEO settings: ' . $e->getMessage());
             $this->toast(__('page.seo.error'), 'error');
 

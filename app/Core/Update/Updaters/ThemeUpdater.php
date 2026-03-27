@@ -71,34 +71,27 @@ class ThemeUpdater extends AbstractUpdater
             mkdir($extractDir, 0o755, true);
         }
 
-        // Распаковываем архив
-        try {
-            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
-        } catch (Exception $e) {
-            logs()->error('Failed to extract theme update package: ' . $e->getMessage());
-
-            return false;
-        }
-
-        // Определяем корневую директорию в архиве, может содержать один корневой каталог
-        $rootDir = $extractDir;
-        $items = scandir($extractDir);
-        if (count($items) === 3) { // '.', '..' и одна директория
-            foreach ($items as $item) {
-                if ($item !== '.' && $item !== '..' && is_dir($extractDir . '/' . $item)) {
-                    $rootDir = $extractDir . '/' . $item;
-
-                    break;
-                }
-            }
-        }
-
-        // Получаем путь к директории темы
-        $themeDir = $this->getThemeDirectory();
-
-        // Копируем файлы
         try {
             try {
+                // Распаковываем архив
+                app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+
+                // Определяем корневую директорию в архиве, может содержать один корневой каталог
+                $rootDir = $extractDir;
+                $items = scandir($extractDir);
+                if (count($items) === 3) { // '.', '..' и одна директория
+                    foreach ($items as $item) {
+                        if ($item !== '.' && $item !== '..' && is_dir($extractDir . '/' . $item)) {
+                            $rootDir = $extractDir . '/' . $item;
+
+                            break;
+                        }
+                    }
+                }
+
+                // Получаем путь к директории темы
+                $themeDir = $this->getThemeDirectory();
+
                 // Создаем бэкап перед обновлением
                 $this->createBackup();
 
@@ -112,7 +105,7 @@ class ThemeUpdater extends AbstractUpdater
                 $this->removeDirectory($extractDir);
 
                 return true;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error('Error during theme update: ' . $e->getMessage());
                 // Удаляем временные файлы
                 $this->removeDirectory($extractDir);

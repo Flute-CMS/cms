@@ -110,10 +110,10 @@ class RedirectsListener
         }
 
         return match ($condition['operator']) {
-            'equals' => $value == $condition['value'],
-            'not_equals' => $value != $condition['value'],
-            'contains' => str_contains($value, $condition['value']),
-            'not_contains' => !str_contains($value, $condition['value']),
+            'equals' => (string) $value === (string) $condition['value'],
+            'not_equals' => (string) $value !== (string) $condition['value'],
+            'contains' => str_contains((string) $value, (string) $condition['value']),
+            'not_contains' => !str_contains((string) $value, (string) $condition['value']),
             default => false,
         };
     }

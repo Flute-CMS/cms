@@ -1,5 +1,5 @@
 <div class="launch-step">
-    <form hx-post="{{ route('installer.step6.save') }}" hx-target=".installer-content__inner" hx-select=".launch-step" hx-swap="innerHTML" id="launchForm">
+    <form hx-post="{{ route('installer.step6.save') }}" hx-target="body" hx-swap="morph" id="launchForm">
 
         {{-- ── Sub-step 1: Appearance ──────────────────────────── --}}
         <div class="launch-page" data-launch-page="1">

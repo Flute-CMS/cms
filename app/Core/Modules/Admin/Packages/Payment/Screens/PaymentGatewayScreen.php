@@ -178,7 +178,7 @@ class PaymentGatewayScreen extends Screen
             );
 
             $this->metrics = $this->calculateMetrics();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-payment.messages.status_change_error', ['message' =>
                 $e->getMessage()]), 'error');
         }
@@ -207,7 +207,7 @@ class PaymentGatewayScreen extends Screen
 
             $this->gateways = rep(PaymentGateway::class)->findAll();
             $this->metrics = $this->calculateMetrics();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-payment.messages.delete_error', ['message' => $e->getMessage()]), 'error');
         }
     }
@@ -226,7 +226,7 @@ class PaymentGatewayScreen extends Screen
 
             try {
                 $this->paymentService->deleteGateway($gateway);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // continue
             }
         }
@@ -251,7 +251,7 @@ class PaymentGatewayScreen extends Screen
             try {
                 $gateway->enabled = true;
                 $gateway->saveOrFail();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // continue
             }
         }
@@ -276,7 +276,7 @@ class PaymentGatewayScreen extends Screen
             try {
                 $gateway->enabled = false;
                 $gateway->saveOrFail();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // continue
             }
         }

@@ -11,6 +11,7 @@ excludes = [
     "vendor",
     "storage",
     "bootstrap/cache",
+    "i18n",
 ]
 
 # --- Formatter (PSR-12 based) ---

@@ -15,6 +15,8 @@ use RuntimeException;
 
 class ModuleUpdate implements ModuleActionInterface
 {
+    use Concerns\FlushesTranslationCache;
+
     protected ModuleManager $moduleManager;
 
     protected ModuleDependencies $moduleDependencies;
@@ -57,6 +59,8 @@ class ModuleUpdate implements ModuleActionInterface
         $this->moduleManager->runComposerInstall($module);
 
         app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$module->key]);
+
+        $this->flushCompiledTranslations();
 
         return true;
     }

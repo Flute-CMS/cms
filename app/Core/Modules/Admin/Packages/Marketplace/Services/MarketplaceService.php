@@ -3,30 +3,11 @@
 namespace Flute\Admin\Packages\Marketplace\Services;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Flute\Core\Services\FluteApiClient;
 
 class MarketplaceService
 {
-    /**
-     * API базовый URL
-     */
-    protected string $apiBaseUrl;
-
-    /**
-     * API ключ
-     */
-    protected string $apiKey;
-
-    /**
-     * HTTP клиент
-     */
-    protected Client $client;
-
-    /**
-     * API URL маркетплейса
-     */
-    protected string $apiUrl;
+    protected FluteApiClient $api;
 
     /**
      * Список модулей в кеше
@@ -38,27 +19,14 @@ class MarketplaceService
      */
     protected int $cacheTime = 3600; // 1 hour
 
-    /**
-     * MarketplaceService constructor.
-     */
     public function __construct()
     {
-        $this->apiBaseUrl = rtrim(config('app.flute_market_url', 'https://flute-cms.com'), '/');
-        $this->apiKey = config('app.flute_key', '');
-
-        $this->client = new Client([
-            'base_uri' => $this->apiBaseUrl,
-            'timeout' => 30,
-            'http_errors' => false,
-        ]);
+        $this->api = new FluteApiClient(timeout: 10, connectTimeout: 5);
     }
 
     /**
      * Получить список модулей
      *
-     * @param string $searchQuery Строка поиска
-     * @param string $category Категория модулей
-     * @param bool $force Принудительное обновление кеша
      * @throws Exception
      */
     public function getModules(string $searchQuery = '', string $category = '', bool $force = false): array
@@ -66,48 +34,12 @@ class MarketplaceService
         $cacheKey = 'marketplace_modules_' . md5($searchQuery . '_' . $category);
 
         if ($force) {
-            cache()->delete($cacheKey);
+            return $this->fetchModules($cacheKey, $searchQuery, $category);
         }
 
         return cache()->callback(
             $cacheKey,
-            function () use ($searchQuery, $category) {
-                $queryParams = [
-                    'accessKey' => $this->apiKey,
-                    'php' => $this->getPHPVersion(),
-                ];
-
-                if (!empty($searchQuery)) {
-                    $queryParams['search'] = $searchQuery;
-                }
-
-                if (!empty($category)) {
-                    $queryParams['category'] = $category;
-                }
-
-                try {
-                    $response = $this->client->get('/api/external/modules', [
-                        'query' => $queryParams,
-                    ]);
-
-                    $statusCode = $response->getStatusCode();
-                    $body = $response->getBody()->getContents();
-
-                    if ($statusCode !== 200) {
-                        throw new Exception($body);
-                    }
-
-                    $modules = json_decode($body, true) ?? [];
-
-                    $this->updateModuleCacheKeys('marketplace_modules_' . md5($searchQuery . '_' . $category));
-
-                    return $modules;
-                } catch (GuzzleException $e) {
-                    logs()->error('Marketplace API error: ' . $e->getMessage());
-
-                    throw new Exception('Error connecting to the marketplace API: ' . $e->getMessage());
-                }
-            },
+            fn() => $this->fetchModules($cacheKey, $searchQuery, $category),
             $this->cacheTime,
         );
     }
@@ -121,39 +53,7 @@ class MarketplaceService
     {
         $cacheKey = 'marketplace_module_' . $slug;
 
-        return cache()->callback(
-            $cacheKey,
-            function () use ($slug) {
-                try {
-                    $response = $this->client->get("/api/external/modules/{$slug}", [
-                        'query' => [
-                            'accessKey' => $this->apiKey,
-                            'php' => $this->getPHPVersion(),
-                        ],
-                    ]);
-
-                    $statusCode = $response->getStatusCode();
-                    $body = $response->getBody()->getContents();
-
-                    if ($statusCode !== 200) {
-                        $error = json_decode($body, true);
-
-                        throw new Exception($error['error'] ?? 'Module not found');
-                    }
-
-                    $module = json_decode($body, true) ?? [];
-
-                    $this->updateModuleCacheKeys('marketplace_module_' . $slug);
-
-                    return $module;
-                } catch (GuzzleException $e) {
-                    logs()->error('Marketplace API error: ' . $e->getMessage());
-
-                    throw new Exception('Error connecting to the marketplace API: ' . $e->getMessage());
-                }
-            },
-            $this->cacheTime,
-        );
+        return cache()->callback($cacheKey, fn() => $this->fetchModuleBySlug($cacheKey, $slug), $this->cacheTime);
     }
 
     /**
@@ -165,38 +65,7 @@ class MarketplaceService
     {
         $cacheKey = 'marketplace_module_versions_' . $slug;
 
-        return cache()->callback(
-            $cacheKey,
-            function () use ($slug) {
-                try {
-                    $response = $this->client->get("/api/external/modules/{$slug}/versions", [
-                        'query' => [
-                            'accessKey' => $this->apiKey,
-                        ],
-                    ]);
-
-                    $statusCode = $response->getStatusCode();
-                    $body = $response->getBody()->getContents();
-
-                    if ($statusCode !== 200) {
-                        $error = json_decode($body, true);
-
-                        throw new Exception($error['error'] ?? 'Failed to get module version history');
-                    }
-
-                    $versions = json_decode($body, true) ?? [];
-
-                    $this->updateModuleCacheKeys('marketplace_module_versions_' . $slug);
-
-                    return $versions;
-                } catch (GuzzleException $e) {
-                    logs()->error('Marketplace API error: ' . $e->getMessage());
-
-                    throw new Exception('Error connecting to the marketplace API: ' . $e->getMessage());
-                }
-            },
-            $this->cacheTime,
-        );
+        return cache()->callback($cacheKey, fn() => $this->fetchModuleVersions($cacheKey, $slug), $this->cacheTime);
     }
 
     /**
@@ -208,36 +77,7 @@ class MarketplaceService
     {
         $cacheKey = 'marketplace_categories';
 
-        return cache()->callback(
-            $cacheKey,
-            function () {
-                try {
-                    $response = $this->client->get('/api/external/market/filters', [
-                        'query' => [
-                            'accessKey' => $this->apiKey,
-                        ],
-                    ]);
-
-                    $statusCode = $response->getStatusCode();
-                    $body = $response->getBody()->getContents();
-
-                    if ($statusCode !== 200) {
-                        $error = json_decode($body, true);
-
-                        throw new Exception($error['error'] ?? 'Failed to get module categories');
-                    }
-
-                    $data = json_decode($body, true) ?? [];
-
-                    return $data['tags'] ?? [];
-                } catch (GuzzleException $e) {
-                    logs()->error('Marketplace API error: ' . $e->getMessage());
-
-                    throw new Exception('Error connecting to the marketplace API: ' . $e->getMessage());
-                }
-            },
-            $this->cacheTime,
-        );
+        return cache()->callback($cacheKey, fn() => $this->fetchCategories($cacheKey), $this->cacheTime);
     }
 
     /**
@@ -255,8 +95,17 @@ class MarketplaceService
                 throw new Exception('Download link for the module not found');
             }
 
-            $response = $this->client->get($module['downloadUrl'], [
+            $downloadUrl = $module['downloadUrl'];
+
+            // Relative URL — prepend active mirror base.
+            if (!str_starts_with($downloadUrl, 'http')) {
+                $downloadUrl = rtrim($this->api->getActiveBaseUrl(), '/') . '/' . ltrim($downloadUrl, '/');
+            }
+
+            $response = $this->api->getClient()->get($downloadUrl, [
                 'sink' => storage_path('app/temp/modules/' . $slug . '.zip'),
+                'timeout' => 60,
+                'connect_timeout' => 10,
             ]);
 
             $statusCode = $response->getStatusCode();
@@ -266,10 +115,10 @@ class MarketplaceService
             }
 
             return storage_path('app/temp/modules/' . $slug . '.zip');
-        } catch (GuzzleException $e) {
-            logs()->error('Marketplace API error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            logs()->error('Marketplace download error: ' . $e->getMessage());
 
-            throw new Exception('Error connecting to the marketplace API: ' . $e->getMessage());
+            throw new Exception(__('admin-marketplace.api_error', $e->getMessage()));
         }
     }
 
@@ -291,8 +140,6 @@ class MarketplaceService
 
     /**
      * Clear cache for a specific module
-     *
-     * @param string $slug Module slug
      */
     public function clearModuleCache(string $slug): void
     {
@@ -307,9 +154,6 @@ class MarketplaceService
         }
     }
 
-    /**
-     * Save module cache keys for subsequent cleanup
-     */
     protected function updateModuleCacheKeys(string $cacheKey): void
     {
         $cacheKeys = cache()->get('marketplace_module_caches', []);
@@ -319,11 +163,122 @@ class MarketplaceService
         }
     }
 
-    /**
-     * Get PHP version
-     */
     private function getPHPVersion(): string
     {
         return substr(PHP_VERSION, 0, 3);
+    }
+
+    private function fetchModules(string $cacheKey, string $searchQuery = '', string $category = ''): array
+    {
+        $queryParams = [
+            'accessKey' => $this->api->getApiKey(),
+            'php' => $this->getPHPVersion(),
+        ];
+
+        if ($searchQuery !== '') {
+            $queryParams['search'] = $searchQuery;
+        }
+
+        if ($category !== '') {
+            $queryParams['category'] = $category;
+        }
+
+        return $this->fetchOrFallback(
+            $cacheKey,
+            function () use ($queryParams, $cacheKey) {
+                $modules = $this->api->getJson('/api/external/modules', $queryParams);
+                $this->updateModuleCacheKeys($cacheKey);
+
+                return $modules;
+            },
+            [],
+        );
+    }
+
+    private function fetchModuleBySlug(string $cacheKey, string $slug): array
+    {
+        return $this->fetchOrFallback(
+            $cacheKey,
+            function () use ($slug, $cacheKey) {
+                $module = $this->api->getJson("/api/external/modules/{$slug}", [
+                    'accessKey' => $this->api->getApiKey(),
+                    'php' => $this->getPHPVersion(),
+                ]);
+
+                $this->updateModuleCacheKeys($cacheKey);
+
+                return $module;
+            },
+            $this->findModuleInCachedLists($slug),
+        );
+    }
+
+    private function fetchModuleVersions(string $cacheKey, string $slug): array
+    {
+        return $this->fetchOrFallback($cacheKey, fn() => $this->api->getJson("/api/external/modules/{$slug}/versions", [
+            'accessKey' => $this->api->getApiKey(),
+        ]), []);
+    }
+
+    private function fetchCategories(string $cacheKey): array
+    {
+        return $this->fetchOrFallback(
+            $cacheKey,
+            function () {
+                $data = $this->api->getJson('/api/external/market/filters', [
+                    'accessKey' => $this->api->getApiKey(),
+                ]);
+
+                return $data['tags'] ?? [];
+            },
+            [],
+        );
+    }
+
+    private function fetchOrFallback(string $cacheKey, callable $callback, array $default = []): array
+    {
+        try {
+            $result = $callback();
+            cache()->set($cacheKey, $result, $this->cacheTime);
+
+            return is_array($result) ? $result : $default;
+        } catch (\Throwable $e) {
+            logs()->warning('Marketplace API error: ' . $e->getMessage(), ['cache_key' => $cacheKey]);
+
+            $cached = cache()->get($cacheKey);
+            if (is_array($cached)) {
+                return $cached;
+            }
+
+            return $default;
+        }
+    }
+
+    private function findModuleInCachedLists(string $slug): array
+    {
+        $cacheKeys = cache()->get('marketplace_module_caches', []);
+
+        if (!is_array($cacheKeys)) {
+            return [];
+        }
+
+        foreach ($cacheKeys as $key) {
+            if (!is_string($key) || !str_starts_with($key, 'marketplace_modules_')) {
+                continue;
+            }
+
+            $modules = cache()->get($key, []);
+            if (!is_array($modules)) {
+                continue;
+            }
+
+            foreach ($modules as $module) {
+                if (is_array($module) && ( $module['slug'] ?? null ) === $slug) {
+                    return $module;
+                }
+            }
+        }
+
+        return [];
     }
 }

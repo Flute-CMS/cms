@@ -43,7 +43,7 @@ class PaymentsViewController extends BaseController
 
         try {
             return payments()->processor()->processPayment($invoice, $gateway);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return $this->errors()->badRequest($e->getMessage());
         }
     }
@@ -109,7 +109,7 @@ class PaymentsViewController extends BaseController
 
         try {
             payments()->processor()->handlePayment($invoice->gateway);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (stripos($e->getMessage(), 'already paid') !== false) {
                 return;
             }

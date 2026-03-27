@@ -48,7 +48,7 @@ class AuthController extends BaseController
             flash()->success(__('auth.logout_success'));
 
             return response()->redirect('/');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
 
@@ -65,7 +65,7 @@ class AuthController extends BaseController
             return response()->redirect('/');
         } catch (AccountNotVerifiedException $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
         }
     }
@@ -100,7 +100,7 @@ class AuthController extends BaseController
             flash()->add('success', __('profile.edit.main.basic_information.email_changed_success'));
 
             return response()->redirect('/');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
         }
     }

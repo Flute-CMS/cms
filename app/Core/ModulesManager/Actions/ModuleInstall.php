@@ -17,6 +17,8 @@ use RuntimeException;
 
 class ModuleInstall implements ModuleActionInterface
 {
+    use Concerns\FlushesTranslationCache;
+
     protected ModuleManager $moduleManager;
 
     protected ModuleDependencies $moduleDependencies;
@@ -47,7 +49,7 @@ class ModuleInstall implements ModuleActionInterface
         if (fs()->exists(BASE_PATH . $directory)) {
             try {
                 app(DatabaseConnection::class)->runMigrations($directory);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 app(DatabaseConnection::class)->rollbackMigrations($directory);
 
                 throw $e;
@@ -77,6 +79,8 @@ class ModuleInstall implements ModuleActionInterface
         $this->e($module);
 
         $this->moduleManager->runComposerInstall($module);
+
+        $this->flushCompiledTranslations();
 
         app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$module->key]);
 

@@ -410,7 +410,7 @@ class SocialService implements SocialServiceInterface
                     if ($tempUser) {
                         transaction($tempUser, 'delete')->run();
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->error('Error deleting temporary user during bind: ' . $e->getMessage());
 
                     throw new Exception('Failed to reassign social account. Please try again.');
@@ -714,7 +714,7 @@ class SocialService implements SocialServiceInterface
                     transaction($user, 'delete')->run();
                 }
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Error deleting temporary user: ' . $e->getMessage());
         }
     }
@@ -892,7 +892,7 @@ class SocialService implements SocialServiceInterface
 
                 try {
                     transaction($user)->run();
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->warning('Failed to update user avatar from social profile: ' . $e->getMessage());
                 }
             }
@@ -922,7 +922,7 @@ class SocialService implements SocialServiceInterface
 
                 try {
                     $user->saveOrFail();
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->warning('Failed to update user banner from social profile: ' . $e->getMessage());
                 }
             }

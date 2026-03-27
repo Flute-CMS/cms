@@ -50,7 +50,7 @@ class PasswordResetTokenComponent extends Component
                 $this->redirect('/');
             } catch (TooManyRequestsException $e) {
                 toast()->error(__('auth.too_many_requests'))->push();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error($e);
 
                 toast()->error(is_debug() ? $e->getMessage() : __('def.unknown_error'))->push();

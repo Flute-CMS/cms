@@ -14,6 +14,8 @@ use RuntimeException;
 
 class ModuleActivate implements ModuleActionInterface
 {
+    use Concerns\FlushesTranslationCache;
+
     protected ModuleDependencies $dependencies;
 
     protected ModuleManager $moduleManager;
@@ -40,6 +42,7 @@ class ModuleActivate implements ModuleActionInterface
         $this->checkModuleDependencies($moduleGet);
 
         $this->activate($moduleGet);
+        $this->flushCompiledTranslations();
 
         app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$module->key]);
 

@@ -156,7 +156,7 @@ class NotificationTemplateEditScreen extends Screen
 
             $this->flashMessage(__('admin-notifications.messages.saved'));
             $this->template = NotificationTemplate::findByPK($this->templateId);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         }

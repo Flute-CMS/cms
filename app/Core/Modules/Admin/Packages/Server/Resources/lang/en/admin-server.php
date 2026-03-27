@@ -73,6 +73,14 @@ return [
             'placeholder' => 'Optional. If empty, uses connection port',
             'help' => 'Port for RCON commands. Leave empty to use main port',
         ],
+        'lat' => [
+            'label' => 'Latitude',
+            'help' => 'Server geographic latitude for ping calculation',
+        ],
+        'lon' => [
+            'label' => 'Longitude',
+            'help' => 'Server geographic longitude for ping calculation',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'Should the server be visible in the public list',

@@ -65,6 +65,9 @@ return [
         'optimization' => [
             'title' => 'Рекомендации по оптимизации',
         ],
+        'permissions' => [
+            'title' => 'Права директорий',
+        ],
     ],
     'support' => [
         'github_sponsors' => 'Стать спонсором',
@@ -73,6 +76,9 @@ return [
     ],
     'requirements' => [
         'required_extension' => 'Это расширение обязательно для правильной работы системы.',
+    ],
+    'permissions' => [
+        'fix_hint' => 'Исправление: chown -R www-data:www-data /path/to/flute/storage && chmod -R g+w /path/to/flute/storage',
     ],
     'report' => [
         'title' => 'Отчёт о системе',

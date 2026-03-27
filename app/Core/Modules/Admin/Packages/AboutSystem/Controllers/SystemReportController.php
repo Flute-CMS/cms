@@ -39,13 +39,55 @@ class SystemReportController extends BaseController
     {
         $report = $this->generateReport();
 
-        $filename = 'flute_system_report_' . date('Y-m-d_H-i-s') . '.txt';
+        $basename = 'flute_system_report_' . date('Y-m-d_H-i-s');
 
+        // Try to create a ZIP archive for smaller download size.
+        if (class_exists(\ZipArchive::class)) {
+            $tmpFile = tempnam(sys_get_temp_dir(), 'flute_report_');
+            if (!is_string($tmpFile) || $tmpFile === '') {
+                $tmpDir = storage_path('app/temp');
+                if (!is_dir($tmpDir)) {
+                    @mkdir($tmpDir, 0o775, true);
+                }
+
+                $tmpFile = tempnam($tmpDir, 'flute_report_');
+            }
+
+            $zip = new \ZipArchive();
+            if (
+                is_string($tmpFile)
+                && $tmpFile !== ''
+                && $zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true
+            ) {
+                $zip->addFromString($basename . '.txt', $report);
+                $zip->close();
+
+                $zipContent = file_get_contents($tmpFile);
+                @unlink($tmpFile);
+
+                if ($zipContent !== false) {
+                    $response = new Response($zipContent);
+                    $response->headers->set('Content-Type', 'application/zip');
+                    $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+                        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                        $basename . '.zip',
+                    ));
+
+                    return $response;
+                }
+            }
+
+            if (is_string($tmpFile) && $tmpFile !== '') {
+                @unlink($tmpFile);
+            }
+        }
+
+        // Fallback: plain text if ZipArchive is unavailable.
         $response = new Response($report);
         $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
         $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $filename,
+            $basename . '.txt',
         ));
 
         return $response;
@@ -83,24 +125,12 @@ class SystemReportController extends BaseController
     protected function generateHeader(): string
     {
         $lines = [
-            str_repeat('=', 80),
-            '                         FLUTE CMS SYSTEM REPORT',
-            str_repeat('=', 80),
-            '',
+            'FLUTE CMS SYSTEM REPORT',
             'Generated: ' . date('Y-m-d H:i:s T'),
-            'Report Version: 1.0',
-            '',
-            'This report contains detailed information about your Flute CMS installation.',
-            'You can share this report with developers to help diagnose issues.',
-            '',
-            'IMPORTANT: This report may contain sensitive information.',
-            'Review it before sharing and remove any sensitive data if necessary.',
             '',
         ];
 
-        $lines[] = str_repeat('-', 80);
-        $lines[] = 'IONCUBE STATUS (IMPORTANT FOR PERFORMANCE)';
-        $lines[] = str_repeat('-', 80);
+        $lines[] = '--- IONCUBE STATUS ---';
 
         $ioncubeLoaded = extension_loaded('ionCube Loader');
         $lines[] = 'ionCube Loader: ' . ( $ioncubeLoaded ? 'LOADED' : 'NOT LOADED' );
@@ -144,23 +174,7 @@ class SystemReportController extends BaseController
         }
 
         $lines[] = '';
-        $lines[] = str_repeat('-', 80);
-        $lines[] = 'PERFORMANCE TRACKING INFO';
-        $lines[] = str_repeat('-', 80);
-        $lines[] = 'Performance statistics are collected AUTOMATICALLY in any mode (debug/production).';
-        $lines[] = 'Data is gathered from regular page requests and cached for 7 days.';
-        $lines[] = '';
-        $lines[] = 'What is tracked:';
-        $lines[] = '  - Module boot times (collected during service provider registration)';
-        $lines[] = '  - Service provider boot times (collected during app bootstrap)';
-        $lines[] = '  - Route/page execution times (collected on every HTTP request)';
-        $lines[] = '  - Widget render times (collected when widgets are rendered)';
-        $lines[] = '  - View/template render times (collected when views are rendered)';
-        $lines[] = '  - Database query times and counts (always tracked, logged only if database.debug=true)';
-        $lines[] = '';
-        $lines[] = 'Statistics include: avg, median, min, max, std dev, hit counts.';
-        $lines[] = 'After a few page visits, the statistics will start appearing in this report.';
-        $lines[] = str_repeat('-', 80);
+        $lines[] = 'Performance stats: auto-collected, cached 7 days (modules, providers, routes, queries, widgets, views).';
 
         return implode("\n", $lines);
     }
@@ -358,7 +372,7 @@ class SystemReportController extends BaseController
                     $deps = [];
                     if (!empty($module->dependencies)) {
                         foreach ($module->dependencies as $dep => $ver) {
-                            $deps[] = $dep . ':' . $ver;
+                            $deps[] = $dep . ':' . ( is_scalar($ver) ? $ver : json_encode($ver) );
                         }
                     }
                     $depsStr = !empty($deps) ? implode(', ', $deps) : '-';
@@ -1313,8 +1327,25 @@ class SystemReportController extends BaseController
             $driverName = str_replace(['Driver', 'Cycle\\Database\\Driver\\'], '', $driver);
 
             $lines[] = $this->formatKeyValue('Driver', $driverName);
-            $lines[] = $this->formatKeyValue('Host', $dbConfig->connection ?? 'N/A');
-            $lines[] = $this->formatKeyValue('Database', $dbConfig->database ?? 'N/A');
+
+            $connInfo = $dbConfig->connection ?? null;
+            $host = 'N/A';
+            $dbName = $dbConfig->database ?? 'N/A';
+
+            if (is_string($connInfo)) {
+                $host = $connInfo;
+            } elseif (is_object($connInfo)) {
+                $host = $connInfo->host ?? 'N/A';
+
+                if (isset($connInfo->port)) {
+                    $host .= ':' . $connInfo->port;
+                }
+
+                $dbName = $connInfo->database ?? $dbName;
+            }
+
+            $lines[] = $this->formatKeyValue('Host', (string) $host);
+            $lines[] = $this->formatKeyValue('Database', (string) $dbName);
 
             $dbal = app(DatabaseManager::class)->getDbal();
             $database = $dbal->database();
@@ -1380,14 +1411,7 @@ class SystemReportController extends BaseController
 
                 if (!empty($lockData['packages-dev'])) {
                     $lines[] = '';
-                    $lines[] = 'Dev Packages (' . count($lockData['packages-dev']) . '):';
-                    $lines[] = '';
-
-                    foreach ($lockData['packages-dev'] as $package) {
-                        $name = $package['name'] ?? 'unknown';
-                        $version = $package['version'] ?? 'N/A';
-                        $lines[] = sprintf('  %-40s %s', $name, $version);
-                    }
+                    $lines[] = 'Dev Packages: ' . count($lockData['packages-dev']) . ' (omitted)';
                 }
             } else {
                 $lines[] = 'composer.lock not found';
@@ -1593,29 +1617,26 @@ class SystemReportController extends BaseController
 
             foreach ($logFiles as $fileName => $fileInfo) {
                 $lines[] = '';
-                $lines[] = str_repeat('-', 80);
-                $lines[] = 'LOG FILE: ' . $fileName;
-                $lines[] = 'Size: ' . ( $fileInfo['size'] ?? 'N/A' );
-                $lines[] = 'Modified: ' . ( $fileInfo['modified'] ?? 'N/A' );
-                $lines[] = str_repeat('-', 80);
-                $lines[] = '';
+                $lines[] =
+                    '--- '
+                    . $fileName
+                    . ' ('
+                    . ( $fileInfo['size'] ?? '?' )
+                    . ', '
+                    . ( $fileInfo['modified'] ?? '?' )
+                    . ') ---';
 
                 $logPath = path('storage/logs/' . $fileName);
                 if (file_exists($logPath)) {
                     $content = file_get_contents($logPath);
 
-                    $maxSize = 200 * 1024;
+                    $maxSize = 50 * 1024;
                     if (strlen($content) > $maxSize) {
-                        $content = "... [TRUNCATED - showing last 200KB] ...\n\n" . substr($content, -$maxSize);
+                        $content = "[TRUNCATED - last 50KB]\n" . substr($content, -$maxSize);
                     }
 
-                    $content = $this->sanitizeLogContent($content);
-                    $lines[] = $content;
-                } else {
-                    $lines[] = 'File not found: ' . $logPath;
+                    $lines[] = $this->sanitizeLogContent($content);
                 }
-
-                $lines[] = '';
             }
         } catch (Throwable $e) {
             $lines[] = 'Error loading logs: ' . $e->getMessage();
@@ -1677,7 +1698,7 @@ class SystemReportController extends BaseController
 
     protected function sectionTitle(string $title): string
     {
-        return "\n" . str_repeat('=', 80) . "\n" . $title . "\n" . str_repeat('-', 80);
+        return "\n=== " . $title . ' ===';
     }
 
     protected function formatKeyValue(string $key, string $value): string

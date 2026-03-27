@@ -382,7 +382,7 @@ abstract class Table extends FluteComponent
             if (!empty($value)) {
                 $filtered = array_filter(
                     $filtered,
-                    static fn($item) => isset($item[$field]) && $item[$field] == $value,
+                    static fn($item) => isset($item[$field]) && (string) $item[$field] === (string) $value,
                 );
             }
         }
@@ -396,7 +396,7 @@ abstract class Table extends FluteComponent
             $filtered = array_filter($filtered, function ($item) use ($searchableColumns) {
                 foreach ($searchableColumns as $column) {
                     $field = $column['field'];
-                    if (isset($item[$field]) && stripos($item[$field], $this->search) !== false) {
+                    if (isset($item[$field]) && stripos((string) $item[$field], $this->search) !== false) {
                         return true;
                     }
                 }
@@ -420,7 +420,7 @@ abstract class Table extends FluteComponent
                         $valueA = $a[$this->sortField] ?? null;
                         $valueB = $b[$this->sortField] ?? null;
 
-                        if ($valueA == $valueB) {
+                        if ($valueA === $valueB) {
                             return 0;
                         }
 

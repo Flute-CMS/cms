@@ -164,7 +164,7 @@ class ModulesController extends BaseController
                 'success' => true,
                 'message' => __('admin-modules.messages.installed', ['name' => __($moduleName)]),
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('modules')->error('Module installation error: ' . $e->getMessage());
 
             return $this->error(__('admin-modules.dropzone.errors.installation_failed', ['error' =>

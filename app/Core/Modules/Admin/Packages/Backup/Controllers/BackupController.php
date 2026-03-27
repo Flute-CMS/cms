@@ -33,7 +33,7 @@ class BackupController extends BaseController
             $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, basename($filename));
 
             return $response;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 404);
         }
     }

@@ -94,7 +94,11 @@
 			"Flute\\": "app/",
 			"Flute\\Admin\\": "app/Core/Modules/Admin/",
 			"Hybridauth\\Provider\\": "app/Core/Modules/Auth/Hybrid/"
-		}
+		},
+		"exclude-from-classmap": [
+			"vendor/hybridauth/hybridauth/src/Provider/Discord.php",
+			"vendor/hybridauth/hybridauth/src/Provider/Telegram.php"
+		]
 	},
 	"autoload-dev": {
 		"psr-4": {

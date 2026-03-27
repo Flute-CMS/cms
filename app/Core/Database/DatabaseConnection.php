@@ -217,13 +217,51 @@ class DatabaseConnection
         $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 15.0);
 
         if ($lockHandle === false) {
-            logs()->warning('ORM schema compilation: lock wait timeout or stale lock detected');
-
             if (file_exists(self::SCHEMA_FILE)) {
-                $this->recompileOrmSchema(true);
+                logs()->debug('ORM schema compilation: lock held by another process, using cached schema');
+
+                if (!isset($this->dbal)) {
+                    $this->dbal = $this->databaseManager->getDbal();
+                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                        logs('database'),
+                        (bool) config('database.debug'),
+                    );
+                    $this->dbal->setLogger($timingLogger);
+                }
+
+                $this->loadCachedSchemaIntoOrm();
+
+                return;
             }
 
-            return;
+            logs()->warning(
+                'ORM schema compilation: lock timeout and no cached schema, waiting for compilation to finish',
+            );
+
+            $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 60.0);
+
+            if ($lockHandle === false) {
+                logs()->error('ORM schema compilation: failed to acquire lock after extended wait');
+
+                return;
+            }
+
+            if (file_exists(self::SCHEMA_FILE)) {
+                \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+
+                if (!isset($this->dbal)) {
+                    $this->dbal = $this->databaseManager->getDbal();
+                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                        logs('database'),
+                        (bool) config('database.debug'),
+                    );
+                    $this->dbal->setLogger($timingLogger);
+                }
+
+                $this->loadCachedSchemaIntoOrm();
+
+                return;
+            }
         }
 
         try {
@@ -297,6 +335,7 @@ class DatabaseConnection
 
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
+            self::ensureGroupWritable(self::SCHEMA_FILE);
             $this->writeSchemaMeta($this->entitiesDirs);
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
@@ -410,6 +449,17 @@ class DatabaseConnection
                 @unlink(self::SCHEMA_META_FILE);
             }
         }
+
+        $schemaFpCache =
+            BASE_PATH
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'schema_fp_cache.php';
+        @unlink($schemaFpCache);
 
         $this->entitiesDirs = [self::ENTITIES_DIR];
 
@@ -627,6 +677,9 @@ class DatabaseConnection
      */
     protected function ormIntoContainer(): void
     {
+        \Cycle\ActiveRecord\Facade::reset();
+        \Cycle\ActiveRecord\Facade::setContainer(app()->getContainer());
+
         app()->bind(ORM::class, $this->orm);
         app()->bind(ORMInterface::class, $this->orm);
     }
@@ -822,12 +875,13 @@ class DatabaseConnection
         if ($valid) {
             $dir = dirname($cachedFpFile);
             if (!is_dir($dir)) {
-                @mkdir($dir, 0o755, true);
+                @mkdir($dir, 0o775, true);
             }
             @file_put_contents(
                 $cachedFpFile,
                 '<?php return ' . var_export(['fingerprint' => $expectedFingerprint, 'time' => time()], true) . ';',
             );
+            self::ensureGroupWritable($cachedFpFile);
         }
 
         return $valid;
@@ -1019,6 +1073,22 @@ class DatabaseConnection
         $tmp = self::SCHEMA_META_FILE . '.tmp';
         $content = '<?php return ' . var_export($meta, true) . ';';
         @file_put_contents($tmp, $content, LOCK_EX);
+        self::ensureGroupWritable($tmp);
         @rename($tmp, self::SCHEMA_META_FILE);
+    }
+
+    /**
+     * Ensure a file is group-writable so both root (CLI/cron) and www-data (Apache) can overwrite it.
+     */
+    private static function ensureGroupWritable(string $path): void
+    {
+        if (PHP_OS_FAMILY === 'Windows' || !is_file($path)) {
+            return;
+        }
+
+        $perms = @fileperms($path);
+        if ($perms !== false && ( $perms & 0o020 ) === 0) {
+            @chmod($path, ( $perms | 0o060 ) & 0o7777);
+        }
     }
 }

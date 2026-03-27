@@ -26,7 +26,7 @@ class GatewayFactory
             $gateway->initialize($config);
 
             return $gateway;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $masked = substr($gatewayEntity->additional, 0, 4) . '***';
             logs()->warning($e->getMessage(), ['adapter' => $gatewayEntity->adapter, 'config' => $masked]);
 

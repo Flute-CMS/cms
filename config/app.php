@@ -6,6 +6,7 @@ return array(
     'keywords' => 'Flute, game servers, gaming',
     'url' => '',
     'flute_market_url' => 'https://flute-cms.com',
+    'flute_market_mirrors' => [],
     'debug' => false,
     'cron_mode' => false,
     'auto_update' => false,
@@ -16,9 +17,7 @@ return array(
     'steam_api' => '',
     'change_theme' => true,
     'default_theme' => 'dark',
-    'debug_ips' =>
-        array(
-        ),
+    'debug_ips' => array(),
     'development_mode' => false,
     'logo' => 'assets/img/logo.svg',
     'key' => '',
@@ -39,24 +38,28 @@ return array(
     'robots' => 'index, follow',
     'logo_light' => 'assets/img/logo-light.svg',
     'trusted_proxies' => [
-        'REMOTE_ADDR',
+        'AUTO',
     ],
-    'trusted_hosts' => [
+    'trusted_headers' => [
+        'X_FORWARDED_FOR',
+        'X_FORWARDED_HOST',
+        'X_FORWARDED_PROTO',
+        'X_FORWARDED_PORT',
     ],
+    'trusted_hosts' => [],
     'auth_enabled' => true,
     'profile_enabled' => true,
     'balance_enabled' => true,
     'notifications_enabled' => true,
     'notifications_popup_enabled' => true,
     'notifications_sound_enabled' => true,
-    'session' =>
-        array(
-            'name' => 'flute_session',
-            'secure' => 'auto',
-            'http_only' => true,
-            'same_site' => 'Lax',
-            'domain' => NULL,
-            'path' => '/',
-            'lifetime' => 0,
-        ),
+    'session' => array(
+        'name' => 'flute_session',
+        'secure' => 'auto',
+        'http_only' => true,
+        'same_site' => 'Lax',
+        'domain' => null,
+        'path' => '/',
+        'lifetime' => 0,
+    ),
 );

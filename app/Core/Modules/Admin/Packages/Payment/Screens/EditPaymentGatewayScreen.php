@@ -368,7 +368,7 @@ class EditPaymentGatewayScreen extends Screen
                 $this->flashMessage(__('admin-payment.messages.gateway_added'), 'success');
                 $this->redirectTo('/admin/payment/gateways', 300);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-payment.messages.save_error', ['message' => $e->getMessage()]), 'error');
         }
     }
@@ -389,7 +389,7 @@ class EditPaymentGatewayScreen extends Screen
 
             $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
             $this->redirectTo('/admin/payment/gateways', 300);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-payment.messages.delete_error', ['message' => $e->getMessage()]), 'error');
         }
     }
@@ -483,7 +483,7 @@ class EditPaymentGatewayScreen extends Screen
                 }
 
                 return $newFile;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return null;
             }
         }

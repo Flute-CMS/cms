@@ -31,6 +31,7 @@ class AttentionService
         $this->checkDebugMode();
         $this->checkCron();
         $this->checkPerformanceSettings();
+        $this->checkDirectoryPermissions();
     }
 
     protected function checkUpdates(): void
@@ -89,6 +90,39 @@ class AttentionService
                 'type' => 'warning',
                 'icon' => 'ph.bold.clock-countdown-bold',
                 'url' => url('/admin/servers'),
+            ];
+        }
+    }
+
+    protected function checkDirectoryPermissions(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            return;
+        }
+
+        $dirs = [
+            BASE_PATH . 'storage',
+            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'logs',
+            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
+            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
+            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app',
+        ];
+
+        $problems = 0;
+
+        foreach ($dirs as $dir) {
+            if (is_dir($dir) && !is_writable($dir)) {
+                $problems++;
+            }
+        }
+
+        if ($problems > 0) {
+            $this->items[] = [
+                'key' => 'permissions',
+                'type' => 'error',
+                'icon' => 'ph.bold.folder-lock-bold',
+                'count' => $problems,
+                'url' => url('/admin/about-system'),
             ];
         }
     }

@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
+if (function_exists('ini_set')) {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+}
+
+if (PHP_OS_FAMILY !== 'Windows') {
+    umask(0002);
+}
+
 if (!defined('FLUTE_START')) {
     define('FLUTE_START', microtime(true));
 }
@@ -31,6 +40,14 @@ define('FLUTE_BOOTSTRAP_START', microtime(true));
 require __DIR__ . '/composer-error.php';
 
 set_error_handler(function ($severity, $message, $file, $line) {
+    if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+        return true;
+    }
+
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
@@ -42,6 +59,8 @@ try {
 }
 
 restore_error_handler();
+
+\Flute\Core\Support\StoragePermissionFixer::ensurePermissions(BASE_PATH);
 
 use Flute\Core\App;
 use Flute\Core\Profiling\GlobalProfiler;
@@ -109,8 +128,8 @@ GlobalProfiler::start();
  * Initializes the service providers
  */
 $app->serviceProvider(FileSystemServiceProvider::class)
-    ->serviceProvider(RequestServiceProvider::class)
     ->serviceProvider(ConfigurationServiceProvider::class)
+    ->serviceProvider(RequestServiceProvider::class)
     ->serviceProvider(TranslationServiceProvider::class)
     ->serviceProvider(EventsServiceProvider::class)
     ->serviceProvider(LoggerServiceProvider::class)

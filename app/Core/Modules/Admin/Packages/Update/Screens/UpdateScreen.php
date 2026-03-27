@@ -15,6 +15,7 @@ use Flute\Core\Update\Updaters\ModuleUpdater;
 use Flute\Core\Update\Updaters\ThemeUpdater;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 class UpdateScreen extends Screen
 {
@@ -160,12 +161,14 @@ class UpdateScreen extends Screen
             } else {
                 throw new RuntimeException(__('admin-update.update_failed'));
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (is_debug()) {
                 throw $e;
             }
             logs()->error('Update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled ?? false);
         }
     }
 
@@ -180,6 +183,8 @@ class UpdateScreen extends Screen
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
+
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
 
         try {
             $this->flashMessage(__('admin-update.update_all_preparing'));
@@ -209,7 +214,7 @@ class UpdateScreen extends Screen
                             @unlink($packageFile);
                         }
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->error('CMS update error: ' . $e->getMessage());
                 }
             }
@@ -238,7 +243,7 @@ class UpdateScreen extends Screen
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         logs()->error("Module {$moduleId} update error: " . $e->getMessage());
                     }
                 }
@@ -264,7 +269,7 @@ class UpdateScreen extends Screen
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         logs()->error("Theme {$themeId} update error: " . $e->getMessage());
                     }
                 }
@@ -286,7 +291,7 @@ class UpdateScreen extends Screen
             }
 
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (is_debug()) {
                 throw $e;
             }
@@ -352,6 +357,7 @@ class UpdateScreen extends Screen
             'started_at' => date(DATE_ATOM),
             'pid' => getmypid(),
             'force' => false,
+            'source' => 'flute-admin-update',
         ];
 
         @file_put_contents($storageFlag, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

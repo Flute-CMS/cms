@@ -6,11 +6,12 @@ use Exception;
 use Flute\Core\App;
 use Flute\Core\Markdown\Parser;
 use Flute\Core\ModulesManager\ModuleManager;
+use Flute\Core\Services\FluteApiClient;
 use Flute\Core\Theme\ThemeManager;
 use Flute\Core\Update\Updaters\ModuleUpdater;
 use Flute\Core\Update\Updaters\ThemeUpdater;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Throwable;
 
 class UpdateService
 {
@@ -23,17 +24,6 @@ class UpdateService
      * Cache duration in minutes
      */
     private const CACHE_DURATION = 1440; // 1 day
-
-    /**
-     * Update API URL
-     */
-    private const UPDATE_API_URL = 'https://flute-cms.com/api';
-
-    /**
-     * Local API Update
-     */
-    // private const LOCAL_API_UPDATE_URL = 'http://localhost:3000/api';
-    private const LOCAL_API_UPDATE_URL = 'https://flute-cms.com/api';
 
     /**
      */
@@ -200,13 +190,12 @@ class UpdateService
 
             $fileName = $tempDir . '/' . ( $identifier ?? 'cms' ) . '-' . ( $version ?? $latestVersion ) . '.zip';
 
-            $client = new Client(['timeout' => 120, 'verify' => true]);
+            $api = new FluteApiClient(timeout: 120, connectTimeout: 10);
 
-            $baseUrl = '';
+            $fullUrl = $downloadUrl;
             if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $baseUrl = str_contains((string) config('app.url'), 'localhost')
-                    ? self::LOCAL_API_UPDATE_URL
-                    : self::UPDATE_API_URL;
+                $fullUrl =
+                    rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim(str_replace('api/', '', $downloadUrl), '/');
             }
 
             // parse ?token safely
@@ -217,7 +206,7 @@ class UpdateService
             }
             $token = $queryParams['token'] ?? '';
 
-            $client->request('GET', $baseUrl . str_replace('api/', '', $downloadUrl), [
+            $api->getClient()->request('GET', $fullUrl, [
                 'headers' => [
                     'User-Agent' => 'Flute-CMS/' . App::VERSION,
                 ],
@@ -243,7 +232,7 @@ class UpdateService
             if (is_debug()) {
                 throw $e;
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Error processing update download: ' . $e->getMessage());
 
             if (is_debug()) {
@@ -275,7 +264,6 @@ class UpdateService
         }
 
         try {
-            $client = new Client(['timeout' => 10, 'verify' => true]);
             $apiKey = config('app.flute_key');
 
             if (empty($apiKey)) {
@@ -284,14 +272,9 @@ class UpdateService
                 return [];
             }
 
-            $url =
-                (
-                    str_contains((string) config('app.url'), 'localhost')
-                        ? self::LOCAL_API_UPDATE_URL
-                        : self::UPDATE_API_URL
-                ) . '/updates';
+            $api = new FluteApiClient(timeout: 10, connectTimeout: 5);
 
-            $response = $client->request('GET', $url, [
+            $response = $api->get('/api/updates', [
                 'headers' => [
                     'Accept' => 'application/json',
                     'User-Agent' => 'Flute-CMS/' . App::VERSION,
@@ -314,23 +297,11 @@ class UpdateService
                 $data = json_decode($response->getBody(), true);
 
                 if (is_array($data)) {
-                    $data = $this->parseMarkdownChangelogs($data);
-
-                    return $data;
+                    return $this->parseMarkdownChangelogs($data);
                 }
             }
-        } catch (GuzzleException $e) {
-            // if (is_debug()) {
-            //     throw $e;
-            // }
-
+        } catch (\Throwable $e) {
             logs()->error('Failed to fetch updates: ' . $e->getMessage());
-        } catch (Exception $e) {
-            // if (is_debug()) {
-            //     throw $e;
-            // }
-
-            logs()->error('Error processing updates: ' . $e->getMessage());
         }
 
         return [];

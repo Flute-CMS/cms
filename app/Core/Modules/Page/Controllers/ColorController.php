@@ -87,7 +87,7 @@ class ColorController extends BaseController
             return $this->json([
                 'message' => __('def.colors_updated'),
             ], 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error('Failed to update theme colors: ' . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to update theme colors. Please try again later.';
             $this->toast($message, 'error');
@@ -188,7 +188,7 @@ class ColorController extends BaseController
                 'success' => true,
                 'message' => __('def.settings_updated'),
             ], 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error('Failed to update theme customization: ' . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to update theme customization. Please try again later.';
             $this->toast($message, 'error');
@@ -329,7 +329,7 @@ class ColorController extends BaseController
                 'success' => true,
                 'message' => __('page-edit.settings_saved'),
             ], 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error('Failed to save theme settings: ' . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to save theme settings. Please try again later.';
             $this->toast($message, 'error');
@@ -376,7 +376,7 @@ class ColorController extends BaseController
                 'url' => asset($path),
                 'path' => $path,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error("Failed to upload site image ({$type}): " . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : __('page-edit.upload_error');
 
@@ -415,7 +415,7 @@ class ColorController extends BaseController
                 'success' => true,
                 'default' => $defaults[$type],
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error("Failed to delete site image ({$type}): " . $e->getMessage());
 
             return $this->json(['error' => 'Failed to delete image.'], 500);

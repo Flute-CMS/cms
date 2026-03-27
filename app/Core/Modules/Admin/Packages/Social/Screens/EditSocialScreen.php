@@ -316,7 +316,7 @@ class EditSocialScreen extends Screen
             $this->clearSocialCache();
 
             $this->flashMessage(__('admin-social.messages.save_success'), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-social.messages.save_error', ['message' => $e->getMessage()]), 'error');
 
             return;
@@ -338,7 +338,7 @@ class EditSocialScreen extends Screen
 
             $this->flashMessage(__('admin-social.messages.delete_success'), 'success');
             $this->redirectTo('/admin/socials', 300);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-social.messages.delete_error', ['message' => $e->getMessage()]), 'error');
         }
     }

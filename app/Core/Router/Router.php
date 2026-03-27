@@ -570,16 +570,31 @@ class Router implements RouterInterface
             $response = response()->error($exception->getStatusCode(), $exception->getMessage());
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
             $response = response()->error($exception->getStatusCode(), $exception->getMessage());
-        } catch (Exception $exception) {
+        } catch (\Throwable $exception) {
             if (is_debug()) {
                 throw $exception;
+            }
+
+            if (function_exists('logs')) {
+                logs()->error($exception);
             }
 
             $response = response()->error(500, __('def.internal_server_error'));
         }
 
         $event = new RoutingFinishedEvent($response);
-        $event = events()->dispatch($event, RoutingFinishedEvent::NAME);
+
+        try {
+            $event = events()->dispatch($event, RoutingFinishedEvent::NAME);
+        } catch (\Throwable $e) {
+            if (is_debug()) {
+                throw $e;
+            }
+
+            if (function_exists('logs')) {
+                logs()->error('RoutingFinishedEvent listener failed: ' . $e->getMessage(), ['exception' => $e]);
+            }
+        }
 
         if ($event->isPropagationStopped()) {
             throw new HttpException($event->getResponse()->getStatusCode(), $event->getResponse()->getContent());

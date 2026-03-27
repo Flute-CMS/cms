@@ -91,7 +91,7 @@ class EditMainComponent extends FluteComponent
                 } else {
                     $this->flashMessage(__('profile.edit.main.basic_information.save_changes_success'), 'success');
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $this->inputError('name', $e->getMessage());
             }
         }
@@ -220,7 +220,7 @@ class EditMainComponent extends FluteComponent
         try {
             user()->updateUser($this->user);
             $this->flashMessage(__('profile.edit.main.profile_images.save_changes_success'), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->addUnknownError();
         }
@@ -252,7 +252,7 @@ class EditMainComponent extends FluteComponent
             }
 
             $this->flashMessage(__('profile.edit.main.change_password.save_changes_success'), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->inputError('new_password', $e->getMessage());
         }
     }
@@ -293,7 +293,7 @@ class EditMainComponent extends FluteComponent
                 $this->user->$field = $newFile;
 
                 return null;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return $e->getMessage();
             }
         }
