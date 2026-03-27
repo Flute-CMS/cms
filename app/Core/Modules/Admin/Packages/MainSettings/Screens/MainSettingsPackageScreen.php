@@ -341,17 +341,14 @@ class MainSettingsPackageScreen extends Screen
 
         $full = (bool) request()->input('full', false);
 
-        // Views (Blade cache) should always be cleared so admin sees fresh templates
         $cachePaths = [
             storage_path('app/views/*'),
+            storage_path('app/translations/*'),
+            storage_path('app/proxies/*'),
         ];
 
         if (!is_performance() || $full) {
-            $cachePaths = array_merge($cachePaths, [
-                storage_path('logs/*'),
-                storage_path('app/proxies/*'),
-                storage_path('app/translations/*'),
-            ]);
+            $cachePaths[] = storage_path('logs/*');
         }
 
         try {
