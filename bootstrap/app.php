@@ -128,8 +128,8 @@ GlobalProfiler::start();
  * Initializes the service providers
  */
 $app->serviceProvider(FileSystemServiceProvider::class)
-    ->serviceProvider(RequestServiceProvider::class)
     ->serviceProvider(ConfigurationServiceProvider::class)
+    ->serviceProvider(RequestServiceProvider::class)
     ->serviceProvider(TranslationServiceProvider::class)
     ->serviceProvider(EventsServiceProvider::class)
     ->serviceProvider(LoggerServiceProvider::class)

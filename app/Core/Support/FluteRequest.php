@@ -10,11 +10,24 @@ use Illuminate\Support\Collection;
 use MadeSimple\Arrays\ArrDots;
 use Nette\Utils\AssertionException;
 use Nette\Utils\Validators;
+use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class FluteRequest extends Request
 {
+    /**
+     * Must match RequestServiceProvider::PRIVATE_SUBNET_CIDRS (private hops for URL / TLS inference).
+     */
+    private const PRIVATE_PEER_CIDRS = [
+        '127.0.0.1',
+        '::1',
+        '10.0.0.0/8',
+        '172.16.0.0/12',
+        '192.168.0.0/16',
+        'fc00::/7',
+    ];
+
     public function htmx(): HtmxRequest
     {
         return new HtmxRequest($this->headers);
@@ -101,6 +114,31 @@ class FluteRequest extends Request
     public function isMethod(string $method): bool
     {
         return $this->getMethod() === strtoupper($method);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * After trusted-proxy headers, treat the request as HTTPS when app.url is https, the Host matches
+     * it, and the immediate peer is local/private (typical nginx/php-fpm or Docker bridge) so generated
+     * URLs match TLS terminated upstream even if no X-Forwarded-Proto reaches PHP.
+     */
+    public function isSecure(): bool
+    {
+        if (parent::isSecure()) {
+            return true;
+        }
+
+        $appUrl = (string) config('app.url', '');
+        if ($appUrl === '' || !str_starts_with($appUrl, 'https://')) {
+            return false;
+        }
+
+        if (!$this->hostMatchesConfiguredAppUrl()) {
+            return false;
+        }
+
+        return $this->requestArrivedViaPrivateOrLocalInterface();
     }
 
     /**
@@ -292,6 +330,43 @@ class FluteRequest extends Request
     public function __get($name)
     {
         return $this->input($name);
+    }
+
+    private function hostMatchesConfiguredAppUrl(): bool
+    {
+        $appUrl = (string) config('app.url', '');
+        $expectedHost = parse_url($appUrl, PHP_URL_HOST);
+        if (!$expectedHost || !is_string($expectedHost)) {
+            return false;
+        }
+
+        $host = $this->requestHostForUrlMatch();
+
+        return $host !== null && strcasecmp($host, $expectedHost) === 0;
+    }
+
+    private function requestHostForUrlMatch(): ?string
+    {
+        try {
+            return $this->getHost();
+        } catch (\Throwable) {
+            $raw = (string) $this->headers->get('Host', '');
+            if ($raw === '') {
+                return null;
+            }
+
+            return strtolower((string) preg_replace('/:\d+$/', '', trim($raw)));
+        }
+    }
+
+    private function requestArrivedViaPrivateOrLocalInterface(): bool
+    {
+        $remote = (string) $this->server->get('REMOTE_ADDR', '');
+        if ($remote === '') {
+            return true;
+        }
+
+        return IpUtils::checkIp($remote, self::PRIVATE_PEER_CIDRS);
     }
 
     /**
