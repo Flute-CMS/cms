@@ -38,6 +38,15 @@ if (!function_exists('flute_maintenance_gate')) {
             }
         }
 
+        // If vendor/autoload.php exists and composer is not running, the update
+        // likely finished but the flag wasn't cleaned up. Clear it immediately.
+        if (is_file($basePath . 'vendor/autoload.php') && !flute_is_composer_locked($basePath)) {
+            @unlink($storageFlag);
+            @unlink($publicFlag);
+
+            return false;
+        }
+
         // Determine how long maintenance has been active
         $age = flute_maintenance_age($payload, $storageFlag, $publicFlag);
 
@@ -58,7 +67,7 @@ if (!function_exists('flute_maintenance_gate')) {
         }
 
         $title = 'Maintenance';
-        $message = 'Updating, please try again in a minute.';
+        $message = 'Update in progress, please try again shortly.';
 
         if (!empty($payload['title']) && is_string($payload['title'])) {
             $title = $payload['title'];
@@ -81,6 +90,7 @@ if (!function_exists('flute_maintenance_gate')) {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>{$safeTitle}</title>
+                <meta http-equiv="refresh" content="10">
                 <style>
                     :root { color-scheme: dark; }
                     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0c0c0f; color: #f4f4f5; }

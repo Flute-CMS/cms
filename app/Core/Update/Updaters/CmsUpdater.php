@@ -84,15 +84,8 @@ class CmsUpdater extends AbstractUpdater
         }
 
         try {
-            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
-        } catch (Throwable $e) {
-            logs()->error('Failed to extract update package: ' . $e->getMessage());
-
-            return false;
-        }
-
-        try {
             try {
+                app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
                 $this->createBackup();
 
                 $dirs = array_filter(glob($extractDir . '/*'), 'is_dir');

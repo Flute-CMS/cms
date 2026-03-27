@@ -144,6 +144,15 @@ if (!$maintenance) {
     exit;
 }
 
+// If vendor/autoload.php exists and composer is not running, the update
+// finished but the flag wasn't cleaned up. Clear immediately.
+if (is_file($vendorAutoload) && !flute_is_locked($lockPath)) {
+    @unlink($storageFlag);
+    @unlink($publicFlag);
+    http_response_code(204);
+    exit;
+}
+
 $payload = flute_payload($storageFlag);
 $age = flute_age($payload, $storageFlag, $publicFlag);
 $hardTimeout = 600; // 10 minutes
