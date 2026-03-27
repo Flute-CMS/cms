@@ -209,7 +209,7 @@ class PageManager
                                 ? json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']
                                 : ['auth' => 'all', 'device' => 'all'],
                         ];
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
                         logs()->error($e);
                     }
@@ -217,7 +217,7 @@ class PageManager
             }
 
             return $layout;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
 
             throw $e;
@@ -343,7 +343,7 @@ class PageManager
                         ? json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']
                         : ['auth' => 'all', 'device' => 'all'],
                 ];
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $this->logger->error('Failed to retrieve global layout widget: ' . $e->getMessage());
             }
         }
@@ -1146,7 +1146,7 @@ class PageManager
             $pushContent = view()->yieldPushContent('content');
 
             return !empty(trim(strip_tags($pushContent)));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return true;
         }
     }

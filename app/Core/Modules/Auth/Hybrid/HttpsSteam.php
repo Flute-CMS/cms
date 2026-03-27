@@ -77,7 +77,7 @@ class HttpsSteam extends OpenID
                 if (empty($result['photoURL'])) {
                     $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error($e);
 
                 $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
@@ -85,7 +85,7 @@ class HttpsSteam extends OpenID
         } else {
             try {
                 $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error($e);
             }
         }

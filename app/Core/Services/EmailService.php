@@ -51,7 +51,7 @@ class EmailService
                 ->html($body);
 
             $this->mailer->send($email);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error("Email send failed: {$e->getMessage()}");
 
             throw $e;
@@ -72,7 +72,7 @@ class EmailService
             ]);
 
             $this->send($user->email, __('auth.reset.subject'), $template);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error("Email reset failed: {$e->getMessage()}");
         }
     }
@@ -97,7 +97,7 @@ class EmailService
             ]);
 
             $this->send($user->email, __('auth.confirmation.subject'), $template);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error("Email registration failed: {$e->getMessage()}");
         }
     }

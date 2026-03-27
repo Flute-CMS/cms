@@ -45,7 +45,7 @@ class DeleteAccountComponent extends FluteComponent
                 auth()->logout();
 
                 $this->flashMessage(__('profile.edit.main.delete_account.delete_success'), 'success');
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $this->inputError('delete_confirmation', __('profile.edit.main.delete_account.delete_failed'));
             }
         }

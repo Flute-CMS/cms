@@ -6,6 +6,7 @@ return array(
     'keywords' => 'Flute, game servers, gaming',
     'url' => '',
     'flute_market_url' => 'https://flute-cms.com',
+    'flute_market_mirrors' => [],
     'debug' => false,
     'cron_mode' => false,
     'auto_update' => false,

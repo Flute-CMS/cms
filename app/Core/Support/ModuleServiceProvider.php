@@ -201,7 +201,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
         } catch (DirectoryNotFoundException $e) {
             logs('modules')->warning("Directory not found for module {$this->getModuleName()}: " . $e->getMessage());
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             logs('modules')->error("Error loading entities for module {$this->getModuleName()}: " . $e->getMessage());
         }
     }
@@ -215,7 +215,15 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
-        app(AdminPanel::class)->registerPackage($package);
+        try {
+            app(AdminPanel::class)->registerPackage($package);
+        } catch (\Throwable $e) {
+            if (is_debug()) {
+                throw $e;
+            }
+
+            logs('modules')->error('Failed to load package ' . $package::class . ': ' . $e->getMessage());
+        }
     }
 
     /**
@@ -390,7 +398,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
 
             $this->loadedStatus[$attributesCacheKey] = true;
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             logs()->error("Error loading route attributes in module {$this->getModuleName()}: " . $e->getMessage());
         }
     }
@@ -432,7 +440,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         foreach ($widgets as $key => $widget) {
             try {
                 $widgetManager->registerWidget($key, $widget);
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 logs('modules')->error("Error registering widget {$key}: " . $e->getMessage());
             }
         }
@@ -451,7 +459,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
 
             app(WidgetManager::class)->registerWidget($name, $class);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             logs('modules')->error("Error registering widget {$name}: " . $e->getMessage());
         }
     }
@@ -530,8 +538,16 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
      */
     public function registerComponents(array $components): void
     {
-        if (class_exists('Clickfwd\\Yoyo\\Yoyo')) {
-            \Clickfwd\Yoyo\Yoyo::registerComponents($components);
+        try {
+            if (class_exists('Clickfwd\\Yoyo\\Yoyo')) {
+                \Clickfwd\Yoyo\Yoyo::registerComponents($components);
+            }
+        } catch (\Throwable $e) {
+            if (is_debug()) {
+                throw $e;
+            }
+
+            logs('modules')->error("Failed to register components: " . $e->getMessage());
         }
     }
 
@@ -595,7 +611,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
 
             $this->loadedStatus[$bootstrapCacheKey] = true;
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             logs('modules')->error("Error bootstrapping module {$this->getModuleName()}: " . $e->getMessage());
 
             if (is_debug()) {

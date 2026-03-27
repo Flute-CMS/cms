@@ -94,7 +94,8 @@ class ModuleInstallerService
             $this->moduleArchivePath = $this->tempDir . '/' . $module['slug'] . '-' . time() . '.zip';
 
             if (strpos($downloadUrl, 'http') !== 0) {
-                $downloadUrl = rtrim(config('app.flute_market_url', 'https://flute-cms.com'), '/') . $downloadUrl;
+                $api = new \Flute\Core\Services\FluteApiClient();
+                $downloadUrl = rtrim($api->getActiveBaseUrl(), '/') . $downloadUrl;
             }
 
             $response = $this->client->get($downloadUrl . '&accessKey=' . config('app.flute_key', ''), [
@@ -342,7 +343,7 @@ class ModuleInstallerService
                 'success' => true,
                 'message' => __('admin-marketplace.messages.composer_success'),
             ];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             throw new Exception(__('admin-marketplace.messages.composer_failed') . ': ' . $e->getMessage());
         }
     }

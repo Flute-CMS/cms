@@ -100,7 +100,7 @@ class AdminPanel
                     ) {
                         try {
                             return response()->make(template()->getYoyo()->update());
-                        } catch (Exception $e) {
+                        } catch (Throwable $e) {
                             if (is_debug()) {
                                 throw $e;
                             }

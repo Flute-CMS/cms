@@ -137,7 +137,7 @@ class ComposerManager
             }
 
             throw new Exception('Composer runtime error: ' . $message);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             throw new Exception('Error during composer "' . $command . '": ' . $e->getMessage());
         }
     }
@@ -187,7 +187,7 @@ class ComposerManager
             $this->cleanupVendorBackup($vendorBackup);
 
             return $outputContent;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $vendorRestoreMessage = null;
             if (is_array($vendorBackup) && !empty($vendorBackup['path'])) {
                 $vendorRestoreMessage = $this->restoreVendorBackup($vendorBackup['path']);
@@ -269,7 +269,7 @@ class ComposerManager
             }
 
             return 'install ok';
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return $e->getMessage();
         }
     }

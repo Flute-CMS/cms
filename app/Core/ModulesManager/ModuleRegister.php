@@ -75,7 +75,7 @@ class ModuleRegister
                         self::$modulesBootTimes[$provider['module']] += round($extensionsTime, 3);
                     }
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs('modules')->error($e);
 
                 // In production mode errors are often hidden; if a module fails because an ORM schema

@@ -74,7 +74,7 @@ class ThemeUpdater extends AbstractUpdater
         // Распаковываем архив
         try {
             app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Failed to extract theme update package: ' . $e->getMessage());
 
             return false;
@@ -112,7 +112,7 @@ class ThemeUpdater extends AbstractUpdater
                 $this->removeDirectory($extractDir);
 
                 return true;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error('Error during theme update: ' . $e->getMessage());
                 // Удаляем временные файлы
                 $this->removeDirectory($extractDir);

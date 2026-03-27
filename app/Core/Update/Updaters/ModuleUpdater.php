@@ -118,7 +118,7 @@ class ModuleUpdater extends AbstractUpdater
 
                 try {
                     $composerManager->install();
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     // Rollback
                     $this->removeDirectory($moduleDir);
                     if ($this->backupDir && is_dir($this->backupDir)) {
@@ -140,7 +140,7 @@ class ModuleUpdater extends AbstractUpdater
                 $this->removeDirectory($extractDir);
 
                 return true;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error('Error during module update: ' . $e->getMessage());
                 if (is_dir($extractDir)) {
                     $this->removeDirectory($extractDir);
@@ -162,7 +162,7 @@ class ModuleUpdater extends AbstractUpdater
     {
         try {
             app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Failed to extract module update package: ' . $e->getMessage());
 
             return false;
@@ -262,7 +262,7 @@ class ModuleUpdater extends AbstractUpdater
             logs()->error('Failed to update module information: module not found after updating files');
 
             return false;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Failed to update module information: ' . $e->getMessage());
 
             return false;

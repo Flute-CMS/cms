@@ -116,11 +116,11 @@ class InstallerController extends BaseController
 
         if (!empty($fluteKey) && !in_array($fluteKey, $savedKeys, true)) {
             try {
-                $client = new \GuzzleHttp\Client();
-                $apiResponse = $client->post(config('app.flute_market_url') . '/api/auth/accesskey', [
+                $api = new \Flute\Core\Services\FluteApiClient(timeout: 10, connectTimeout: 5);
+                $apiResponse = $api->post('/api/auth/accesskey', [
                     'json' => ['key' => $fluteKey],
                 ]);
-                $body = json_decode($apiResponse->getBody(), true);
+                $body = json_decode($apiResponse->getBody()->getContents(), true);
                 if ($apiResponse->getStatusCode() === 200 && isset($body['valid']) && $body['valid'] === true) {
                     $app = config('app');
                     $app['flute_key'] = $fluteKey;
@@ -360,7 +360,7 @@ class InstallerController extends BaseController
                 $errorMessage = __('install.database.error_migration') . ': ' . $e->getMessage();
                 $isConnected = false;
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $errorMessage = $e->getMessage();
             $isConnected = false;
         }
@@ -541,7 +541,7 @@ class InstallerController extends BaseController
             config()->save();
 
             return response()->redirect(route('installer.step', ['id' => 4]));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $errorMessage = $e->getMessage();
         }
 
@@ -586,7 +586,7 @@ class InstallerController extends BaseController
             config()->save();
 
             return $this->renderStepWithPush(5);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return $this->renderStep(4, [
                 'errorMessage' => $e->getMessage(),
             ]);
@@ -612,7 +612,7 @@ class InstallerController extends BaseController
             config()->save();
 
             return $this->renderStepWithPush(6);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return $this->renderStep(5, [
                 'errorMessage' => $e->getMessage(),
             ]);
@@ -669,7 +669,7 @@ class InstallerController extends BaseController
                 'stepView' => 'installer::yoyo.finish',
                 'stepData' => [],
             ], 6);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $errorMessage = $e->getMessage();
         }
 
@@ -813,7 +813,7 @@ class InstallerController extends BaseController
         $siteUrl = $appConfig['url'] ?? '';
         if (empty($siteUrl)) {
             $protocol =
-                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ( $_SERVER['SERVER_PORT'] ?? 80 ) == 443
+                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (int) ( $_SERVER['SERVER_PORT'] ?? 80 ) === 443
                     ? 'https://'
                     : 'http://';
             $siteUrl = $protocol . ( $_SERVER['HTTP_HOST'] ?? 'localhost' );
@@ -911,13 +911,9 @@ class InstallerController extends BaseController
             $noKey = true;
         } else {
             try {
-                $client = new Client([
-                    'base_uri' => rtrim(config('app.flute_market_url', 'https://flute-cms.com'), '/'),
-                    'timeout' => 15,
-                    'http_errors' => false,
-                ]);
+                $api = new \Flute\Core\Services\FluteApiClient(timeout: 10, connectTimeout: 5);
 
-                $response = $client->get('/api/external/modules', [
+                $response = $api->get('/api/external/modules', [
                     'query' => [
                         'accessKey' => $fluteKey,
                         'php' => substr(PHP_VERSION, 0, 3),

@@ -43,6 +43,18 @@ class MiddlewareRunner
         $middleware = $this->middleware[$this->current];
         $this->current++;
 
-        return $middleware($request, fn($request) => $this->process($request));
+        try {
+            return $middleware($request, fn($request) => $this->process($request));
+        } catch (\Throwable $e) {
+            if (function_exists('is_debug') && is_debug()) {
+                throw $e;
+            }
+
+            if (function_exists('logs')) {
+                logs()->error('Middleware failed: ' . $e->getMessage(), ['exception' => $e]);
+            }
+
+            return response()->error(500, __('def.internal_server_error'));
+        }
     }
 }

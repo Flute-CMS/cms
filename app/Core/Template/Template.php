@@ -137,7 +137,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->clearThemeCache();
 
             $this->loadComponents();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error("Failed to set theme '{$themeName}': " . $e->getMessage());
             $this->fallbackToDefaultTheme();
         }
@@ -162,7 +162,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
                 ->any($path, [YoyoController::class, 'handle'])
                 ->middleware(['web', 'csrf'])
                 ->name('yoyo.update');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Exception while registering Yoyo route: ' . $e->getMessage());
             if (is_debug()) {
                 throw $e;
@@ -309,7 +309,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         try {
             $content = $callback();
             $this->prependToSection($section, $content);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error("Error rendering section '{$section}': " . $e->getMessage());
         }
     }
@@ -330,7 +330,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         $this->prependToSectionDeferred($section, function () use ($template, $data) {
             try {
                 return $this->render($template, $data)->render();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs('templates')->error("Error rendering template '{$template}': " . $e->getMessage());
 
                 return '';
@@ -350,7 +350,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         $this->prependToSectionDeferred($section, static function () use ($component, $data) {
             try {
                 return \Yoyo\yoyo_render($component, $data);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs('templates')->error("Error rendering Yoyo component '{$component}': " . $e->getMessage());
 
                 return '';
@@ -616,7 +616,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             if (empty($this->themeData)) {
                 $this->fallbackToDefaultTheme();
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('templates')->error('Failed to initialize theme: ' . $e->getMessage());
             $this->fallbackToDefaultTheme();
         }
@@ -636,7 +636,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->currentTheme = $defaultTheme;
             $this->themeData = $this->themeManager->getThemeData($defaultTheme) ?? [];
             logs('templates')->warning("Fallback to default theme '{$defaultTheme}' due to invalid current theme.");
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             throw new RuntimeException("Default theme '{$defaultTheme}' is not available. " . $e->getMessage());
         }
     }

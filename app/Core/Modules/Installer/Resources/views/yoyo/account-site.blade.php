@@ -9,7 +9,7 @@
         </div>
 
         <div class="step-body">
-            <form hx-post="{{ route('installer.step3.save') }}" hx-target=".installer-content__inner" hx-select=".account-site-step" hx-swap="innerHTML">
+            <form hx-post="{{ route('installer.step3.save') }}" hx-target="body" hx-swap="morph">
 
                 <!-- Admin Section -->
                 <div class="setup-section">

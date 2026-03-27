@@ -82,7 +82,7 @@ class MarketplaceProductScreen extends Screen
             // Step 1: Download module, handle expired token
             try {
                 $download = $moduleInstaller->downloadModule($module);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 if ($e->getMessage() === 'MARKETPLACE_BAD_REQUEST') {
                     $this->marketplaceService->clearCache();
                     $allModules = $this->marketplaceService->getModules('', '', true);
@@ -102,7 +102,7 @@ class MarketplaceProductScreen extends Screen
 
                     try {
                         $download = $moduleInstaller->downloadModule($module);
-                    } catch (Exception $e2) {
+                    } catch (Throwable $e2) {
                         logs()->error($e2);
                         $this->flashMessage($e2->getMessage(), 'error');
                         $this->isLoading = false;
@@ -131,7 +131,7 @@ class MarketplaceProductScreen extends Screen
             // Step 5: Update composer dependencies
             try {
                 $moduleInstaller->updateComposerDependencies();
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $moduleInstaller->rollbackInstallation(
                     $installResult['moduleFolder'],
                     $installResult['backupDir'] ?? null,
@@ -168,7 +168,7 @@ class MarketplaceProductScreen extends Screen
 
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
@@ -201,7 +201,7 @@ class MarketplaceProductScreen extends Screen
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_uninstalled'), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
@@ -228,7 +228,7 @@ class MarketplaceProductScreen extends Screen
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_activated'), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
@@ -255,7 +255,7 @@ class MarketplaceProductScreen extends Screen
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_deactivated'), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
@@ -383,7 +383,7 @@ class MarketplaceProductScreen extends Screen
 
             try {
                 $this->module = $this->marketplaceService->getModuleBySlug($this->slugParam);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $modules = $this->marketplaceService->getModules('', '', true);
                 foreach ($modules as $item) {
                     if (!empty($item['slug']) && $item['slug'] === $this->slugParam) {
@@ -422,7 +422,7 @@ class MarketplaceProductScreen extends Screen
                 breadcrumb()->add($moduleName);
             }
             $this->versions = $this->module['changelog'] ?? [];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         }

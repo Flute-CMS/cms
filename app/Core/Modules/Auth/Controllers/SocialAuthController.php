@@ -83,7 +83,7 @@ class SocialAuthController extends BaseController
             return $this->socialError(__('auth.errors.user_not_found'), $request);
         } catch (SocialNotFoundException $e) {
             return $this->socialError(__('auth.errors.social_not_found'), $request);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
 
             if (is_debug()) {

@@ -261,7 +261,7 @@ class AdminUsersService
                 if ($avatar) {
                     $user->avatar = $avatar;
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 throw new Exception(__('admin-users.messages.avatar_upload_error', ['message' => $e->getMessage()]));
             }
         }
@@ -272,7 +272,7 @@ class AdminUsersService
                 if ($banner) {
                     $user->banner = $banner;
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 throw new Exception(__('admin-users.messages.banner_upload_error', ['message' => $e->getMessage()]));
             }
         }

@@ -8,7 +8,7 @@ if (!function_exists("config")) {
      * 
      * @return ConfigurationService|mixed
      */
-    function config(string $key = null, $default = null)
+    function config(?string $key = null, $default = null)
     {
         /** @var ConfigurationService $instance */
         static $instance = null;

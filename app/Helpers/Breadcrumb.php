@@ -13,7 +13,7 @@ if (!function_exists("breadcrumb")) {
      * @throws DependencyException
      * @throws NotFoundException
      */
-    function breadcrumb(string $key = null) : BreadcrumbService
+    function breadcrumb(?string $key = null) : BreadcrumbService
     {
         static $instance = null;
 

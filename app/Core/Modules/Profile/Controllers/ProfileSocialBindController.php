@@ -74,7 +74,7 @@ class ProfileSocialBindController extends BaseController
             return $this->socialError(__('auth.errors.user_not_found'));
         } catch (SocialNotFoundException $e) {
             return $this->socialError(__('auth.errors.social_not_found'));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
 
             if (is_debug()) {
@@ -144,7 +144,7 @@ class ProfileSocialBindController extends BaseController
     {
         try {
             $this->throttle('profile_change_hide_social');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return $this->error(__('auth.too_many_requests'));
         }
 

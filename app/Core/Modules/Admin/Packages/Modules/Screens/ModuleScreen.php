@@ -272,7 +272,7 @@ class ModuleScreen extends Screen
             app(ModuleActions::class)->installModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.installed', ['name' => __($module->name)]), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-modules.messages.install_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -302,7 +302,7 @@ class ModuleScreen extends Screen
             app(ModuleActions::class)->activateModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.activated', ['name' => __($module->name)]), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-modules.messages.activation_error', ['message' =>
                 $e->getMessage()]), 'error');
         }
@@ -333,7 +333,7 @@ class ModuleScreen extends Screen
             app(ModuleActions::class)->disableModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.disabled', ['name' => __($module->name)]), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-modules.messages.disable_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -363,7 +363,7 @@ class ModuleScreen extends Screen
             app(ModuleActions::class)->updateModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.updated', ['name' => __($module->name)]), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-modules.messages.update_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -393,7 +393,7 @@ class ModuleScreen extends Screen
             app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => __($module->name)]), 'success');
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-modules.messages.uninstall_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -414,7 +414,7 @@ class ModuleScreen extends Screen
 
             try {
                 app(ModuleActions::class)->activateModule($module, $this->moduleManager);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
             }
         }
         $this->loadModules(true);
@@ -436,7 +436,7 @@ class ModuleScreen extends Screen
 
             try {
                 app(ModuleActions::class)->disableModule($module, $this->moduleManager);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
             }
         }
         $this->loadModules(true);
@@ -458,7 +458,7 @@ class ModuleScreen extends Screen
 
             try {
                 app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
             }
         }
         $this->loadModules(true);

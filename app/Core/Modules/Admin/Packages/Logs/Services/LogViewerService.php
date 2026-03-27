@@ -109,7 +109,7 @@ class LogViewerService
             }
 
             return $context;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return [];
         }
     }

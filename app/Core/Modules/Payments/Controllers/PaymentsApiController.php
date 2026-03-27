@@ -30,7 +30,7 @@ class PaymentsApiController extends BaseController
             ]);
 
             return $this->success('OK');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->warning('payments.webhook.failed', [
                 'gateway' => $gateway,
                 'error' => $e->getMessage(),

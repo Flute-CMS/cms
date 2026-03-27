@@ -377,7 +377,7 @@ class PromoCodeScreen extends Screen
             $this->paymentService->savePromoCode($promoCode, $data);
             $this->flashMessage(__('admin-payment.messages.promo_added'), 'success');
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -533,7 +533,7 @@ class PromoCodeScreen extends Screen
             $this->paymentService->savePromoCode($promoCode, $data);
             $this->flashMessage(__('admin-payment.messages.promo_updated'), 'success');
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -604,7 +604,7 @@ class PromoCodeScreen extends Screen
         try {
             $this->paymentService->deletePromoCode($promoCode);
             $this->flashMessage(__('admin-payment.messages.promo_deleted'), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }

@@ -11,7 +11,7 @@ if (!function_exists('__')) {
      * @param  string|null  $locale
      * @return string
      */
-    function __(string $key, array|string $replacements = [], string $locale = null) : string
+    function __(string $key, array|string $replacements = [], ?string $locale = null) : string
     {
         static $translator = null;
         
@@ -43,7 +43,7 @@ if (!function_exists("t")) {
      * @param  string|null  $locale
      * @return string
      */
-    function t(string $key, array|string $replacements = [], string $locale = null) : string
+    function t(string $key, array|string $replacements = [], ?string $locale = null) : string
     {
         return __($key, $replacements, $locale);
     }
@@ -59,7 +59,7 @@ if (!function_exists("trans")) {
      * @param  string|null  $locale
      * @return string
      */
-    function trans(string $key, array $replacements = [], string $locale = null) : string
+    function trans(string $key, array $replacements = [], ?string $locale = null) : string
     {
         return __($key, $replacements, $locale);
     }

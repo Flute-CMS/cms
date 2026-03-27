@@ -14,8 +14,8 @@
             @if (!empty($loggers[$selectedLogger]))
                 <div class="level-filter">
                     <x-admin::fields.select name="level" :options="$levels" value="{{ $selectedLevel }}"
-                        yoyo:change="filterByLevel($event.target.value)" yoyo allowEmpty
-                        placeholder="{{ __('admin-logs.labels.filter_by_level') }}" />
+                        yoyo allowEmpty
+                        placeholder="{{ __('admin-logs.all_levels') }}" />
                 </div>
             @endif
         </div>

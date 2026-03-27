@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
+if (function_exists('ini_set')) {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+}
+
 if (!defined('FLUTE_START')) {
     define('FLUTE_START', microtime(true));
 }
@@ -31,6 +36,10 @@ define('FLUTE_BOOTSTRAP_START', microtime(true));
 require __DIR__ . '/composer-error.php';
 
 set_error_handler(function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 

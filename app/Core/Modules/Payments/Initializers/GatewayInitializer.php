@@ -125,7 +125,7 @@ class GatewayInitializer
                 } else {
                     logs()->error("Failed to initialize gateway: {$gatewayEntity->adapter}");
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error("Failed to initialize gateway: {$gatewayEntity->adapter}");
             }
         }

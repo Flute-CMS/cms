@@ -14,7 +14,7 @@ class YoyoController extends BaseController
             $this->normalizeYoyoRequest();
 
             return response()->make($template->getYoyo()->update());
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (is_debug()) {
                 throw $e;
             }

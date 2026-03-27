@@ -29,7 +29,7 @@ class ProfileVerificationController extends BaseController
             return response()->json(['success' => true]);
         } catch (AccountNotVerifiedException $e) {
             toast()->error(__('auth.verification_token_already_exists'))->push();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             toast()->error($e->getMessage())->push();
         }
 

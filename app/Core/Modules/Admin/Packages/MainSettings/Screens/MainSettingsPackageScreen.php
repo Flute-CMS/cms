@@ -160,7 +160,7 @@ class MainSettingsPackageScreen extends Screen
 
             app(EmailService::class)->send($to, 'SMTP Test', 'This is a test email. bla bla bla');
             $this->flashMessage(__('admin-main-settings.messages.test_mail_sent'), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -241,7 +241,7 @@ class MainSettingsPackageScreen extends Screen
             $this->invalidateConfig('app');
             $this->invalidateSettingsCache();
             $this->flashMessage(__('admin-main-settings.messages.flute_images_saved'), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage(__('admin-main-settings.messages.unknown_error'), 'error');
         }
@@ -289,7 +289,7 @@ class MainSettingsPackageScreen extends Screen
             $this->flashMessage(__('admin-main-settings.messages.profile_images_saved'), 'success');
 
             $this->clearCache();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage(__('admin-main-settings.messages.unknown_error'), 'error');
         }
@@ -325,7 +325,7 @@ class MainSettingsPackageScreen extends Screen
                     $this->invalidateSettingsCache();
                 }
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-main-settings.messages.settings_save_error') . $e->getMessage(), 'error');
         }
     }
@@ -956,7 +956,7 @@ class MainSettingsPackageScreen extends Screen
             $this->databaseConnections = $this->configService->initDatabases();
 
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-main-settings.messages.add_database_error') . $e->getMessage(), 'error');
         }
     }
@@ -1112,7 +1112,7 @@ class MainSettingsPackageScreen extends Screen
             $this->flashMessage(__('admin-main-settings.messages.edit_database_success'));
             $this->closeModal();
             $this->databaseConnections = $this->configService->initDatabases();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-main-settings.messages.edit_database_error') . $e->getMessage(), 'error');
         }
     }
@@ -1149,7 +1149,7 @@ class MainSettingsPackageScreen extends Screen
             $this->invalidateConfig('database');
             $this->flashMessage(__('admin-main-settings.messages.remove_database_success'));
             $this->databaseConnections = $this->configService->initDatabases();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-main-settings.messages.remove_database_error'), 'error');
         }
     }
@@ -1179,7 +1179,7 @@ class MainSettingsPackageScreen extends Screen
             $this->flashMessage(__('admin-main-settings.messages.profile_tabs_order_saved'));
             $this->loadProfileTabs();
             $this->invalidateConfig('profile');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $this->flashMessage(__('admin-main-settings.messages.unknown_error'), 'error');
         }
@@ -1263,7 +1263,7 @@ class MainSettingsPackageScreen extends Screen
                 config()->set("app.{$field}", $newFile);
 
                 return null;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return $e->getMessage();
             }
         }
@@ -1295,7 +1295,7 @@ class MainSettingsPackageScreen extends Screen
                 $file->move($dir, basename($absoluteTargetPath));
 
                 return null;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return $e->getMessage();
             }
         }
@@ -1303,7 +1303,7 @@ class MainSettingsPackageScreen extends Screen
         if ($clearFlag === '1' && file_exists($absoluteTargetPath)) {
             try {
                 fs()->remove($absoluteTargetPath);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return $e->getMessage();
             }
         }
@@ -1371,7 +1371,7 @@ class MainSettingsPackageScreen extends Screen
                 config()->set($configKey, $newFile);
 
                 return null;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return $e->getMessage();
             }
         }

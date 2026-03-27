@@ -150,7 +150,7 @@ class FluteValidate
                             ':date' => $comparison,
                         ]);
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     if (is_debug()) {
                         throw $e;
                     }
@@ -1453,7 +1453,7 @@ class FluteValidate
             } else {
                 try {
                     new DateTime($value);
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $validator->addError($attribute, $rule);
                 }
             }

@@ -60,7 +60,7 @@ class GlobalProfiler
             self::$profiler->start();
 
             self::$enabled = true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->warning('Global profiler failed to start: ' . $e->getMessage());
         }
     }
@@ -80,7 +80,7 @@ class GlobalProfiler
 
             // Save profile data if configured
             self::saveProfileData();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->warning('Global profiler failed to stop: ' . $e->getMessage());
         }
     }
@@ -238,7 +238,7 @@ class GlobalProfiler
             ];
 
             file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->warning('Failed to save profile data: ' . $e->getMessage());
         }
     }

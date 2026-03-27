@@ -44,7 +44,7 @@ class PaymentFormController extends BaseController
             ]);
         } catch (PaymentPromoException $e) {
             return $this->json(['valid' => false, 'error' => __($e->getMessage())]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
 
             return $this->json(['valid' => false, 'error' => $message]);
@@ -184,7 +184,7 @@ class PaymentFormController extends BaseController
             ]);
 
             return $this->json(['error' => $e->getMessage(), 'field' => 'amount'], 422);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
             $message = is_debug() ? $e->getMessage() : __('def.unknown_error');
 

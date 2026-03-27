@@ -159,7 +159,7 @@ final class App
             ini_set('display_startup_errors', $debug ? '1' : '0');
         }
 
-        error_reporting($debug ? E_ALL : E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
         // We add debug mode to the container
         $this->bind('debug', (string) $debug);
@@ -235,7 +235,7 @@ final class App
             $provider->register(
                 $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer(),
             );
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             if (function_exists('is_debug') && is_debug()) {
                 throw $e;
             }
@@ -270,7 +270,7 @@ final class App
                 $this->listen = array_merge_recursive($this->listen, $provider->getEventListeners());
 
                 $this->bootTimes[$className] = round(microtime(true) - $startTime, 3);
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 if (function_exists('is_debug') && is_debug()) {
                     throw $e;
                 }
@@ -546,7 +546,36 @@ final class App
 
         foreach ($this->listen as $event => $listeners) {
             foreach ($listeners as $listener) {
-                $dispatcher->addListener($event, [new $listener(), 'handle']);
+                try {
+                    $instance = new $listener();
+                    $dispatcher->addListener($event, function () use ($instance, $listener) {
+                        try {
+                            return $instance->handle(...func_get_args());
+                        } catch (\Throwable $e) {
+                            if (function_exists('is_debug') && is_debug()) {
+                                throw $e;
+                            }
+
+                            if (function_exists('logs')) {
+                                logs()->error("Event listener {$listener} failed: " . $e->getMessage(), [
+                                    'exception' => $e,
+                                ]);
+                            }
+
+                            return null;
+                        }
+                    });
+                } catch (\Throwable $e) {
+                    if (function_exists('is_debug') && is_debug()) {
+                        throw $e;
+                    }
+
+                    if (function_exists('logs')) {
+                        logs()->error("Failed to register event listener {$listener}: " . $e->getMessage(), [
+                            'exception' => $e,
+                        ]);
+                    }
+                }
             }
         }
     }

@@ -587,7 +587,7 @@ class PageEditor {
             saveBtn.removeAttribute('aria-busy');
         }
 
-        if (success) this.disable();
+        if (success) this.disable(true);
     }
 
     saveToLocalStorage() {

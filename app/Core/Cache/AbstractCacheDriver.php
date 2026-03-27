@@ -248,7 +248,21 @@ abstract class AbstractCacheDriver implements CacheInterface
                     return $value;
                 }
 
-                $value = $callback();
+                try {
+                    $value = $callback();
+                } catch (\Throwable $e) {
+                    if ($this->staleCache) {
+                        $staleItem = $this->staleCache->getItem($key);
+                        if ($staleItem->isHit()) {
+                            $value = $staleItem->get();
+                            $this->memoryCacheStore($key, $value);
+
+                            return $value;
+                        }
+                    }
+
+                    throw $e;
+                }
 
                 $item->set($value);
                 if ($ttl > 0) {
@@ -273,7 +287,22 @@ abstract class AbstractCacheDriver implements CacheInterface
             return $value;
         }
 
-        $value = $callback();
+        try {
+            $value = $callback();
+        } catch (\Throwable $e) {
+            if ($this->staleCache) {
+                $staleItem = $this->staleCache->getItem($key);
+                if ($staleItem->isHit()) {
+                    $value = $staleItem->get();
+                    $this->memoryCacheStore($key, $value);
+
+                    return $value;
+                }
+            }
+
+            throw $e;
+        }
+
         $this->memoryCacheStore($key, $value);
 
         return $value;
@@ -364,7 +393,7 @@ abstract class AbstractCacheDriver implements CacheInterface
             }
 
             return $this->getKeysGeneric($pattern);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Error getting cache keys: ' . $e->getMessage());
 
             return [];
@@ -495,7 +524,7 @@ abstract class AbstractCacheDriver implements CacheInterface
             $this->logger->warning('Redis instance does not support scan or keys method: ' . $redis::class);
 
             return [];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Error accessing Redis instance: ' . $e->getMessage());
 
             return [];

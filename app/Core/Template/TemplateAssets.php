@@ -1340,7 +1340,7 @@ class TemplateAssets
 
                         WebPConvert::convert($imgPathBase, $webpFullPath);
                     });
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->error($e->getMessage());
 
                     return $this->generateAssetUrl($imgPath);

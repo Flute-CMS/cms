@@ -45,16 +45,40 @@ function flute_payload(string $storageFlag): array
     return is_array($decoded) ? $decoded : [];
 }
 
-function flute_started_at(array $payload, ?int $fallbackMtime): ?int
+function flute_age(array $payload, string $storageFlag, string $publicFlag): int
 {
     if (!empty($payload['started_at']) && is_string($payload['started_at'])) {
         $ts = strtotime($payload['started_at']);
         if ($ts !== false) {
-            return $ts;
+            return max(0, time() - $ts);
         }
     }
 
-    return $fallbackMtime;
+    $flagFile = is_file($storageFlag) ? $storageFlag : $publicFlag;
+    $mtime = @filemtime($flagFile);
+    if ($mtime !== false) {
+        return max(0, time() - (int) $mtime);
+    }
+
+    return 0;
+}
+
+function flute_process_alive(int $pid): bool
+{
+    if (is_dir('/proc') && is_readable('/proc/1')) {
+        return is_dir("/proc/{$pid}");
+    }
+
+    if (function_exists('posix_kill')) {
+        $alive = @posix_kill($pid, 0);
+        if (!$alive && posix_get_last_error() === 1) {
+            return true;
+        }
+
+        return $alive;
+    }
+
+    return true;
 }
 
 function flute_rrmdir(string $dir): void
@@ -112,6 +136,8 @@ function flute_try_restore_vendor(string $basePath, array $payload): bool
     return @rename($backupPath, $vendorDir);
 }
 
+// --- Main logic ---
+
 $maintenance = is_file($storageFlag) || is_file($publicFlag);
 if (!$maintenance) {
     http_response_code(204);
@@ -119,16 +145,31 @@ if (!$maintenance) {
 }
 
 $payload = flute_payload($storageFlag);
-$flagMtime = @filemtime(is_file($storageFlag) ? $storageFlag : $publicFlag);
-$startedAt = flute_started_at($payload, $flagMtime !== false ? (int)$flagMtime : null);
+$age = flute_age($payload, $storageFlag, $publicFlag);
+$hardTimeout = 600; // 10 minutes
 
-$staleAfterSeconds = 60 * 30;
-$isStale = $startedAt !== null && (time() - $startedAt) >= $staleAfterSeconds;
+$isStale = $age >= $hardTimeout;
+
+// PID liveness check (after 30s grace period)
+if (!$isStale && $age >= 30 && !empty($payload['pid'])) {
+    $pid = (int) $payload['pid'];
+    if ($pid > 0 && !flute_process_alive($pid)) {
+        $isStale = true;
+    }
+}
 
 if ($isStale && !flute_is_locked($lockPath)) {
     $restored = flute_try_restore_vendor($basePath, $payload);
 
     if ($restored && is_file($vendorAutoload)) {
+        @unlink($storageFlag);
+        @unlink($publicFlag);
+        http_response_code(204);
+        exit;
+    }
+
+    // Even without vendor restore, clear stale flags if autoload exists
+    if (is_file($vendorAutoload)) {
         @unlink($storageFlag);
         @unlink($publicFlag);
         http_response_code(204);

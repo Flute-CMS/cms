@@ -61,6 +61,13 @@ class LogsScreen extends Screen
     public $page = 1;
 
     /**
+     * Previous level (for detecting changes and resetting page)
+     *
+     * @var string
+     */
+    public $prevLevel = '';
+
+    /**
      * Auto-refresh enabled
      *
      * @var bool
@@ -94,6 +101,12 @@ class LogsScreen extends Screen
 
         $logContent = [];
         $totalEntries = 0;
+
+        // Reset page when level or search changes
+        if ($this->level !== $this->prevLevel) {
+            $this->page = 1;
+            $this->prevLevel = $this->level;
+        }
 
         if ($this->logger) {
             // Get more entries for better filtering, but with reasonable limit
@@ -145,7 +158,6 @@ class LogsScreen extends Screen
         }
 
         $levels = [
-            '' => __('admin-logs.all_levels'),
             'debug' => __('admin-logs.level_labels.debug'),
             'info' => __('admin-logs.level_labels.info'),
             'notice' => __('admin-logs.level_labels.notice'),

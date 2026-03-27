@@ -151,7 +151,7 @@ class CaptchaService
             }
 
             return isset($json['success']) && $json['success'] === true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('reCAPTCHA verification failed: ' . $e->getMessage());
 
             return false;
@@ -221,7 +221,7 @@ class CaptchaService
                 && isset($json['action'])
                 && (string) $json['action'] !== $expectedAction
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('reCAPTCHA v3 verification failed: ' . $e->getMessage());
 
             return false;
@@ -276,7 +276,7 @@ class CaptchaService
             }
 
             return isset($json['success']) && $json['success'] === true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('hCaptcha verification failed: ' . $e->getMessage());
 
             return false;
@@ -331,7 +331,7 @@ class CaptchaService
             }
 
             return isset($json['success']) && $json['success'] === true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Turnstile verification failed: ' . $e->getMessage());
 
             return false;
@@ -386,7 +386,7 @@ class CaptchaService
             }
 
             return isset($json['status']) && $json['status'] === 'ok';
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error('Yandex SmartCaptcha verification failed: ' . $e->getMessage());
 
             return false;

@@ -258,9 +258,9 @@ if (!function_exists('now')) {
 }
 
 if (!function_exists('e')) {
-    function e(string $value)
+    function e(?string $value)
     {
-        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
+        return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8', false);
     }
 }
 
@@ -362,7 +362,7 @@ if (!function_exists('html_attributes')) {
     {
         $html = '';
         foreach ($attributes as $key => $value) {
-            $html .= ' ' . htmlspecialchars($key) . '="' . htmlspecialchars($value) . '"';
+            $html .= ' ' . htmlspecialchars((string) $key) . '="' . htmlspecialchars((string) ($value ?? '')) . '"';
         }
 
         return $html;

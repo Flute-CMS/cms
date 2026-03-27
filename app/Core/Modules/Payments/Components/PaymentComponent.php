@@ -209,7 +209,7 @@ class PaymentComponent extends FluteComponent
             $this->inputError('promoCode', __($e->getMessage()));
             $this->promoIsValid = false;
             $this->resetAmounts();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error($e);
 
             $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
@@ -271,7 +271,7 @@ class PaymentComponent extends FluteComponent
                     if ($html) {
                         $fields[$adapter] = $html;
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     // Skip gateways that fail to render fields
                 }
             }

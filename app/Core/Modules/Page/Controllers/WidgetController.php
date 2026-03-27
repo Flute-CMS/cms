@@ -56,7 +56,7 @@ class WidgetController extends BaseController
                     'layout' => $layout,
                     'scope' => 'global',
                 ], 200);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error('Failed to retrieve global layout: ' . $e->getMessage());
 
                 return $this->handleError($e, 'Failed to retrieve global layout');
@@ -104,7 +104,7 @@ class WidgetController extends BaseController
                 'layout' => $layout,
                 'scope' => 'local',
             ], 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
 
             return $this->handleError($e, 'Failed to retrieve layout');
@@ -145,7 +145,7 @@ class WidgetController extends BaseController
                     'message' => __('def.layout_saved'),
                     'scope' => 'global',
                 ], 200);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs()->error('Failed to save global layout: ' . $e->getMessage());
 
                 return $this->handleError($e, 'Failed to save global layout');
@@ -185,7 +185,7 @@ class WidgetController extends BaseController
                 'message' => __('def.layout_saved'),
                 'scope' => 'local',
             ], 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs()->error("Failed to save layout for path {$path}: " . $e->getMessage());
 
             return $this->handleError($e, 'Failed to save layout');
@@ -214,7 +214,7 @@ class WidgetController extends BaseController
             $this->toast(__('def.widget_deleted'), 'success');
 
             return response()->make();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('modules')->error("Failed to delete widget ID {$id}: " . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to delete widget. Please try again later.';
             $this->toast($message, 'error');
@@ -264,7 +264,7 @@ class WidgetController extends BaseController
             return $this->json([
                 'html' => '<div class="widget-error">Widget not found</div>',
             ], 404);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('modules')->error("Failed to render widget {$widgetName}: " . $e->getMessage());
 
             return $this->json([
@@ -318,7 +318,7 @@ class WidgetController extends BaseController
                     'settings' => [],
                     'hasSettings' => false,
                 ];
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs('modules')->error("Failed to render widget {$widgetName}: " . $e->getMessage());
 
                 $errorHtml = is_debug()
@@ -364,7 +364,7 @@ class WidgetController extends BaseController
             return $this->json($buttons, 200);
         } catch (InvalidArgumentException $e) {
             return $this->json(['error' => 'Widget not found'], 404);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('modules')->error("Failed to get buttons for widget {$widgetName}: " . $e->getMessage());
 
             return $this->handleError($e, 'Failed to get widget buttons');
@@ -404,7 +404,7 @@ class WidgetController extends BaseController
             return $this->json($result ?: ['success' => true]);
         } catch (InvalidArgumentException $e) {
             return $this->json(['error' => 'Widget not found'], 404);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('modules')->error("Failed to handle action '{$action}' for widget {$widgetName}: " . $e->getMessage());
 
             return $this->handleError($e, 'Failed to handle widget action');
@@ -443,7 +443,7 @@ class WidgetController extends BaseController
             return $formHtml !== false
                 ? $formHtml
                 : "<div class='widget-no-settings'>" . __('def.widget_no_settings') . '</div>';
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (is_debug()) {
                 throw $e;
             }
@@ -494,7 +494,7 @@ class WidgetController extends BaseController
             ]);
         } catch (InvalidArgumentException $e) {
             return $this->json(['error' => 'Widget not found'], 404);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             logs('modules')->error("Failed to save settings for widget {$widgetName}: " . $e->getMessage());
 
             if (is_debug()) {
@@ -507,7 +507,7 @@ class WidgetController extends BaseController
                 $formHtml = $widget->renderSettingsForm($settings);
 
                 return $formHtml;
-            } catch (Exception $innerE) {
+            } catch (Throwable $innerE) {
                 return $this->handleError($e, 'Failed to save widget settings');
             }
         }
@@ -539,7 +539,7 @@ class WidgetController extends BaseController
                 $results[$widgetName] = $buttons ?: [];
             } catch (InvalidArgumentException $e) {
                 $results[$widgetName] = [];
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 logs('modules')->error("Failed to get buttons for widget {$widgetName}: " . $e->getMessage());
                 $results[$widgetName] = [];
             }

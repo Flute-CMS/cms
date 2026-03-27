@@ -27,7 +27,7 @@ class RBACInstaller
             $this->clearUsers();
             $this->clearRoles();
             $this->clearPermissions();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             // Ignore error
         }
 

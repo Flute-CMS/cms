@@ -208,7 +208,7 @@ class ThemeScreen extends Screen
             $this->themeActions->installTheme($this->key);
             $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.install_success', ['name' => $this->key]), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-theme.messages.install_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -221,7 +221,7 @@ class ThemeScreen extends Screen
             $this->themeActions->activateTheme($this->key);
             $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.enable_success', ['name' => $this->key]), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-theme.messages.enable_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -234,7 +234,7 @@ class ThemeScreen extends Screen
             $this->themeActions->disableTheme($this->key);
             $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.disable_success', ['name' => $this->key]), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-theme.messages.disable_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -247,7 +247,7 @@ class ThemeScreen extends Screen
             $this->themeActions->uninstallTheme($this->key);
             $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => $this->key]), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-theme.messages.delete_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -265,7 +265,7 @@ class ThemeScreen extends Screen
                 if ($key !== 'standard') {
                     $this->themeActions->uninstallTheme($key);
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // ignore
             }
         }

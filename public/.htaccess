@@ -1,5 +1,6 @@
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml application/font-woff2
+    # text/html and application/json are compressed by PHP (App::compressResponse)
+    AddOutputFilterByType DEFLATE text/css text/javascript application/javascript image/svg+xml application/font-woff2
 </IfModule>
 
 <IfModule mod_expires.c>

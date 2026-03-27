@@ -58,6 +58,18 @@ abstract class AbstractUpdater
         @file_put_contents($storageFlag, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         @file_put_contents($publicFlag, '1');
 
+        // Safety net: clean up maintenance flags if PHP process dies unexpectedly
+        // (OOM, max_execution_time, segfault). The finally block handles normal flow,
+        // this covers fatal crashes where finally doesn't execute.
+        register_shutdown_function(static function () use ($storageFlag, $publicFlag): void {
+            // Only clean up if there was an error (normal exit is handled by finally/disableUpdateMaintenance)
+            $error = error_get_last();
+            if ($error !== null && in_array($error['type'], [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE], true)) {
+                @unlink($storageFlag);
+                @unlink($publicFlag);
+            }
+        });
+
         return true;
     }
 

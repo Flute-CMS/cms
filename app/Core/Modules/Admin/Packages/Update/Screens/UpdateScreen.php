@@ -160,7 +160,7 @@ class UpdateScreen extends Screen
             } else {
                 throw new RuntimeException(__('admin-update.update_failed'));
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (is_debug()) {
                 throw $e;
             }
@@ -209,7 +209,7 @@ class UpdateScreen extends Screen
                             @unlink($packageFile);
                         }
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     logs()->error('CMS update error: ' . $e->getMessage());
                 }
             }
@@ -238,7 +238,7 @@ class UpdateScreen extends Screen
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         logs()->error("Module {$moduleId} update error: " . $e->getMessage());
                     }
                 }
@@ -264,7 +264,7 @@ class UpdateScreen extends Screen
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         logs()->error("Theme {$themeId} update error: " . $e->getMessage());
                     }
                 }
@@ -286,7 +286,7 @@ class UpdateScreen extends Screen
             }
 
             $this->triggerSidebarRefresh();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (is_debug()) {
                 throw $e;
             }

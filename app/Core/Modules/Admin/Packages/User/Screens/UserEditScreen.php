@@ -190,7 +190,7 @@ class UserEditScreen extends Screen
             $this->usersService->saveUser($this->user, $data, $files);
             $this->flashMessage(__('admin-users.messages.save_success'), 'success');
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -318,7 +318,7 @@ class UserEditScreen extends Screen
             $this->usersService->unblockUser($this->user);
             $this->flashMessage(__('admin-users.messages.unblock_success'), 'success');
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -383,7 +383,7 @@ class UserEditScreen extends Screen
             $this->flashMessage(__('admin-users.messages.block_success'), 'success');
             $this->closeModal();
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -445,7 +445,7 @@ class UserEditScreen extends Screen
             $this->flashMessage(__('admin-users.messages.social_added'), 'success');
             $this->closeModal();
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -516,7 +516,7 @@ class UserEditScreen extends Screen
             $this->flashMessage(__('admin-users.messages.social_updated'), 'success');
             $this->closeModal();
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -532,7 +532,7 @@ class UserEditScreen extends Screen
             $this->usersService->toggleSocialNetworkVisibility($networkId);
             $this->flashMessage(__('admin-users.messages.social_visibility_changed'), 'success');
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -548,7 +548,7 @@ class UserEditScreen extends Screen
             $this->usersService->deleteSocialNetwork($networkId);
             $this->flashMessage(__('admin-users.messages.social_deleted'), 'success');
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -574,7 +574,7 @@ class UserEditScreen extends Screen
             $this->usersService->clearUserSessions($this->user);
             $this->flashMessage(__('admin-users.messages.sessions_cleared'), 'success');
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -659,7 +659,7 @@ class UserEditScreen extends Screen
             $this->flashMessage(__('admin-users.messages.password_reset_success'), 'success');
             $this->closeModal();
             $this->initUser();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }

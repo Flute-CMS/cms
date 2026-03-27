@@ -433,7 +433,7 @@ class TD extends Cell
             if (isset($preferences[$columnSlug])) {
                 return !$preferences[$columnSlug];
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
         }
 
         return $this->defaultHidden;

@@ -481,7 +481,7 @@ class ServerEditScreen extends Screen
             } else {
                 $this->flashMessage(__('admin-server.messages.server_updated'), 'success');
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -502,7 +502,7 @@ class ServerEditScreen extends Screen
         try {
             $packName = $this->serversService->uploadRankPack($file);
             $this->flashMessage(__('admin-server.ranks_upload.success', ['name' => $packName]), 'success');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -553,7 +553,7 @@ class ServerEditScreen extends Screen
 
                         return;
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $this->flashMessage(__('admin-server.messages.invalid_json'), 'error');
 
                     return;
@@ -582,7 +582,7 @@ class ServerEditScreen extends Screen
             $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
             $this->flashMessage(__('admin-server.messages.connection_add_success'), 'success');
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -741,7 +741,7 @@ class ServerEditScreen extends Screen
             $this->invalidateConfig('database');
             $this->flashMessage(__('admin-main-settings.messages.add_database_success'));
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage(__('admin-main-settings.messages.add_database_error') . $e->getMessage(), 'error');
         }
     }
@@ -794,7 +794,7 @@ class ServerEditScreen extends Screen
 
                         return;
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $this->flashMessage(__('admin-server.messages.invalid_json'), 'error');
 
                     return;
@@ -829,7 +829,7 @@ class ServerEditScreen extends Screen
             $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
             $this->flashMessage(__('admin-server.messages.connection_update_success'), 'success');
             $this->closeModal();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -845,7 +845,7 @@ class ServerEditScreen extends Screen
             $this->serversService->deleteDbConnection($connectionId);
             $this->flashMessage(__('admin-server.messages.connection_delete_success'), 'success');
             $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -865,7 +865,7 @@ class ServerEditScreen extends Screen
             $this->server->delete();
             $this->flashMessage(__('admin-server.messages.delete_success'), 'success');
             $this->redirectTo('/admin/servers');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -914,7 +914,7 @@ class ServerEditScreen extends Screen
 
                 $this->flashMessage(__('admin-server.messages.connection_no_response'), 'warning');
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->serverStatus = [
                 'online' => false,
                 'error' => $e->getMessage(),
@@ -949,7 +949,7 @@ class ServerEditScreen extends Screen
                 'out' => $output !== '' ? $output : __('admin-server.rcon.no_output'),
                 'ok' => true,
             ];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->rconHistory[] = [
                 'cmd' => $command,
                 'out' => $e->getMessage(),

@@ -180,7 +180,7 @@ class IconFinder
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
         }
 
         return $icons;
@@ -238,7 +238,7 @@ class IconFinder
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
         }
 
         return $categories;

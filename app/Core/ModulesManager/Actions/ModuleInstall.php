@@ -47,7 +47,7 @@ class ModuleInstall implements ModuleActionInterface
         if (fs()->exists(BASE_PATH . $directory)) {
             try {
                 app(DatabaseConnection::class)->runMigrations($directory);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 app(DatabaseConnection::class)->rollbackMigrations($directory);
 
                 throw $e;
