@@ -134,11 +134,11 @@ class FluteRequest extends Request
             return false;
         }
 
-        if (!$this->hostMatchesConfiguredAppUrl()) {
+        if (!$this->_hostMatchesConfiguredAppUrl()) {
             return false;
         }
 
-        return $this->requestArrivedViaPrivateOrLocalInterface();
+        return $this->_requestArrivedViaPrivateOrLocalInterface();
     }
 
     /**
@@ -332,7 +332,7 @@ class FluteRequest extends Request
         return $this->input($name);
     }
 
-    private function hostMatchesConfiguredAppUrl(): bool
+    private function _hostMatchesConfiguredAppUrl(): bool
     {
         $appUrl = (string) config('app.url', '');
         $expectedHost = parse_url($appUrl, PHP_URL_HOST);
@@ -340,12 +340,12 @@ class FluteRequest extends Request
             return false;
         }
 
-        $host = $this->requestHostForUrlMatch();
+        $host = $this->_requestHostForUrlMatch();
 
         return $host !== null && strcasecmp($host, $expectedHost) === 0;
     }
 
-    private function requestHostForUrlMatch(): ?string
+    private function _requestHostForUrlMatch(): ?string
     {
         try {
             return $this->getHost();
@@ -359,7 +359,7 @@ class FluteRequest extends Request
         }
     }
 
-    private function requestArrivedViaPrivateOrLocalInterface(): bool
+    private function _requestArrivedViaPrivateOrLocalInterface(): bool
     {
         $remote = (string) $this->server->get('REMOTE_ADDR', '');
         if ($remote === '') {

@@ -7,7 +7,6 @@ use DI\ContainerBuilder;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Support\FluteRequest;
 use Psr\Http\Message\RequestInterface;
-use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,14 +30,14 @@ class RequestServiceProvider extends AbstractServiceProvider
         'X_FORWARDED_PORT',
     ];
 
-    private const TRUSTED_HEADER_MAP = [
-        'FORWARDED' => Request::HEADER_FORWARDED,
-        'X_FORWARDED_FOR' => Request::HEADER_X_FORWARDED_FOR,
-        'X_FORWARDED_HOST' => Request::HEADER_X_FORWARDED_HOST,
-        'X_FORWARDED_PROTO' => Request::HEADER_X_FORWARDED_PROTO,
-        'X_FORWARDED_PORT' => Request::HEADER_X_FORWARDED_PORT,
-        'X_FORWARDED_PREFIX' => Request::HEADER_X_FORWARDED_PREFIX,
-    ];
+    private const HEADER_FORWARDED = 0b000001;
+    private const HEADER_X_FORWARDED_FOR = 0b000010;
+    private const HEADER_X_FORWARDED_HOST = 0b000100;
+    private const HEADER_X_FORWARDED_PROTO = 0b001000;
+    private const HEADER_X_FORWARDED_PORT = 0b010000;
+    private const HEADER_X_FORWARDED_PREFIX = 0b100000;
+    private const HEADER_X_FORWARDED_AWS_ELB = 0b0011010;
+    private const HEADER_X_FORWARDED_TRAEFIK = 0b0111110;
 
     public function register(ContainerBuilder $containerBuilder): void
     {
@@ -63,21 +62,22 @@ class RequestServiceProvider extends AbstractServiceProvider
             return;
         }
 
-        $trustedProxies = $this->resolveTrustedProxyList((array) config('app.trusted_proxies', [
-            'AUTO',
-        ]));
-        $trustedHeaders = $this->resolveTrustedHeaderSet((array) config('app.trusted_headers', self::DEFAULT_TRUSTED_HEADERS));
+        $trustedProxyEntries = $this->readConfigStringList('app.trusted_proxies', ['AUTO']);
+        $trustedHeaderEntries = $this->readConfigStringList('app.trusted_headers', self::DEFAULT_TRUSTED_HEADERS);
+
+        $trustedProxies = $this->resolveTrustedProxyList($trustedProxyEntries);
+        $trustedHeaders = $this->resolveTrustedHeaderSet($trustedHeaderEntries);
 
         if ($trustedProxies !== []) {
             FluteRequest::setTrustedProxies($trustedProxies, $trustedHeaders);
             Request::setTrustedProxies($trustedProxies, $trustedHeaders);
         } else {
-            FluteRequest::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
-            Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
+            FluteRequest::setTrustedProxies([], self::HEADER_X_FORWARDED_FOR);
+            Request::setTrustedProxies([], self::HEADER_X_FORWARDED_FOR);
         }
 
-        $trustedHosts = array_filter((array) config('app.trusted_hosts', []));
-        $appUrl = config('app.url');
+        $trustedHosts = $this->readConfigStringList('app.trusted_hosts', []);
+        $appUrl = $this->readConfigString('app.url', '');
 
         if ($appUrl) {
             $appHost = parse_url($appUrl, PHP_URL_HOST);
@@ -96,13 +96,9 @@ class RequestServiceProvider extends AbstractServiceProvider
 
     /**
      * @param list<string> $entries
-     *
-     * @return list<string>
      */
     private function resolveTrustedProxyList(array $entries): array
     {
-        $entries = array_values(array_filter($entries, static fn($v) => is_string($v) && $v !== ''));
-
         // Explicit "trust no proxies" from config
         if ($entries === []) {
             return [];
@@ -151,7 +147,7 @@ class RequestServiceProvider extends AbstractServiceProvider
             return [];
         }
 
-        if (!IpUtils::checkIp($remoteAddr, self::PRIVATE_SUBNET_CIDRS)) {
+        if (!$this->isPrivateOrLocalAddress($remoteAddr)) {
             return [];
         }
 
@@ -165,12 +161,13 @@ class RequestServiceProvider extends AbstractServiceProvider
         return [];
     }
 
+    /**
+     * @param list<string> $entries
+     */
     private function resolveTrustedHeaderSet(array $entries): int
     {
-        $entries = array_values(array_filter($entries, static fn($v) => is_string($v) && $v !== ''));
-
         if ($entries === []) {
-            return Request::HEADER_X_FORWARDED_FOR;
+            return self::HEADER_X_FORWARDED_FOR;
         }
 
         $resolved = 0;
@@ -179,18 +176,97 @@ class RequestServiceProvider extends AbstractServiceProvider
             $upper = strtoupper($entry);
 
             if ($upper === 'AWS_ELB') {
-                return Request::HEADER_X_FORWARDED_AWS_ELB;
+                return self::HEADER_X_FORWARDED_AWS_ELB;
             }
 
             if ($upper === 'TRAEFIK') {
-                return Request::HEADER_X_FORWARDED_TRAEFIK;
+                return self::HEADER_X_FORWARDED_TRAEFIK;
             }
 
-            if (isset(self::TRUSTED_HEADER_MAP[$upper])) {
-                $resolved |= self::TRUSTED_HEADER_MAP[$upper];
+            $headerFlag = match ($upper) {
+                'FORWARDED' => self::HEADER_FORWARDED,
+                'X_FORWARDED_FOR' => self::HEADER_X_FORWARDED_FOR,
+                'X_FORWARDED_HOST' => self::HEADER_X_FORWARDED_HOST,
+                'X_FORWARDED_PROTO' => self::HEADER_X_FORWARDED_PROTO,
+                'X_FORWARDED_PORT' => self::HEADER_X_FORWARDED_PORT,
+                'X_FORWARDED_PREFIX' => self::HEADER_X_FORWARDED_PREFIX,
+                default => 0,
+            };
+
+            if ($headerFlag !== 0) {
+                $resolved |= $headerFlag;
             }
         }
 
-        return $resolved !== 0 ? $resolved : Request::HEADER_X_FORWARDED_FOR;
+        return $resolved !== 0 ? $resolved : self::HEADER_X_FORWARDED_FOR;
+    }
+
+    private function isPrivateOrLocalAddress(string $ip): bool
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+            if (str_starts_with($ip, '10.') || str_starts_with($ip, '127.') || str_starts_with($ip, '192.168.')) {
+                return true;
+            }
+
+            if (!str_starts_with($ip, '172.')) {
+                return false;
+            }
+
+            $parts = explode('.', $ip, 3);
+            $secondOctet = isset($parts[1]) ? (int) $parts[1] : -1;
+
+            return $secondOctet >= 16 && $secondOctet <= 31;
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) {
+            return false;
+        }
+
+        $normalized = strtolower($ip);
+
+        return $normalized === '::1' || str_starts_with($normalized, 'fc') || str_starts_with($normalized, 'fd');
+    }
+
+    /**
+     * @param list<string> $default
+     *
+     * @return list<string>
+     */
+    private function readConfigStringList(string $key, array $default): array
+    {
+        if (!function_exists('config')) {
+            return $default;
+        }
+
+        /** @var mixed $value */
+        $value = call_user_func('config', $key, $default);
+
+        if (!is_array($value)) {
+            return $default;
+        }
+
+        $result = [];
+
+        foreach ($value as $item) {
+            if (!is_string($item) || $item === '') {
+                continue;
+            }
+
+            $result[] = $item;
+        }
+
+        return $result;
+    }
+
+    private function readConfigString(string $key, string $default): string
+    {
+        if (!function_exists('config')) {
+            return $default;
+        }
+
+        /** @var mixed $value */
+        $value = call_user_func('config', $key, $default);
+
+        return is_string($value) ? $value : $default;
     }
 }
