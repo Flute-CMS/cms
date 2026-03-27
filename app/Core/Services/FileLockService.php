@@ -468,8 +468,8 @@ class FileLockService
         }
 
         $perms = @fileperms($path);
-        if ($perms !== false && ($perms & 0o020) === 0) {
-            @chmod($path, ($perms | 0o060) & 0o7777);
+        if ($perms !== false && ( $perms & 0o020 ) === 0) {
+            @chmod($path, ( $perms | 0o060 ) & 0o7777);
         }
     }
 }

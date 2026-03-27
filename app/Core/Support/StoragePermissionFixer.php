@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Flute\Core\Support;
 
@@ -14,7 +14,14 @@ namespace Flute\Core\Support;
  */
 class StoragePermissionFixer
 {
-    private const STAMP_FILE = 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . '.perms_checked';
+    private const STAMP_FILE =
+        'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . '.perms_checked';
 
     private const CHECK_INTERVAL = 3600; // 1 hour
 
@@ -31,7 +38,7 @@ class StoragePermissionFixer
         $stampFile = $basePath . self::STAMP_FILE;
 
         // Skip if checked recently
-        if (is_file($stampFile) && (time() - (int) @filemtime($stampFile)) < self::CHECK_INTERVAL) {
+        if (is_file($stampFile) && ( time() - (int) @filemtime($stampFile) ) < self::CHECK_INTERVAL) {
             return;
         }
 
@@ -60,8 +67,8 @@ class StoragePermissionFixer
             }
 
             // Ensure directory is group-writable (g+w)
-            if (($stat['mode'] & 0o020) === 0) {
-                $newMode = ($stat['mode'] | 0o070) & 0o7777; // g+rwx for directories
+            if (( $stat['mode'] & 0o020 ) === 0) {
+                $newMode = ( $stat['mode'] | 0o070 ) & 0o7777; // g+rwx for directories
                 if (@chmod($dir, $newMode)) {
                     $fixed++;
                 }
@@ -69,7 +76,7 @@ class StoragePermissionFixer
 
             // Ensure directory is writable by current process
             if (!is_writable($dir)) {
-                @chmod($dir, ($stat['mode'] | 0o070) & 0o7777);
+                @chmod($dir, ( $stat['mode'] | 0o070 ) & 0o7777);
                 $fixed++;
             }
         }
@@ -78,9 +85,30 @@ class StoragePermissionFixer
         $criticalFiles = [
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php',
-            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'orm_schema.lock',
-            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache.php',
-            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache.lock',
+            $basePath
+                . 'storage'
+                . DIRECTORY_SEPARATOR
+                . 'app'
+                . DIRECTORY_SEPARATOR
+                . 'cache'
+                . DIRECTORY_SEPARATOR
+                . 'orm_schema.lock',
+            $basePath
+                . 'storage'
+                . DIRECTORY_SEPARATOR
+                . 'app'
+                . DIRECTORY_SEPARATOR
+                . 'cache'
+                . DIRECTORY_SEPARATOR
+                . 'helpers.cache.php',
+            $basePath
+                . 'storage'
+                . DIRECTORY_SEPARATOR
+                . 'app'
+                . DIRECTORY_SEPARATOR
+                . 'cache'
+                . DIRECTORY_SEPARATOR
+                . 'helpers.cache.lock',
         ];
 
         foreach ($criticalFiles as $file) {
@@ -94,8 +122,8 @@ class StoragePermissionFixer
             }
 
             // Ensure file is group-writable (g+rw)
-            if (($perms & 0o020) === 0) {
-                @chmod($file, ($perms | 0o060) & 0o7777);
+            if (( $perms & 0o020 ) === 0) {
+                @chmod($file, ( $perms | 0o060 ) & 0o7777);
                 $fixed++;
             }
         }

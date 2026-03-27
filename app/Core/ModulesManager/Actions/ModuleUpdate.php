@@ -16,6 +16,7 @@ use RuntimeException;
 class ModuleUpdate implements ModuleActionInterface
 {
     use Concerns\FlushesTranslationCache;
+
     protected ModuleManager $moduleManager;
 
     protected ModuleDependencies $moduleDependencies;

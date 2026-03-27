@@ -11,6 +11,7 @@ use RecursiveIteratorIterator;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Throwable;
 
 /**
  * Class ComposerManager
@@ -24,6 +25,11 @@ class ComposerManager
     private const MAINTENANCE_FLAG = 'storage/app/.maintenance-composer';
 
     private const MAINTENANCE_FLAG_PUBLIC = 'public/.maintenance-composer';
+
+    /** @see enableMaintenanceFlag() */
+    private const MAINTENANCE_COMPOSER_MESSAGE = 'Update in progress, please try again shortly.';
+
+    private const MAINTENANCE_SOURCE_COMPOSER = 'composer';
 
     /**
      * Installs a Composer package.
@@ -221,7 +227,7 @@ class ComposerManager
 
             throw $e;
         } finally {
-            if (!$hadMaintenanceFlag && $shouldDisableMaintenanceFlag) {
+            if ($shouldDisableMaintenanceFlag && $this->shouldClearMaintenanceAfterComposerRun($hadMaintenanceFlag)) {
                 $this->disableMaintenanceFlag();
             }
 
@@ -355,6 +361,10 @@ class ComposerManager
 
         if (is_file($path)) {
             $existing = $this->readMaintenancePayload($path);
+            if ($this->shouldAdoptOrphanComposerMaintenance($existing)) {
+                $existing['source'] = self::MAINTENANCE_SOURCE_COMPOSER;
+                @file_put_contents($path, json_encode($existing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            }
             @file_put_contents($publicPath, '1');
 
             return $existing;
@@ -362,10 +372,11 @@ class ComposerManager
 
         $payload = [
             'title' => 'Maintenance',
-            'message' => 'Update in progress, please try again shortly.',
+            'message' => self::MAINTENANCE_COMPOSER_MESSAGE,
             'started_at' => date(DATE_ATOM),
             'pid' => getmypid(),
             'force' => false,
+            'source' => self::MAINTENANCE_SOURCE_COMPOSER,
         ];
 
         @file_put_contents($path, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -402,6 +413,55 @@ class ComposerManager
         $decoded = json_decode($raw, true);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * When a composer run finishes, clear maintenance if this run owned the flag or left a composer orphan.
+     * If another layer (e.g. admin update screen) created the flag first, do not clear here.
+     */
+    private function shouldClearMaintenanceAfterComposerRun(bool $hadMaintenanceFlag): bool
+    {
+        if (!$hadMaintenanceFlag) {
+            return true;
+        }
+
+        $payload = $this->readMaintenancePayload($this->maintenanceFlagPath());
+        if (!empty($payload['force'])) {
+            return false;
+        }
+
+        if (( $payload['source'] ?? '' ) === self::MAINTENANCE_SOURCE_COMPOSER) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Legacy flags had no "source". If the PHP process that created the flag is gone, treat it as a
+     * crashed composer maintenance so this run can clear it in finally (avoids indefinite lock).
+     * Active admin-update requests keep the same PID alive, so they are not adopted.
+     */
+    private function shouldAdoptOrphanComposerMaintenance(array $payload): bool
+    {
+        if (!empty($payload['force'])) {
+            return false;
+        }
+        if (( $payload['source'] ?? '' ) !== '') {
+            return false;
+        }
+        if (( $payload['message'] ?? '' ) !== self::MAINTENANCE_COMPOSER_MESSAGE) {
+            return false;
+        }
+        $pid = (int) ( $payload['pid'] ?? 0 );
+        if ($pid <= 0) {
+            return true;
+        }
+        if (function_exists('posix_kill')) {
+            return !@posix_kill($pid, 0);
+        }
+
+        return false;
     }
 
     private function markMaintenanceAsForced(array $payload, string $reason): void

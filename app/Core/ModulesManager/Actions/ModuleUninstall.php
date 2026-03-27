@@ -12,6 +12,7 @@ use RuntimeException;
 class ModuleUninstall implements ModuleActionInterface
 {
     use Concerns\FlushesTranslationCache;
+
     protected $moduleManager;
 
     public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
@@ -54,7 +55,8 @@ class ModuleUninstall implements ModuleActionInterface
             $this->moduleManager->runComposerInstall(null, true);
         }
 
-        app(DatabaseConnection::class)->forceRefreshSchemaDeferred();
+        $this->moduleManager->clearCache();
+        app(DatabaseConnection::class)->forceRefreshSchema([]);
 
         $this->flushCompiledTranslations();
 

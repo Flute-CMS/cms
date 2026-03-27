@@ -53,11 +53,7 @@ class MarketplaceService
     {
         $cacheKey = 'marketplace_module_' . $slug;
 
-        return cache()->callback(
-            $cacheKey,
-            fn() => $this->fetchModuleBySlug($cacheKey, $slug),
-            $this->cacheTime,
-        );
+        return cache()->callback($cacheKey, fn() => $this->fetchModuleBySlug($cacheKey, $slug), $this->cacheTime);
     }
 
     /**
@@ -69,11 +65,7 @@ class MarketplaceService
     {
         $cacheKey = 'marketplace_module_versions_' . $slug;
 
-        return cache()->callback(
-            $cacheKey,
-            fn() => $this->fetchModuleVersions($cacheKey, $slug),
-            $this->cacheTime,
-        );
+        return cache()->callback($cacheKey, fn() => $this->fetchModuleVersions($cacheKey, $slug), $this->cacheTime);
     }
 
     /**
@@ -85,11 +77,7 @@ class MarketplaceService
     {
         $cacheKey = 'marketplace_categories';
 
-        return cache()->callback(
-            $cacheKey,
-            fn() => $this->fetchCategories($cacheKey),
-            $this->cacheTime,
-        );
+        return cache()->callback($cacheKey, fn() => $this->fetchCategories($cacheKey), $this->cacheTime);
     }
 
     /**
@@ -227,13 +215,9 @@ class MarketplaceService
 
     private function fetchModuleVersions(string $cacheKey, string $slug): array
     {
-        return $this->fetchOrFallback(
-            $cacheKey,
-            fn() => $this->api->getJson("/api/external/modules/{$slug}/versions", [
-                'accessKey' => $this->api->getApiKey(),
-            ]),
-            [],
-        );
+        return $this->fetchOrFallback($cacheKey, fn() => $this->api->getJson("/api/external/modules/{$slug}/versions", [
+            'accessKey' => $this->api->getApiKey(),
+        ]), []);
     }
 
     private function fetchCategories(string $cacheKey): array
@@ -289,7 +273,7 @@ class MarketplaceService
             }
 
             foreach ($modules as $module) {
-                if (is_array($module) && ($module['slug'] ?? null) === $slug) {
+                if (is_array($module) && ( $module['slug'] ?? null ) === $slug) {
                     return $module;
                 }
             }

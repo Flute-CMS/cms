@@ -53,6 +53,7 @@ abstract class AbstractUpdater
             'started_at' => date(DATE_ATOM),
             'pid' => getmypid(),
             'force' => false,
+            'source' => 'flute-admin-update',
         ];
 
         @file_put_contents($storageFlag, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

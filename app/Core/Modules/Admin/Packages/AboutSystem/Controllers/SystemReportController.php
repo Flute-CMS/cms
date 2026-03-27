@@ -54,7 +54,11 @@ class SystemReportController extends BaseController
             }
 
             $zip = new \ZipArchive();
-            if (is_string($tmpFile) && $tmpFile !== '' && $zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            if (
+                is_string($tmpFile)
+                && $tmpFile !== ''
+                && $zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true
+            ) {
                 $zip->addFromString($basename . '.txt', $report);
                 $zip->close();
 

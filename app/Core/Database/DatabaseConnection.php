@@ -234,7 +234,9 @@ class DatabaseConnection
                 return;
             }
 
-            logs()->warning('ORM schema compilation: lock timeout and no cached schema, waiting for compilation to finish');
+            logs()->warning(
+                'ORM schema compilation: lock timeout and no cached schema, waiting for compilation to finish',
+            );
 
             $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 60.0);
 
@@ -447,6 +449,17 @@ class DatabaseConnection
                 @unlink(self::SCHEMA_META_FILE);
             }
         }
+
+        $schemaFpCache =
+            BASE_PATH
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'schema_fp_cache.php';
+        @unlink($schemaFpCache);
 
         $this->entitiesDirs = [self::ENTITIES_DIR];
 
@@ -664,6 +677,9 @@ class DatabaseConnection
      */
     protected function ormIntoContainer(): void
     {
+        \Cycle\ActiveRecord\Facade::reset();
+        \Cycle\ActiveRecord\Facade::setContainer(app()->getContainer());
+
         app()->bind(ORM::class, $this->orm);
         app()->bind(ORMInterface::class, $this->orm);
     }
@@ -1071,8 +1087,8 @@ class DatabaseConnection
         }
 
         $perms = @fileperms($path);
-        if ($perms !== false && ($perms & 0o020) === 0) {
-            @chmod($path, ($perms | 0o060) & 0o7777);
+        if ($perms !== false && ( $perms & 0o020 ) === 0) {
+            @chmod($path, ( $perms | 0o060 ) & 0o7777);
         }
     }
 }

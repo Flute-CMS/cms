@@ -11,6 +11,7 @@ use RuntimeException;
 class ModuleDisable implements ModuleActionInterface
 {
     use Concerns\FlushesTranslationCache;
+
     public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
     {
         $mm = $moduleManager ?? app(ModuleManager::class);

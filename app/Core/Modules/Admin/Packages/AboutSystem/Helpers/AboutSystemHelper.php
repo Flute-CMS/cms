@@ -705,20 +705,23 @@ class AboutSystemHelper
             $perms = $stat ? decoct($stat['mode'] & 0o7777) : '?';
             $ownerInfo = function_exists('posix_getpwuid') && $stat ? posix_getpwuid($stat['uid']) : null;
             $groupInfo = function_exists('posix_getgrgid') && $stat ? posix_getgrgid($stat['gid']) : null;
-            $owner = ($ownerInfo['name'] ?? $stat['uid'] ?? '?') . ':' . ($groupInfo['name'] ?? $stat['gid'] ?? '?');
+            $owner =
+                ( $ownerInfo['name'] ?? $stat['uid'] ?? '?' ) . ':' . ( $groupInfo['name'] ?? $stat['gid'] ?? '?' );
             $writable = is_writable($path);
-            $groupWritable = $stat ? (bool) ($stat['mode'] & 0o020) : false;
+            $groupWritable = $stat ? (bool) ( $stat['mode'] & 0o020 ) : false;
 
             $problem = null;
             if (!$writable) {
-                $problem = "Not writable by current process (running as " . self::getCurrentProcessUser() . ")";
+                $problem = 'Not writable by current process (running as ' . self::getCurrentProcessUser() . ')';
             } elseif (!$groupWritable && $stat) {
                 // Only warn about group-writable if the directory is owned by a different user
                 // than the web server (e.g., root owns it, but www-data needs to write).
                 $currentUid = function_exists('posix_getuid') ? posix_getuid() : null;
                 if ($currentUid !== null && $stat['uid'] !== $currentUid) {
                     $ownerName = $ownerInfo['name'] ?? (string) $stat['uid'];
-                    $problem = "Not group-writable — files created by {$ownerName} won't be editable by " . self::getCurrentProcessUser();
+                    $problem =
+                        "Not group-writable — files created by {$ownerName} won't be editable by "
+                        . self::getCurrentProcessUser();
                 }
             }
 

@@ -1312,7 +1312,7 @@ count = 1
 file = "app/Core/Composer/ComposerManager.php"
 code = "no-valid-catch-type-found"
 message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 4
+count = 1
 
 [[issues]]
 file = "app/Core/Composer/ComposerManager.php"
@@ -1331,12 +1331,6 @@ file = "app/Core/Composer/ComposerManager.php"
 code = "no-value"
 message = 'Argument #3 passed to method `Flute\Core\Composer\ComposerManager::runcomposersafely` has type `never`, meaning it cannot produce a value.'
 count = 1
-
-[[issues]]
-file = "app/Core/Composer/ComposerManager.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Composer\Throwable`.'
-count = 3
 
 [[issues]]
 file = "app/Core/Composer/ComposerManager.php"
@@ -1654,7 +1648,7 @@ count = 7
 file = "app/Core/Database/DatabaseConnection.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(Cycle\Database\DatabaseManager)`).'
-count = 5
+count = 7
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -1732,13 +1726,13 @@ count = 1
 file = "app/Core/Database/DatabaseConnection.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `flute\core\database\databasetiminglogger::__construct`: expected `unknown-ref(Psr\Log\LoggerInterface)`, but found `mixed`.'
-count = 3
+count = 5
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `flute\core\services\filelockservice::acquirelockwithwait`: expected `string`, but found `mixed`.'
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -1780,7 +1774,7 @@ count = 4
 file = "app/Core/Database/DatabaseConnection.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 27
+count = 30
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -2080,13 +2074,13 @@ count = 1
 file = "app/Core/Database/DatabaseConnection.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Core\Database\BASE_PATH`.'
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Database\app` (also tried as `app` in a broader scope).'
-count = 5
+count = 6
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -2104,7 +2098,7 @@ count = 2
 file = "app/Core/Database/DatabaseConnection.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Database\config` (also tried as `config` in a broader scope).'
-count = 4
+count = 6
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -2134,7 +2128,7 @@ count = 2
 file = "app/Core/Database/DatabaseConnection.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Database\logs` (also tried as `logs` in a broader scope).'
-count = 12
+count = 16
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -2157,8 +2151,14 @@ count = 1
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
 code = "non-existent-method"
-message = 'Method `setContainer` does not exist on type `Cycle\ActiveRecord\Facade`.'
+message = 'Method `reset` does not exist on type `Cycle\ActiveRecord\Facade`.'
 count = 1
+
+[[issues]]
+file = "app/Core/Database/DatabaseConnection.php"
+code = "non-existent-method"
+message = 'Method `setContainer` does not exist on type `Cycle\ActiveRecord\Facade`.'
+count = 2
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -4378,7 +4378,7 @@ count = 2
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4391,6 +4391,12 @@ file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportCont
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_writable`: expected `string`, but found `mixed`."
 count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `mkdir`: expected `string`, but found `mixed`."
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4426,6 +4432,12 @@ count = 6
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `substr`: expected `string`, but found `nonnull`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `tempnam`: expected `string`, but found `mixed`."
 count = 1
 
 [[issues]]
@@ -4624,7 +4636,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 54
+count = 55
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4798,18 +4810,12 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\AboutSystem\Controllers\storage_path` (also tried as `storage_path` in a broader scope).'
-count = 6
+count = 7
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "nullable-return-statement"
 message = 'Function `flute\admin\packages\aboutsystem\controllers\systemreportcontroller::sanitizelogcontent` is declared to return `string` but possibly returns a nullable value (inferred as `array<array-key, string>|null|string`).'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "possibly-false-argument"
-message = "Argument #1 of function `file_get_contents` is possibly `false`, but parameter type `string` does not accept it."
 count = 1
 
 [[issues]]
@@ -4833,19 +4839,7 @@ count = 2
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "possibly-false-argument"
-message = "Argument #1 of function `unlink` is possibly `false`, but parameter type `string` does not accept it."
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "possibly-false-argument"
 message = 'Argument #1 of method `Flute\Admin\Packages\AboutSystem\Controllers\SystemReportController::sanitizelogcontent` is possibly `false`, but parameter type `string` does not accept it.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "possibly-false-argument"
-message = "Argument #1 of method `ZipArchive::open` is possibly `false`, but parameter type `string` does not accept it."
 count = 1
 
 [[issues]]
@@ -4907,6 +4901,12 @@ file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.ph
 code = "invalid-iterator"
 message = "The expression provided to `foreach` is not iterable. It resolved to type `truthy-mixed`, which is not iterable."
 count = 7
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
+code = "invalid-return-statement"
+message = '''Invalid return type for function `flute\admin\packages\aboutsystem\helpers\aboutsystemhelper::getdirectorypermissions`: expected `array<string, array{'hint': string, 'owner': string, 'path': string, 'perms': string, 'writable': bool}>`, but found `array{'config': array{'group_writable': bool, 'hint': string('Application log files')|string('Cache, logs, uploads — must be writable by the web server')|string('Compiled Blade templates')|string('Compiled config, helpers, ORM schema lock')|string('Configuration files — written during setup/settings save')|string('ORM schema, file cache, temp files'), 'owner': truthy-string, 'path': string('config')|string('storage')|string('storage/app')|string('storage/app/cache')|string('storage/app/views')|string('storage/logs'), 'perms': string, 'problem': non-empty-string|null, 'writable': bool}, 'storage': array{'group_writable': bool, 'hint': string('Application log files')|string('Cache, logs, uploads — must be writable by the web server')|string('Compiled Blade templates')|string('Compiled config, helpers, ORM schema lock')|string('Configuration files — written during setup/settings save')|string('ORM schema, file cache, temp files'), 'owner': truthy-string, 'path': string('config')|string('storage')|string('storage/app')|string('storage/app/cache')|string('storage/app/views')|string('storage/logs'), 'perms': string, 'problem': non-empty-string|null, 'writable': bool}, 'storage/app': array{'group_writable': bool, 'hint': string('Application log files')|string('Cache, logs, uploads — must be writable by the web server')|string('Compiled Blade templates')|string('Compiled config, helpers, ORM schema lock')|string('Configuration files — written during setup/settings save')|string('ORM schema, file cache, temp files'), 'owner': truthy-string, 'path': string('config')|string('storage')|string('storage/app')|string('storage/app/cache')|string('storage/app/views')|string('storage/logs'), 'perms': string, 'problem': non-empty-string|null, 'writable': bool}, 'storage/app/cache': array{'group_writable': bool, 'hint': string('Application log files')|string('Cache, logs, uploads — must be writable by the web server')|string('Compiled Blade templates')|string('Compiled config, helpers, ORM schema lock')|string('Configuration files — written during setup/settings save')|string('ORM schema, file cache, temp files'), 'owner': truthy-string, 'path': string('config')|string('storage')|string('storage/app')|string('storage/app/cache')|string('storage/app/views')|string('storage/logs'), 'perms': string, 'problem': non-empty-string|null, 'writable': bool}, 'storage/app/views': array{'group_writable': bool, 'hint': string('Application log files')|string('Cache, logs, uploads — must be writable by the web server')|string('Compiled Blade templates')|string('Compiled config, helpers, ORM schema lock')|string('Configuration files — written during setup/settings save')|string('ORM schema, file cache, temp files'), 'owner': truthy-string, 'path': string('config')|string('storage')|string('storage/app')|string('storage/app/cache')|string('storage/app/views')|string('storage/logs'), 'perms': string, 'problem': non-empty-string|null, 'writable': bool}, 'storage/logs': array{'group_writable': bool, 'hint': string('Application log files')|string('Cache, logs, uploads — must be writable by the web server')|string('Compiled Blade templates')|string('Compiled config, helpers, ORM schema lock')|string('Configuration files — written during setup/settings save')|string('ORM schema, file cache, temp files'), 'owner': truthy-string, 'path': string('config')|string('storage')|string('storage/app')|string('storage/app/cache')|string('storage/app/views')|string('storage/logs'), 'perms': string, 'problem': non-empty-string|null, 'writable': bool}}`.'''
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
@@ -5042,6 +5042,12 @@ count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
+code = "mixed-operand"
+message = "Invalid right operand: type `nonnull` cannot be reliably used in string concatenation."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`mixed`)."
 count = 1
@@ -5050,7 +5056,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Admin\Packages\AboutSystem\Helpers\BASE_PATH`.'
-count = 1
+count = 7
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
@@ -5128,6 +5134,12 @@ count = 2
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
 code = "possibly-invalid-operand"
 message = "Possibly invalid type for right operand."
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Helpers/AboutSystemHelper.php"
+code = "redundant-null-coalesce"
+message = "Redundant null coalesce: left-hand side can never be `null` or undefined."
 count = 2
 
 [[issues]]
@@ -5644,7 +5656,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Admin\Packages\Dashboard\Services\BASE_PATH`.'
-count = 1
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
@@ -5662,7 +5674,7 @@ count = 6
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Dashboard\Services\url` (also tried as `url` in a broader scope).'
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
@@ -6946,7 +6958,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `exception::__construct`: expected `string`, but found `mixed`."
-count = 5
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
@@ -6982,7 +6994,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 7
+count = 13
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
@@ -7030,19 +7042,19 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\__` (also tried as `__` in a broader scope).'
-count = 5
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\cache` (also tried as `cache` in a broader scope).'
-count = 16
+count = 19
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\logs` (also tried as `logs` in a broader scope).'
-count = 5
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
@@ -22843,6 +22855,30 @@ message = "A value of a less specific type `array<array-key, bool>` is being ass
 count = 2
 
 [[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-operand"
+message = "Invalid left operand: type `mixed` cannot be reliably used in string concatenation."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\storage_path` (also tried as `storage_path` in a broader scope).'
+count = 1
+
+[[issues]]
 file = "app/Core/ModulesManager/Actions/ModuleActivate.php"
 code = "impossible-condition"
 message = "This condition (type `false`) will always evaluate to false."
@@ -23086,7 +23122,7 @@ count = 4
 file = "app/Core/ModulesManager/Actions/ModuleUninstall.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 10
+count = 11
 
 [[issues]]
 file = "app/Core/ModulesManager/Actions/ModuleUninstall.php"
@@ -28702,7 +28738,7 @@ count = 1
 file = "app/Core/Services/ConfigurationService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 7
+count = 6
 
 [[issues]]
 file = "app/Core/Services/ConfigurationService.php"
@@ -28732,7 +28768,7 @@ count = 2
 file = "app/Core/Services/ConfigurationService.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Core\Services\BASE_PATH`.'
-count = 4
+count = 3
 
 [[issues]]
 file = "app/Core/Services/ConfigurationService.php"
@@ -28744,18 +28780,6 @@ count = 1
 file = "app/Core/Services/ConfigurationService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 1
-
-[[issues]]
-file = "app/Core/Services/ConfigurationService.php"
-code = "possibly-false-operand"
-message = "Left operand in `>` comparison might be `false` (type `false|int<1750595956, max>`)."
-count = 1
-
-[[issues]]
-file = "app/Core/Services/ConfigurationService.php"
-code = "possibly-false-operand"
-message = "Right operand in `>` comparison might be `false` (type `false|int<1750595956, max>`)."
 count = 1
 
 [[issues]]
@@ -34996,7 +35020,7 @@ count = 1
 file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 9
+count = 8
 
 [[issues]]
 file = "app/Core/Update/Updaters/CmsUpdater.php"
@@ -35062,7 +35086,7 @@ count = 1
 file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Updaters\logs` (also tried as `logs` in a broader scope).'
-count = 5
+count = 4
 
 [[issues]]
 file = "app/Core/Update/Updaters/CmsUpdater.php"
@@ -35404,7 +35428,7 @@ count = 1
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 7
+count = 6
 
 [[issues]]
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
@@ -35428,13 +35452,13 @@ count = 1
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
 code = "no-valid-catch-type-found"
 message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
 code = "non-existent-catch-type"
 message = 'Attempting to catch an undefined class or interface: `Flute\Core\Update\Updaters\Throwable`.'
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
@@ -35470,7 +35494,7 @@ count = 1
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Updaters\logs` (also tried as `logs` in a broader scope).'
-count = 4
+count = 3
 
 [[issues]]
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
