@@ -547,7 +547,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                 throw $e;
             }
 
-            logs('modules')->error("Failed to register components: " . $e->getMessage());
+            logs('modules')->error('Failed to register components: ' . $e->getMessage());
         }
     }
 

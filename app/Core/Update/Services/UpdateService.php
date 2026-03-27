@@ -6,11 +6,12 @@ use Exception;
 use Flute\Core\App;
 use Flute\Core\Markdown\Parser;
 use Flute\Core\ModulesManager\ModuleManager;
+use Flute\Core\Services\FluteApiClient;
 use Flute\Core\Theme\ThemeManager;
 use Flute\Core\Update\Updaters\ModuleUpdater;
 use Flute\Core\Update\Updaters\ThemeUpdater;
-use Flute\Core\Services\FluteApiClient;
 use GuzzleHttp\Exception\GuzzleException;
+use Throwable;
 
 class UpdateService
 {
@@ -193,7 +194,8 @@ class UpdateService
 
             $fullUrl = $downloadUrl;
             if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $fullUrl = rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim(str_replace('api/', '', $downloadUrl), '/');
+                $fullUrl =
+                    rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim(str_replace('api/', '', $downloadUrl), '/');
             }
 
             // parse ?token safely

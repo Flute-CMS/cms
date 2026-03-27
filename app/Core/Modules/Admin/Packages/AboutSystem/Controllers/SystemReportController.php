@@ -356,7 +356,7 @@ class SystemReportController extends BaseController
                     $deps = [];
                     if (!empty($module->dependencies)) {
                         foreach ($module->dependencies as $dep => $ver) {
-                            $deps[] = $dep . ':' . (is_scalar($ver) ? $ver : json_encode($ver));
+                            $deps[] = $dep . ':' . ( is_scalar($ver) ? $ver : json_encode($ver) );
                         }
                     }
                     $depsStr = !empty($deps) ? implode(', ', $deps) : '-';
@@ -1601,7 +1601,14 @@ class SystemReportController extends BaseController
 
             foreach ($logFiles as $fileName => $fileInfo) {
                 $lines[] = '';
-                $lines[] = '--- ' . $fileName . ' (' . ($fileInfo['size'] ?? '?') . ', ' . ($fileInfo['modified'] ?? '?') . ') ---';
+                $lines[] =
+                    '--- '
+                    . $fileName
+                    . ' ('
+                    . ( $fileInfo['size'] ?? '?' )
+                    . ', '
+                    . ( $fileInfo['modified'] ?? '?' )
+                    . ') ---';
 
                 $logPath = path('storage/logs/' . $fileName);
                 if (file_exists($logPath)) {
@@ -1675,7 +1682,7 @@ class SystemReportController extends BaseController
 
     protected function sectionTitle(string $title): string
     {
-        return "\n=== " . $title . " ===";
+        return "\n=== " . $title . ' ===';
     }
 
     protected function formatKeyValue(string $key, string $value): string

@@ -813,7 +813,8 @@ class InstallerController extends BaseController
         $siteUrl = $appConfig['url'] ?? '';
         if (empty($siteUrl)) {
             $protocol =
-                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (int) ( $_SERVER['SERVER_PORT'] ?? 80 ) === 443
+                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
+                || (int) ( $_SERVER['SERVER_PORT'] ?? 80 ) === 443
                     ? 'https://'
                     : 'http://';
             $siteUrl = $protocol . ( $_SERVER['HTTP_HOST'] ?? 'localhost' );

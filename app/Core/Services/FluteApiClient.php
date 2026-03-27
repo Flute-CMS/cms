@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Flute\Core\Services;
 
@@ -156,7 +156,8 @@ class FluteApiClient
         }
 
         throw new \Exception(
-            'All Flute API mirrors are unavailable: ' . ($lastException ? $lastException->getMessage() : 'unknown error'),
+            'All Flute API mirrors are unavailable: '
+            . ( $lastException ? $lastException->getMessage() : 'unknown error' ),
         );
     }
 
