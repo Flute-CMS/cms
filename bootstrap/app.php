@@ -9,6 +9,10 @@ if (function_exists('ini_set')) {
     ini_set('display_startup_errors', '0');
 }
 
+if (PHP_OS_FAMILY !== 'Windows') {
+    umask(0002);
+}
+
 if (!defined('FLUTE_START')) {
     define('FLUTE_START', microtime(true));
 }
@@ -55,6 +59,8 @@ try {
 }
 
 restore_error_handler();
+
+\Flute\Core\Support\StoragePermissionFixer::ensurePermissions(BASE_PATH);
 
 use Flute\Core\App;
 use Flute\Core\Profiling\GlobalProfiler;

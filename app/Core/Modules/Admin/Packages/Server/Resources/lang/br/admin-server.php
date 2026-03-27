@@ -65,6 +65,14 @@ return [
             'label' => 'Porta RCON',
             'placeholder' => 'Opcional. Se vazio, usa a porta de conexão',
         ],
+        'lat' => [
+            'label' => 'Latitude',
+            'help' => 'Latitude geográfica do servidor para cálculo de ping',
+        ],
+        'lon' => [
+            'label' => 'Longitude',
+            'help' => 'Longitude geográfica do servidor para cálculo de ping',
+        ],
         'enabled' => [
             'label' => 'Habilitado',
             'help' => 'O servidor deve estar visível na lista pública',

@@ -63,6 +63,14 @@ return [
             'label' => 'RCON port',
             'placeholder' => 'Volitelné. Pokud je prázdné, použije se port připojení',
         ],
+        'lat' => [
+            'label' => 'Zeměpisná šířka',
+            'help' => 'Zeměpisná šířka serveru pro výpočet pingu',
+        ],
+        'lon' => [
+            'label' => 'Zeměpisná délka',
+            'help' => 'Zeměpisná délka serveru pro výpočet pingu',
+        ],
         'enabled' => [
             'label' => 'Povolen',
             'help' => 'Má být server viditelný ve veřejném seznamu',

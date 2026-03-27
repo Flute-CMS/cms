@@ -45,6 +45,7 @@ class AboutSystemScreen extends Screen
             'phpWarnings' => AboutSystemHelper::getPhpSettingWarnings(),
             'systemHealth' => AboutSystemHelper::getSystemHealth(),
             'resourceUsage' => AboutSystemHelper::getResourceUsage(),
+            'directoryPermissions' => AboutSystemHelper::getDirectoryPermissions(),
             'performanceData' => $performanceData,
             'routesChart' => $this->buildRoutesChart($performanceData['routes']),
             'widgetsChart' => $this->buildWidgetsChart($performanceData['widgets']),

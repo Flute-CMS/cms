@@ -333,6 +333,7 @@ class DatabaseConnection
 
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
+            self::ensureGroupWritable(self::SCHEMA_FILE);
             $this->writeSchemaMeta($this->entitiesDirs);
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
@@ -858,12 +859,13 @@ class DatabaseConnection
         if ($valid) {
             $dir = dirname($cachedFpFile);
             if (!is_dir($dir)) {
-                @mkdir($dir, 0o755, true);
+                @mkdir($dir, 0o775, true);
             }
             @file_put_contents(
                 $cachedFpFile,
                 '<?php return ' . var_export(['fingerprint' => $expectedFingerprint, 'time' => time()], true) . ';',
             );
+            self::ensureGroupWritable($cachedFpFile);
         }
 
         return $valid;
@@ -1055,6 +1057,22 @@ class DatabaseConnection
         $tmp = self::SCHEMA_META_FILE . '.tmp';
         $content = '<?php return ' . var_export($meta, true) . ';';
         @file_put_contents($tmp, $content, LOCK_EX);
+        self::ensureGroupWritable($tmp);
         @rename($tmp, self::SCHEMA_META_FILE);
+    }
+
+    /**
+     * Ensure a file is group-writable so both root (CLI/cron) and www-data (Apache) can overwrite it.
+     */
+    private static function ensureGroupWritable(string $path): void
+    {
+        if (PHP_OS_FAMILY === 'Windows' || !is_file($path)) {
+            return;
+        }
+
+        $perms = @fileperms($path);
+        if ($perms !== false && ($perms & 0o020) === 0) {
+            @chmod($path, ($perms | 0o060) & 0o7777);
+        }
     }
 }

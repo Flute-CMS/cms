@@ -645,6 +645,113 @@ class AboutSystemHelper
     }
 
     /**
+     * Check writable permissions on critical directories.
+     *
+     * @return array<string, array{path: string, writable: bool, owner: string, perms: string, hint: string}>
+     */
+    public static function getDirectoryPermissions(): array
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            return [];
+        }
+
+        $dirs = [
+            'storage' => [
+                'path' => BASE_PATH . 'storage',
+                'hint' => 'Cache, logs, uploads — must be writable by the web server',
+            ],
+            'storage/logs' => [
+                'path' => BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'logs',
+                'hint' => 'Application log files',
+            ],
+            'storage/app/cache' => [
+                'path' => BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
+                'hint' => 'Compiled config, helpers, ORM schema lock',
+            ],
+            'storage/app/views' => [
+                'path' => BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
+                'hint' => 'Compiled Blade templates',
+            ],
+            'storage/app' => [
+                'path' => BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app',
+                'hint' => 'ORM schema, file cache, temp files',
+            ],
+            'config' => [
+                'path' => BASE_PATH . 'config',
+                'hint' => 'Configuration files — written during setup/settings save',
+            ],
+        ];
+
+        $results = [];
+
+        foreach ($dirs as $key => $info) {
+            $path = $info['path'];
+
+            if (!is_dir($path)) {
+                $results[$key] = [
+                    'path' => $key,
+                    'writable' => false,
+                    'owner' => '-',
+                    'perms' => '-',
+                    'group_writable' => false,
+                    'hint' => $info['hint'],
+                    'problem' => 'Directory does not exist',
+                ];
+
+                continue;
+            }
+
+            $stat = @stat($path);
+            $perms = $stat ? decoct($stat['mode'] & 0o7777) : '?';
+            $ownerInfo = function_exists('posix_getpwuid') && $stat ? posix_getpwuid($stat['uid']) : null;
+            $groupInfo = function_exists('posix_getgrgid') && $stat ? posix_getgrgid($stat['gid']) : null;
+            $owner = ($ownerInfo['name'] ?? $stat['uid'] ?? '?') . ':' . ($groupInfo['name'] ?? $stat['gid'] ?? '?');
+            $writable = is_writable($path);
+            $groupWritable = $stat ? (bool) ($stat['mode'] & 0o020) : false;
+
+            $problem = null;
+            if (!$writable) {
+                $problem = "Not writable by current process (running as " . self::getCurrentProcessUser() . ")";
+            } elseif (!$groupWritable && $stat) {
+                // Only warn about group-writable if the directory is owned by a different user
+                // than the web server (e.g., root owns it, but www-data needs to write).
+                $currentUid = function_exists('posix_getuid') ? posix_getuid() : null;
+                if ($currentUid !== null && $stat['uid'] !== $currentUid) {
+                    $ownerName = $ownerInfo['name'] ?? (string) $stat['uid'];
+                    $problem = "Not group-writable — files created by {$ownerName} won't be editable by " . self::getCurrentProcessUser();
+                }
+            }
+
+            $results[$key] = [
+                'path' => $key,
+                'writable' => $writable,
+                'owner' => $owner,
+                'perms' => $perms,
+                'group_writable' => $groupWritable,
+                'hint' => $info['hint'],
+                'problem' => $problem,
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Get current process user name.
+     */
+    private static function getCurrentProcessUser(): string
+    {
+        if (function_exists('posix_getpwuid')) {
+            $info = posix_getpwuid(posix_getuid());
+            if ($info) {
+                return $info['name'];
+            }
+        }
+
+        return get_current_user();
+    }
+
+    /**
      * Detect database driver from config
      */
     private static function detectDatabaseDriver(): string

@@ -10,6 +10,7 @@ use RuntimeException;
 
 class ModuleDisable implements ModuleActionInterface
 {
+    use Concerns\FlushesTranslationCache;
     public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
     {
         $mm = $moduleManager ?? app(ModuleManager::class);
@@ -42,6 +43,8 @@ class ModuleDisable implements ModuleActionInterface
         $module->save();
 
         logs('modules')->info("Module {$module->key} was disabled in the Flute!");
+
+        $this->flushCompiledTranslations();
     }
 
     protected function e(ModuleInformation $moduleInformation)

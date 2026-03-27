@@ -116,6 +116,7 @@ class FileLockService
         if (!$handle) {
             throw new RuntimeException("Cannot open lock file: {$lockFile}");
         }
+        self::ensureGroupWritable($lockFile);
 
         $locked = false;
 
@@ -235,6 +236,7 @@ class FileLockService
         if ($handle === false) {
             return false;
         }
+        self::ensureGroupWritable($lockFile);
 
         if (flock($handle, LOCK_EX | LOCK_NB)) {
             // Write PID for debugging
@@ -282,6 +284,7 @@ class FileLockService
         if ($handle === false) {
             return false;
         }
+        self::ensureGroupWritable($lockFile);
 
         $startNs = hrtime(true);
         $timeoutNs = (int) ( $timeoutSeconds * 1_000_000_000 );
@@ -453,5 +456,20 @@ class FileLockService
         }
 
         return rtrim($realDir, '/\\') . DIRECTORY_SEPARATOR . $basename;
+    }
+
+    /**
+     * Ensure a lock file is group-writable so both root (CLI/cron) and www-data (Apache) can use it.
+     */
+    private static function ensureGroupWritable(string $path): void
+    {
+        if (PHP_OS_FAMILY === 'Windows' || !is_file($path)) {
+            return;
+        }
+
+        $perms = @fileperms($path);
+        if ($perms !== false && ($perms & 0o020) === 0) {
+            @chmod($path, ($perms | 0o060) & 0o7777);
+        }
     }
 }

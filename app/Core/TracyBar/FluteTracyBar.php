@@ -28,7 +28,23 @@ class FluteTracyBar
         Debugger::$showLocation = false;
 
         Debugger::setLogger($tracyLogger);
+
+        // When behind a reverse proxy (Cloudflare, nginx, etc.), Tracy sees
+        // the proxy IP in REMOTE_ADDR and silently switches to Production mode
+        // because it thinks the request is not from a trusted developer.
+        // We already handle access control via is_debug(), so we override
+        // Tracy's IP detection by temporarily setting REMOTE_ADDR to localhost.
+        $origRemoteAddr = $_SERVER['REMOTE_ADDR'] ?? null;
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
         Debugger::enable($this->getDebugAccess());
+
+        // Restore the real REMOTE_ADDR so the rest of the app sees it correctly.
+        if ($origRemoteAddr !== null) {
+            $_SERVER['REMOTE_ADDR'] = $origRemoteAddr;
+        } else {
+            unset($_SERVER['REMOTE_ADDR']);
+        }
 
         $this->addPanels();
     }

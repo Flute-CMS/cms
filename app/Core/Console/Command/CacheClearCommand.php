@@ -64,15 +64,6 @@ class CacheClearCommand extends Command
             $this->removeAndRecreate($filesystem, $jsCacheDir);
             $this->removeAndRecreate($filesystem, $jsCacheStaleDir);
 
-            // Clear compiled config cache
-            $configCompiled = storage_path('app/cache/config_compiled.php');
-            if (file_exists($configCompiled)) {
-                @unlink($configCompiled);
-                if (function_exists('opcache_invalidate')) {
-                    @opcache_invalidate($configCompiled, true);
-                }
-            }
-
             // Always clear Blade view cache
             $viewsPath = storage_path('app/views/*');
             $viewFiles = glob($viewsPath);
@@ -80,10 +71,16 @@ class CacheClearCommand extends Command
                 $filesystem->remove($viewFiles);
             }
 
+            // Always clear compiled translation catalogues — they must be
+            // rebuilt when modules are installed/updated/removed.
+            $translationFiles = glob(storage_path('app/translations/*'));
+            if ($translationFiles) {
+                $filesystem->remove($translationFiles);
+            }
+
             if ($full) {
                 foreach ([
                     storage_path('app/proxies/*'),
-                    storage_path('app/translations/*'),
                     storage_path('logs/*'),
                 ] as $pattern) {
                     $files = glob($pattern);

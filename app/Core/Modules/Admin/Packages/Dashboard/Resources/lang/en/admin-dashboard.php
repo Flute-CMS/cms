@@ -109,6 +109,7 @@ return [
         'debug' => 'Debug mode is enabled',
         'cron' => 'Server auto-refresh is not running',
         'performance' => ':count optimization(s) recommended',
+        'permissions' => ':count directory(s) not writable — fix permissions!',
     ],
 
     'checklist' => [

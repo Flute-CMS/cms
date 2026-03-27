@@ -63,6 +63,14 @@ return [
             'label' => 'RCON-port',
             'placeholder' => 'Valfritt. Om tom används anslutningsporten',
         ],
+        'lat' => [
+            'label' => 'Latitud',
+            'help' => 'Serverns geografiska latitud för pingberäkning',
+        ],
+        'lon' => [
+            'label' => 'Longitud',
+            'help' => 'Serverns geografiska longitud för pingberäkning',
+        ],
         'enabled' => [
             'label' => 'Aktiverad',
             'help' => 'Ska servern vara synlig i den offentliga listan',

@@ -44,26 +44,38 @@ class SystemReportController extends BaseController
         // Try to create a ZIP archive for smaller download size.
         if (class_exists(\ZipArchive::class)) {
             $tmpFile = tempnam(sys_get_temp_dir(), 'flute_report_');
+            if (!is_string($tmpFile) || $tmpFile === '') {
+                $tmpDir = storage_path('app/temp');
+                if (!is_dir($tmpDir)) {
+                    @mkdir($tmpDir, 0o775, true);
+                }
+
+                $tmpFile = tempnam($tmpDir, 'flute_report_');
+            }
 
             $zip = new \ZipArchive();
-            if ($zip->open($tmpFile, \ZipArchive::OVERWRITE) === true) {
+            if (is_string($tmpFile) && $tmpFile !== '' && $zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
                 $zip->addFromString($basename . '.txt', $report);
                 $zip->close();
 
                 $zipContent = file_get_contents($tmpFile);
                 @unlink($tmpFile);
 
-                $response = new Response($zipContent);
-                $response->headers->set('Content-Type', 'application/zip');
-                $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
-                    ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                    $basename . '.zip',
-                ));
+                if ($zipContent !== false) {
+                    $response = new Response($zipContent);
+                    $response->headers->set('Content-Type', 'application/zip');
+                    $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+                        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                        $basename . '.zip',
+                    ));
 
-                return $response;
+                    return $response;
+                }
             }
 
-            @unlink($tmpFile);
+            if (is_string($tmpFile) && $tmpFile !== '') {
+                @unlink($tmpFile);
+            }
         }
 
         // Fallback: plain text if ZipArchive is unavailable.
