@@ -5,12 +5,17 @@
 
 .sortable-list-item {
     position: relative;
-    z-index: 1;
 
     &.sortable-chosen {
+        z-index: 1;
+
         .reorder-handle {
             background-color: var(--transp-1);
         }
+    }
+
+    &.sortable-drag {
+        z-index: 10002;
     }
 
     &.sortable-ghost {

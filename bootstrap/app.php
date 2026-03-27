@@ -36,6 +36,10 @@ define('FLUTE_BOOTSTRAP_START', microtime(true));
 require __DIR__ . '/composer-error.php';
 
 set_error_handler(function ($severity, $message, $file, $line) {
+    if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+        return true;
+    }
+
     if (!(error_reporting() & $severity)) {
         return false;
     }
