@@ -61,8 +61,6 @@ class ThemeUpdater extends AbstractUpdater
             return false;
         }
 
-        $maintenanceEnabled = $this->enableUpdateMaintenance();
-
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/theme-' . $this->theme->key . '-' . time());
 
@@ -72,48 +70,44 @@ class ThemeUpdater extends AbstractUpdater
         }
 
         try {
-            try {
-                // Распаковываем архив
-                app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+            // Распаковываем архив
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
 
-                // Определяем корневую директорию в архиве, может содержать один корневой каталог
-                $rootDir = $extractDir;
-                $items = scandir($extractDir);
-                if (count($items) === 3) { // '.', '..' и одна директория
-                    foreach ($items as $item) {
-                        if ($item !== '.' && $item !== '..' && is_dir($extractDir . '/' . $item)) {
-                            $rootDir = $extractDir . '/' . $item;
+            // Определяем корневую директорию в архиве, может содержать один корневой каталог
+            $rootDir = $extractDir;
+            $items = scandir($extractDir);
+            if (count($items) === 3) { // '.', '..' и одна директория
+                foreach ($items as $item) {
+                    if ($item !== '.' && $item !== '..' && is_dir($extractDir . '/' . $item)) {
+                        $rootDir = $extractDir . '/' . $item;
 
-                            break;
-                        }
+                        break;
                     }
                 }
-
-                // Получаем путь к директории темы
-                $themeDir = $this->getThemeDirectory();
-
-                // Создаем бэкап перед обновлением
-                $this->createBackup();
-
-                // Копируем файлы
-                $this->copyDirectory($rootDir, $themeDir);
-
-                // Очищаем кэш
-                $this->clearCache();
-
-                // Удаляем временные файлы
-                $this->removeDirectory($extractDir);
-
-                return true;
-            } catch (Throwable $e) {
-                logs()->error('Error during theme update: ' . $e->getMessage());
-                // Удаляем временные файлы
-                $this->removeDirectory($extractDir);
-
-                return false;
             }
-        } finally {
-            $this->disableUpdateMaintenance($maintenanceEnabled);
+
+            // Получаем путь к директории темы
+            $themeDir = $this->getThemeDirectory();
+
+            // Создаем бэкап перед обновлением
+            $this->createBackup();
+
+            // Копируем файлы
+            $this->copyDirectory($rootDir, $themeDir);
+
+            // Очищаем кэш
+            $this->clearCache();
+
+            // Удаляем временные файлы
+            $this->removeDirectory($extractDir);
+
+            return true;
+        } catch (Throwable $e) {
+            logs()->error('Error during theme update: ' . $e->getMessage());
+            // Удаляем временные файлы
+            $this->removeDirectory($extractDir);
+
+            return false;
         }
     }
 
@@ -183,11 +177,7 @@ class ThemeUpdater extends AbstractUpdater
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
-                copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0o777;
-                chmod($destinationPath, $filePerms);
-                $this->safeChown($destinationPath, fileowner($sourcePath));
-                $this->safeChgrp($destinationPath, filegroup($sourcePath));
+                $this->atomicCopyFile($sourcePath, $destinationPath);
             }
         }
 
@@ -243,6 +233,8 @@ class ThemeUpdater extends AbstractUpdater
         if (function_exists('cache_warmup_mark')) {
             cache_warmup_mark();
         }
+
+        $this->resetOpcache();
     }
 
     /**

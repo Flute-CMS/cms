@@ -104,6 +104,51 @@ abstract class AbstractUpdater
     }
 
     /**
+     * Atomically copy a single file: write to .tmp, then rename over the target.
+     * This ensures concurrent requests never read a half-written file.
+     * Also invalidates OPcache for the target so new code is picked up immediately.
+     */
+    protected function atomicCopyFile(string $source, string $destination): void
+    {
+        $tmpFile = $destination . '.tmp.' . getmypid();
+
+        copy($source, $tmpFile);
+
+        // Determine permissions to apply
+        if (is_file($destination)) {
+            $perms = fileperms($destination) & 0o755;
+            $owner = fileowner($destination);
+            $group = filegroup($destination);
+        } else {
+            $perms = fileperms($source) & 0o755;
+            $owner = fileowner($source);
+            $group = filegroup($source);
+        }
+
+        chmod($tmpFile, $perms);
+        $this->safeChown($tmpFile, $owner);
+        $this->safeChgrp($tmpFile, $group);
+
+        // Atomic rename — target is either fully old or fully new, never partial
+        rename($tmpFile, $destination);
+
+        // Invalidate OPcache for this file so PHP loads the new version
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($destination, true);
+        }
+    }
+
+    /**
+     * Reset OPcache entirely. Should be called after all files are updated.
+     */
+    protected function resetOpcache(): void
+    {
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+    }
+
+    /**
      * Safely change file owner if supported by the runtime
      */
     protected function safeChown(string $path, $user): void

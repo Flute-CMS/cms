@@ -85,8 +85,6 @@ class ModuleUpdater extends AbstractUpdater
             return false;
         }
 
-        $maintenanceEnabled = $this->enableUpdateMaintenance();
-
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/module-' . $this->module->key . '-' . time());
 
@@ -95,61 +93,57 @@ class ModuleUpdater extends AbstractUpdater
         }
 
         try {
-            try {
-                $this->createBackup();
+            $this->createBackup();
 
-                $modulePath = $this->extractModuleArchive($packageFile, $extractDir);
-                if (!$modulePath) {
-                    return false;
-                }
+            $modulePath = $this->extractModuleArchive($packageFile, $extractDir);
+            if (!$modulePath) {
+                return false;
+            }
 
-                if (!$this->validateModule($modulePath)) {
-                    logs()->error('Module validation failed: incompatible with current CMS version');
-
-                    return false;
-                }
-
-                $moduleDir = $this->getModuleDirectory();
-                $this->copyModuleFiles($modulePath, $moduleDir);
-
-                // Update composer dependencies
-                /** @var ComposerManager $composerManager */
-                $composerManager = app(ComposerManager::class);
-
-                try {
-                    $composerManager->install();
-                } catch (Throwable $e) {
-                    // Rollback
-                    $this->removeDirectory($moduleDir);
-                    if ($this->backupDir && is_dir($this->backupDir)) {
-                        $this->copyDirectory($this->backupDir, $moduleDir);
-                    }
-
-                    throw $e;
-                }
-
-                $this->updateModuleInformation();
-
-                $this->clearCache();
-                cache()->clear();
-                /** @var ModuleManager $moduleManager */
-                $moduleManager = app(ModuleManager::class);
-                $moduleManager->clearCache();
-                $moduleManager->refreshModules();
-
-                $this->removeDirectory($extractDir);
-
-                return true;
-            } catch (Throwable $e) {
-                logs()->error('Error during module update: ' . $e->getMessage());
-                if (is_dir($extractDir)) {
-                    $this->removeDirectory($extractDir);
-                }
+            if (!$this->validateModule($modulePath)) {
+                logs()->error('Module validation failed: incompatible with current CMS version');
 
                 return false;
             }
-        } finally {
-            $this->disableUpdateMaintenance($maintenanceEnabled);
+
+            $moduleDir = $this->getModuleDirectory();
+            $this->copyModuleFiles($modulePath, $moduleDir);
+
+            // Update composer dependencies
+            /** @var ComposerManager $composerManager */
+            $composerManager = app(ComposerManager::class);
+
+            try {
+                $composerManager->install();
+            } catch (Throwable $e) {
+                // Rollback
+                $this->removeDirectory($moduleDir);
+                if ($this->backupDir && is_dir($this->backupDir)) {
+                    $this->copyDirectory($this->backupDir, $moduleDir);
+                }
+
+                throw $e;
+            }
+
+            $this->updateModuleInformation();
+
+            $this->clearCache();
+            cache()->clear();
+            /** @var ModuleManager $moduleManager */
+            $moduleManager = app(ModuleManager::class);
+            $moduleManager->clearCache();
+            $moduleManager->refreshModules();
+
+            $this->removeDirectory($extractDir);
+
+            return true;
+        } catch (Throwable $e) {
+            logs()->error('Error during module update: ' . $e->getMessage());
+            if (is_dir($extractDir)) {
+                $this->removeDirectory($extractDir);
+            }
+
+            return false;
         }
     }
 
@@ -346,11 +340,7 @@ class ModuleUpdater extends AbstractUpdater
                 }
                 $this->copyModuleFiles($sourcePath, $destinationPath);
             } else {
-                copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0o777;
-                chmod($destinationPath, $filePerms);
-                $this->safeChown($destinationPath, fileowner($sourcePath));
-                $this->safeChgrp($destinationPath, filegroup($sourcePath));
+                $this->atomicCopyFile($sourcePath, $destinationPath);
             }
         }
 
@@ -392,11 +382,7 @@ class ModuleUpdater extends AbstractUpdater
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
-                copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0o777;
-                chmod($destinationPath, $filePerms);
-                $this->safeChown($destinationPath, fileowner($sourcePath));
-                $this->safeChgrp($destinationPath, filegroup($sourcePath));
+                $this->atomicCopyFile($sourcePath, $destinationPath);
             }
         }
 
@@ -443,6 +429,8 @@ class ModuleUpdater extends AbstractUpdater
         if (function_exists('cache_warmup_mark')) {
             cache_warmup_mark();
         }
+
+        $this->resetOpcache();
     }
 
     /**

@@ -38,14 +38,23 @@ if (!function_exists('flute_maintenance_gate')) {
             }
         }
 
-        // If vendor/autoload.php exists and composer is not running, the update
-        // likely finished but the flag wasn't cleaned up. Clear it immediately.
-        if (is_file($basePath . 'vendor/autoload.php') && !flute_is_composer_locked($basePath)) {
-            @unlink($storageFlag);
-            @unlink($publicFlag);
+        // Zero-downtime: if vendor/autoload.php exists, the site can serve
+        // requests normally even during updates. Only block if force-maintenance
+        // was explicitly enabled by the admin.
+        if (is_file($basePath . 'vendor/autoload.php')) {
+            // If composer is not even running, clean up stale flags
+            if (!flute_is_composer_locked($basePath)) {
+                @unlink($storageFlag);
+                @unlink($publicFlag);
+            }
 
-            return false;
+            // Only block when admin explicitly forced maintenance mode
+            if (empty($payload['force'])) {
+                return false;
+            }
         }
+
+        // vendor/autoload.php is missing — try to recover
 
         // Determine how long maintenance has been active
         $age = flute_maintenance_age($payload, $storageFlag, $publicFlag);
@@ -54,9 +63,7 @@ if (!function_exists('flute_maintenance_gate')) {
         $isStale = flute_maintenance_is_stale($payload, $age, $basePath);
 
         if ($isStale && !flute_is_composer_locked($basePath)) {
-            if (!is_file($basePath . 'vendor/autoload.php')) {
-                flute_try_restore_vendor($basePath, $payload);
-            }
+            flute_try_restore_vendor($basePath, $payload);
 
             if (is_file($basePath . 'vendor/autoload.php')) {
                 @unlink($storageFlag);
@@ -78,7 +85,7 @@ if (!function_exists('flute_maintenance_gate')) {
 
         http_response_code(503);
         header('Content-Type: text/html; charset=UTF-8');
-        header('Retry-After: 30');
+        header('Retry-After: 10');
 
         $safeTitle = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
         $safeMessage = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
@@ -90,14 +97,22 @@ if (!function_exists('flute_maintenance_gate')) {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>{$safeTitle}</title>
-                <meta http-equiv="refresh" content="10">
                 <style>
                     :root { color-scheme: dark; }
+                    * { box-sizing: border-box; }
                     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0c0c0f; color: #f4f4f5; }
                     .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-                    .card { max-width: 520px; width: 100%; background: #141419; border: 1px solid #2a2a35; border-radius: 12px; padding: 20px; }
+                    .card { max-width: 520px; width: 100%; background: #141419; border: 1px solid #2a2a35; border-radius: 12px; padding: 24px; }
                     h1 { font-size: 16px; margin: 0 0 8px; }
                     p { margin: 0; color: #a1a1aa; font-size: 13px; line-height: 1.5; }
+                    .progress { margin-top: 16px; height: 3px; background: #2a2a35; border-radius: 2px; overflow: hidden; }
+                    .progress-bar { height: 100%; width: 30%; background: #6366f1; border-radius: 2px; animation: progress 1.5s ease-in-out infinite; }
+                    @keyframes progress { 0% { transform: translateX(-100%); width: 30%; } 50% { width: 60%; } 100% { transform: translateX(400%); width: 30%; } }
+                    .status { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
+                    .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 6px; animation: pulse 2s ease-in-out infinite; }
+                    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+                    .status-text { font-size: 11px; color: #71717a; display: flex; align-items: center; }
+                    .timer { font-size: 11px; color: #71717a; font-variant-numeric: tabular-nums; }
                 </style>
             </head>
             <body>
@@ -105,8 +120,41 @@ if (!function_exists('flute_maintenance_gate')) {
                     <div class="card">
                         <h1>{$safeTitle}</h1>
                         <p>{$safeMessage}</p>
+                        <div class="progress"><div class="progress-bar"></div></div>
+                        <div class="status">
+                            <span class="status-text"><span class="dot"></span>Checking...</span>
+                            <span class="timer" id="timer"></span>
+                        </div>
                     </div>
                 </div>
+                <script>
+                (function(){
+                    var start = Date.now();
+                    var timer = document.getElementById('timer');
+                    var statusText = document.querySelector('.status-text');
+                    function pad(n){ return n < 10 ? '0' + n : n; }
+                    setInterval(function(){
+                        var s = Math.floor((Date.now() - start) / 1000);
+                        timer.textContent = pad(Math.floor(s/60)) + ':' + pad(s%60);
+                    }, 1000);
+
+                    function check(){
+                        var x = new XMLHttpRequest();
+                        x.open('GET', '/maintenance-check.php?_=' + Date.now(), true);
+                        x.timeout = 5000;
+                        x.onload = function(){
+                            if(x.status === 204){
+                                statusText.innerHTML = '<span class="dot" style="background:#22c55e"></span>Ready!';
+                                location.reload();
+                            }
+                        };
+                        x.onerror = x.ontimeout = function(){};
+                        x.send();
+                    }
+                    setInterval(check, 3000);
+                    setTimeout(check, 1000);
+                })();
+                </script>
             </body>
             </html>
             HTML;
@@ -148,15 +196,15 @@ if (!function_exists('flute_maintenance_gate')) {
     function flute_maintenance_is_stale(array $payload, int $ageSeconds, string $basePath): bool
     {
         // Hard ceiling — no update should take this long
-        $hardTimeoutSeconds = 600; // 10 minutes
+        $hardTimeoutSeconds = 300; // 5 minutes
 
         if ($ageSeconds >= $hardTimeoutSeconds) {
             return true;
         }
 
-        // Give the process at least 30 seconds before checking PID
+        // Give the process at least 15 seconds before checking PID
         // (avoids race condition on startup)
-        if ($ageSeconds < 30) {
+        if ($ageSeconds < 15) {
             return false;
         }
 

@@ -74,8 +74,6 @@ class CmsUpdater extends AbstractUpdater
             return false;
         }
 
-        $maintenanceEnabled = $this->enableUpdateMaintenance();
-
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/cms-extract-' . time());
 
@@ -84,52 +82,48 @@ class CmsUpdater extends AbstractUpdater
         }
 
         try {
-            try {
-                app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
-                $this->createBackup();
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+            $this->createBackup();
 
-                $dirs = array_filter(glob($extractDir . '/*'), 'is_dir');
-                $rootDir = count($dirs) === 1 ? reset($dirs) : $extractDir;
+            $dirs = array_filter(glob($extractDir . '/*'), 'is_dir');
+            $rootDir = count($dirs) === 1 ? reset($dirs) : $extractDir;
 
-                foreach ($this->allowedFolders as $folder) {
-                    $sourcePath = $rootDir . '/' . $folder;
-                    $targetPath = $this->getBasePath() . '/' . $folder;
-                    if (is_dir($sourcePath)) {
-                        $this->copyDirectory($sourcePath, $targetPath);
-                    }
+            foreach ($this->allowedFolders as $folder) {
+                $sourcePath = $rootDir . '/' . $folder;
+                $targetPath = $this->getBasePath() . '/' . $folder;
+                if (is_dir($sourcePath)) {
+                    $this->copyDirectory($sourcePath, $targetPath);
                 }
-
-                // Copy allowed root files (like composer.json / composer.lock)
-                foreach ($this->allowedFiles as $file) {
-                    $sourceFile = $rootDir . '/' . $file;
-                    $targetFile = $this->getBasePath() . '/' . $file;
-                    if (is_file($sourceFile)) {
-                        $this->copyFile($sourceFile, $targetFile);
-                    }
-                }
-
-                // If composer files changed or exist in the package, ensure dependencies are installed
-                if (is_file($this->getBasePath() . '/composer.json')) {
-                    try {
-                        ( new ComposerManager() )->install();
-                    } catch (Throwable $e) {
-                        logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
-                    }
-                }
-
-                $this->clearCache();
-
-                $this->removeDirectory($extractDir);
-
-                return true;
-            } catch (Throwable $e) {
-                logs()->error('Error during CMS update: ' . $e->getMessage());
-                $this->removeDirectory($extractDir);
-
-                return false;
             }
-        } finally {
-            $this->disableUpdateMaintenance($maintenanceEnabled);
+
+            // Copy allowed root files (like composer.json / composer.lock)
+            foreach ($this->allowedFiles as $file) {
+                $sourceFile = $rootDir . '/' . $file;
+                $targetFile = $this->getBasePath() . '/' . $file;
+                if (is_file($sourceFile)) {
+                    $this->copyFile($sourceFile, $targetFile);
+                }
+            }
+
+            // If composer files changed or exist in the package, ensure dependencies are installed
+            if (is_file($this->getBasePath() . '/composer.json')) {
+                try {
+                    ( new ComposerManager() )->install();
+                } catch (Throwable $e) {
+                    logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
+                }
+            }
+
+            $this->clearCache();
+
+            $this->removeDirectory($extractDir);
+
+            return true;
+        } catch (Throwable $e) {
+            logs()->error('Error during CMS update: ' . $e->getMessage());
+            $this->removeDirectory($extractDir);
+
+            return false;
         }
     }
 
@@ -209,28 +203,7 @@ class CmsUpdater extends AbstractUpdater
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
-                $preservePerms = null;
-                $preserveOwner = null;
-                $preserveGroup = null;
-
-                if (is_file($destinationPath)) {
-                    $preservePerms = fileperms($destinationPath) & 0o755;
-                    $preserveOwner = fileowner($destinationPath);
-                    $preserveGroup = filegroup($destinationPath);
-                }
-
-                copy($sourcePath, $destinationPath);
-
-                if ($preservePerms !== null) {
-                    chmod($destinationPath, $preservePerms);
-                    $this->safeChown($destinationPath, $preserveOwner);
-                    $this->safeChgrp($destinationPath, $preserveGroup);
-                } else {
-                    $filePerms = fileperms($sourcePath) & 0o755;
-                    chmod($destinationPath, $filePerms);
-                    $this->safeChown($destinationPath, fileowner($sourcePath));
-                    $this->safeChgrp($destinationPath, filegroup($sourcePath));
-                }
+                $this->atomicCopyFile($sourcePath, $destinationPath);
             }
         }
 
@@ -253,12 +226,7 @@ class CmsUpdater extends AbstractUpdater
             $this->safeChgrp($targetDir, filegroup(dirname($sourceFile)));
         }
 
-        copy($sourceFile, $targetFile);
-        // Apply a consistent permission mask for copied files
-        $filePerms = fileperms($sourceFile) & 0o755;
-        chmod($targetFile, $filePerms);
-        $this->safeChown($targetFile, fileowner($sourceFile));
-        $this->safeChgrp($targetFile, filegroup($sourceFile));
+        $this->atomicCopyFile($sourceFile, $targetFile);
     }
 
     /**
@@ -312,8 +280,6 @@ class CmsUpdater extends AbstractUpdater
             cache_warmup_mark();
         }
 
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        }
+        $this->resetOpcache();
     }
 }
