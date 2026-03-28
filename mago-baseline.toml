@@ -824,9 +824,27 @@ count = 1
 
 [[issues]]
 file = "app/Core/Cache/SWRQueue.php"
+code = "mixed-assignment"
+message = "Assigning `nonnull` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "app/Core/Cache/SWRQueue.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
 count = 4
+
+[[issues]]
+file = "app/Core/Cache/SWRQueue.php"
+code = "mixed-operand"
+message = "Right operand in `<` comparison has `mixed` type."
+count = 1
+
+[[issues]]
+file = "app/Core/Cache/SWRQueue.php"
+code = "mixed-property-type-coercion"
+message = "Mixed property type coercion"
+count = 1
 
 [[issues]]
 file = "app/Core/Cache/SWRQueue.php"
@@ -844,6 +862,12 @@ count = 4
 file = "app/Core/Cache/SWRQueue.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Cache\storage_path` (also tried as `storage_path` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/Cache/SWRQueue.php"
+code = "write-only-property"
+message = "Property `$epochAtFlush` is written to but never read."
 count = 1
 
 [[issues]]
@@ -3167,6 +3191,54 @@ file = "app/Core/Listeners/ToastResponseListener.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Listeners\request` (also tried as `request` in a broader scope).'
 count = 1
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `in_array`: expected `array<array-key, mixed>`, but found `mixed`."
+count = 2
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 4
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "mixed-operand"
+message = "Left operand in `&&` operation has `mixed` type."
+count = 1
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\Listeners\config` (also tried as `config` in a broader scope).'
+count = 4
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\Listeners\is_installed` (also tried as `is_installed` in a broader scope).'
+count = 2
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\Listeners\request` (also tried as `request` in a broader scope).'
+count = 2
+
+[[issues]]
+file = "app/Core/Listeners/TracyBarMaintenanceListener.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\Listeners\user` (also tried as `user` in a broader scope).'
+count = 2
 
 [[issues]]
 file = "app/Core/Listeners/UserChangeResponseListener.php"
@@ -7160,9 +7232,27 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "impossible-type-comparison"
+message = "Impossible condition: variable `$parts['host']` (type `non-empty-string`) can never be `empty`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "impossible-type-comparison"
+message = "Impossible condition: variable `$parts['scheme']` (type `non-empty-string`) can never be `empty`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "invalid-iterator"
 message = "The expression provided to `foreach` is not iterable. It resolved to type `mixed`, which is not iterable."
 count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "invalid-method-access"
+message = "Attempting to access a method on a non-object type (`string`)."
+count = 7
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7191,6 +7281,12 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService::builddownloadrequesturl`: expected `string`, but found `truthy-mixed`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService::checkfluteversion`: expected `string`, but found `truthy-mixed`.'
 count = 1
 
@@ -7209,8 +7305,14 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `chmod`: expected `string`, but found `mixed`."
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `exception::__construct`: expected `string`, but found `mixed`."
-count = 1
+count = 11
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7221,19 +7323,31 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-argument"
-message = "Invalid argument type for argument #1 of `method_exists`: expected `class-string|object`, but found `mixed`."
+message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `ltrim`: expected `string`, but found `truthy-mixed`."
 count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `opcache_invalidate`: expected `string`, but found `mixed`."
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `str_starts_with`: expected `string`, but found `truthy-mixed`."
 count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-argument"
-message = "Invalid argument type for argument #1 of `strpos`: expected `string`, but found `truthy-mixed`."
+message = "Invalid argument type for argument #1 of `strtolower`: expected `string`, but found `mixed`."
 count = 1
 
 [[issues]]
@@ -7246,7 +7360,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 6
+count = 11
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7258,12 +7372,12 @@ count = 5
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 10
+count = 12
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-operand"
-message = "Invalid left operand: type `nonnull` cannot be reliably used in string concatenation."
+message = "Invalid left operand: type `mixed` cannot be reliably used in string concatenation."
 count = 1
 
 [[issues]]
@@ -7276,7 +7390,7 @@ count = 2
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "mixed-operand"
 message = "Invalid right operand: type `truthy-mixed` cannot be reliably used in string concatenation."
-count = 3
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7311,13 +7425,13 @@ count = 2
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Packages\Marketplace\Services\Throwable`.'
+message = 'Attempting to catch an undefined class or interface: `GuzzleHttp\Exception\GuzzleException`.'
 count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `GuzzleHttp\Exception\GuzzleException`.'
+message = 'Attempting to catch an undefined class or interface: `Symfony\Component\Finder\Exception\DirectoryNotFoundException`.'
 count = 1
 
 [[issues]]
@@ -7336,7 +7450,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\__` (also tried as `__` in a broader scope).'
-count = 25
+count = 36
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7354,7 +7468,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\config` (also tried as `config` in a broader scope).'
-count = 2
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7365,8 +7479,20 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "non-existent-function"
-message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\path` (also tried as `path` in a broader scope).'
+message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\is_debug` (also tried as `is_debug` in a broader scope).'
 count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\logs` (also tried as `logs` in a broader scope).'
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\path` (also tried as `path` in a broader scope).'
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
@@ -7401,13 +7527,13 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "possibly-null-argument"
-message = "Argument #1 of function `is_dir` is possibly `null`, but parameter type `string` does not accept it."
+message = 'Argument #1 of method `Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService::applymodulefilesystemacl` is possibly `null`, but parameter type `string` does not accept it.'
 count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
 code = "possibly-null-argument"
-message = "Argument #1 of function `mkdir` is possibly `null`, but parameter type `string` does not accept it."
+message = 'Argument #1 of method `Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService::ensurewritabledirectory` is possibly `null`, but parameter type `string` does not accept it.'
 count = 1
 
 [[issues]]
@@ -7415,6 +7541,12 @@ file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerServ
 code = "possibly-null-argument"
 message = 'Argument #2 of method `Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService::copydirectory` is possibly `null`, but parameter type `string` does not accept it.'
 count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleInstallerService.php"
+code = "redundant-cast"
+message = "Redundant cast to `(string)`: the expression already has this type."
+count = 3
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/config/marketplace.php"
@@ -8505,6 +8637,12 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Roles/Screens/RoleListScreen.php"
 code = "unused-method"
+message = "Method `canmanagerole()` is never used."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Roles/Screens/RoleListScreen.php"
+code = "unused-method"
 message = "Method `clearrolerelatedcaches()` is never used."
 count = 1
 
@@ -9475,18 +9613,6 @@ message = 'Could not find definition for function `Flute\Admin\Packages\Update\u
 count = 1
 
 [[issues]]
-file = "app/Core/Modules/Admin/Packages/Update/Screens/UpdateScreen.php"
-code = "unused-method"
-message = "Method `disableupdatemaintenance()` is never used."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Update/Screens/UpdateScreen.php"
-code = "unused-method"
-message = "Method `enableupdatemaintenance()` is never used."
-count = 1
-
-[[issues]]
 file = "app/Core/Modules/Admin/Packages/Update/routes.php"
 code = "non-documented-method"
 message = 'Ambiguous method call to `screen` on class `Flute\Core\Router\Router`.'
@@ -9592,7 +9718,7 @@ count = 10
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "invalid-property-access"
 message = 'Attempting to access a property on a non-object type (`unknown-ref(Flute\Core\Database\Entities\User)`).'
-count = 17
+count = 19
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9784,7 +9910,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\User\Services\config` (also tried as `config` in a broader scope).'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -11914,6 +12040,24 @@ count = 1
 file = "app/Core/Modules/Admin/Platform/Repository.php"
 code = "non-existent-class-like"
 message = 'Class `Flute\Admin\Platform\Repository` cannot extend unknown type `\Illuminate\Config\Repository`'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Platform/Screen.php"
+code = "unused-method"
+message = "Method `buildhmac()` is never used."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Platform/Screen.php"
+code = "unused-method"
+message = "Method `resolvesignedproperties()` is never used."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Platform/Screen.php"
+code = "unused-method"
+message = "Method `verifystatehmac()` is never used."
 count = 1
 
 [[issues]]
@@ -17200,7 +17344,7 @@ count = 1
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "mixed-array-index"
 message = "Invalid index type `mixed` used for array access on `array<array-key, array<array-key, mixed>>`."
-count = 3
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
@@ -17218,7 +17362,7 @@ count = 6
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 31
+count = 29
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
@@ -17284,7 +17428,7 @@ count = 13
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Page\Controllers\__` (also tried as `__` in a broader scope).'
-count = 8
+count = 9
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
@@ -17308,13 +17452,13 @@ count = 5
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Page\Controllers\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 8
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Page\Controllers\logs` (also tried as `logs` in a broader scope).'
-count = 14
+count = 12
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
@@ -17338,7 +17482,7 @@ count = 1
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "possibly-undefined-variable"
 message = "Variable `$widgetName` might be undefined here because its assignment occurs within a `try` block."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Page/Middlewares/PagePermissionsMiddleware.php"
@@ -18208,7 +18352,7 @@ count = 3
 file = "app/Core/Modules/Page/Services/WidgetManager.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 3
+count = 4
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/WidgetManager.php"
@@ -18232,7 +18376,7 @@ count = 2
 file = "app/Core/Modules/Page/Services/WidgetManager.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Page\Services\logs` (also tried as `logs` in a broader scope).'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/WidgetManager.php"
@@ -22456,13 +22600,7 @@ count = 1
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "invalid-iterator"
 message = "The expression provided to `foreach` is not iterable. It resolved to type `mixed`, which is not iterable."
-count = 8
-
-[[issues]]
-file = "app/Core/Modules/Translation/Services/TranslationService.php"
-code = "invalid-iterator"
-message = "The expression provided to `foreach` is not iterable. It resolved to type `nonnull`, which is not iterable."
-count = 1
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22480,7 +22618,7 @@ count = 2
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\Translation\Translator)`).'
-count = 13
+count = 12
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22504,7 +22642,7 @@ count = 1
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `Flute\Core\Modules\Translation\Services\TranslationService::registerresource`: expected `string`, but found `mixed`.'
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22528,13 +22666,13 @@ count = 1
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `filemtime`: expected `string`, but found `mixed`."
-count = 2
+count = 4
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
-count = 5
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22558,13 +22696,13 @@ count = 1
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #2 of `Flute\Core\Modules\Translation\Services\TranslationService::registerresource`: expected `string`, but found `mixed`.'
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #2 of `array_merge`: expected `array<non-negative-int, mixed>`, but found `mixed`."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22576,7 +22714,7 @@ count = 1
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #3 of `Flute\Core\Modules\Translation\Services\TranslationService::registerresource`: expected `string`, but found `mixed`.'
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22606,7 +22744,7 @@ count = 2
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-array-index"
 message = "Invalid index type `mixed` used for array access on `array<array-key, bool>`."
-count = 3
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22618,7 +22756,7 @@ count = 2
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-array-index"
 message = "Invalid index type `mixed` used for array access on `array<mixed, mixed>`."
-count = 5
+count = 4
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22628,15 +22766,9 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
-code = "mixed-array-index"
-message = "Invalid index type `mixed` used for array access on `non-empty-array<array-key, mixed>`."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 51
+count = 46
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22648,7 +22780,7 @@ count = 3
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 41
+count = 46
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22679,6 +22811,12 @@ file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "mixed-operand"
 message = "Right operand in `<` comparison has `mixed` type."
 count = 1
+
+[[issues]]
+file = "app/Core/Modules/Translation/Services/TranslationService.php"
+code = "mixed-operand"
+message = "Right operand in `>` comparison has `mixed` type."
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22756,7 +22894,7 @@ count = 10
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Translation\Services\cache` (also tried as `cache` in a broader scope).'
-count = 10
+count = 15
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22780,7 +22918,7 @@ count = 3
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Translation\Services\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 3
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22798,7 +22936,7 @@ count = 2
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Modules\Translation\Services\path` (also tried as `path` in a broader scope).'
-count = 7
+count = 9
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22828,19 +22966,13 @@ count = 2
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "property-type-coercion"
 message = "A value of a less specific type `array<array-key, array<mixed, mixed>>` is being assigned to property `$$domainFileIndex` (array<string, array<string, string>>)."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "property-type-coercion"
 message = "A value of a less specific type `array<array-key, array<mixed, mixed>>` is being assigned to property `$$latestDiscoveredFilesByLocale` (array<string, array<string, int>>)."
 count = 2
-
-[[issues]]
-file = "app/Core/Modules/Translation/Services/TranslationService.php"
-code = "property-type-coercion"
-message = "A value of a less specific type `array<array-key, bool>` is being assigned to property `$$loadedDirectories` (array<string, bool>)."
-count = 1
 
 [[issues]]
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
@@ -22852,19 +22984,43 @@ count = 1
 file = "app/Core/Modules/Translation/Services/TranslationService.php"
 code = "property-type-coercion"
 message = "A value of a less specific type `array<array-key, bool>` is being assigned to property `$$translationDirectories` (array<string, bool>)."
-count = 2
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "impossible-assignment"
+message = "Invalid assignment: the right-hand side has type `never` and cannot produce a value."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `glob`: expected `string`, but found `mixed`."
+count = 1
 
 [[issues]]
 file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
+count = 2
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `mkdir`: expected `string`, but found `mixed`."
 count = 1
 
 [[issues]]
 file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 1
+count = 4
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 3
 
 [[issues]]
 file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
@@ -22874,9 +23030,51 @@ count = 1
 
 [[issues]]
 file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-operand"
+message = "Invalid right operand: type `mixed` cannot be reliably used in string concatenation."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-class"
+message = 'Class `Symfony\Component\Filesystem\Filesystem` not found.'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\cache_bump_epoch` (also tried as `cache_bump_epoch` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\cache_warmup_mark` (also tried as `cache_warmup_mark` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\cache` (also tried as `cache` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\config` (also tried as `config` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\public_path` (also tried as `public_path` in a broader scope).'
+count = 4
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ModulesManager\Actions\Concerns\storage_path` (also tried as `storage_path` in a broader scope).'
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/ModulesManager/Actions/ModuleActivate.php"
@@ -23516,18 +23714,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleFinder.php"
-code = "falsable-return-statement"
-message = '''Function `flute\core\modulesmanager\modulefinder::getmodulejson` is declared to return `string` but possibly returns 'false' (inferred as `false|string`).'''
-count = 1
-
-[[issues]]
-file = "app/Core/ModulesManager/ModuleFinder.php"
-code = "invalid-return-statement"
-message = 'Invalid return type for function `flute\core\modulesmanager\modulefinder::getmodulejson`: expected `string`, but found `false|string`.'
-count = 1
-
-[[issues]]
-file = "app/Core/ModulesManager/ModuleFinder.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
 count = 2
@@ -23537,6 +23723,18 @@ file = "app/Core/ModulesManager/ModuleFinder.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
 count = 8
+
+[[issues]]
+file = "app/Core/ModulesManager/ModuleFinder.php"
+code = "no-valid-catch-type-found"
+message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/ModuleFinder.php"
+code = "non-existent-catch-type"
+message = 'Attempting to catch an undefined class or interface: `Symfony\Component\Finder\Exception\DirectoryNotFoundException`.'
+count = 1
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleFinder.php"
@@ -23697,6 +23895,18 @@ count = 1
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `is_file`: expected `string`, but found `mixed`."
+count = 3
+
+[[issues]]
+file = "app/Core/ModulesManager/ModuleManager.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `unlink`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/ModuleManager.php"
+code = "mixed-argument"
 message = "Invalid argument type for argument #2 of `array_map`: expected `array<('K.array_map() extends array-key), ('V.array_map() extends mixed)>`, but found `mixed`."
 count = 1
 
@@ -23722,7 +23932,7 @@ count = 2
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 15
+count = 17
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
@@ -23734,7 +23944,7 @@ count = 2
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 24
+count = 28
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
@@ -23866,13 +24076,19 @@ count = 4
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ModulesManager\cache` (also tried as `cache` in a broader scope).'
-count = 10
+count = 12
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ModulesManager\collect` (also tried as `collect` in a broader scope).'
 count = 6
+
+[[issues]]
+file = "app/Core/ModulesManager/ModuleManager.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\ModulesManager\config` (also tried as `config` in a broader scope).'
+count = 1
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
@@ -23896,13 +24112,13 @@ count = 1
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ModulesManager\logs` (also tried as `logs` in a broader scope).'
-count = 5
+count = 7
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ModulesManager\path` (also tried as `path` in a broader scope).'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleManager.php"
@@ -24633,7 +24849,7 @@ count = 1
 [[issues]]
 file = "app/Core/Router/AttributeRouteLoader.php"
 code = "less-specific-nested-argument-type"
-message = "Argument type mismatch for argument #2 of `implode`: expected `array<array-key, Stringable|null|scalar>|null`, but provided type `array<array-key, mixed>` is less specific."
+message = 'Argument type mismatch for argument #1 of `Flute\Core\Router\AttributeRouteLoader::filterexistingdirectories`: expected `array<int|string, string>`, but provided type `array<array-key, mixed>` is less specific.'
 count = 2
 
 [[issues]]
@@ -24694,7 +24910,7 @@ count = 10
 file = "app/Core/Router/AttributeRouteLoader.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 9
+count = 12
 
 [[issues]]
 file = "app/Core/Router/AttributeRouteLoader.php"
@@ -24728,6 +24944,18 @@ count = 1
 
 [[issues]]
 file = "app/Core/Router/AttributeRouteLoader.php"
+code = "no-valid-catch-type-found"
+message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
+count = 2
+
+[[issues]]
+file = "app/Core/Router/AttributeRouteLoader.php"
+code = "non-existent-catch-type"
+message = 'Attempting to catch an undefined class or interface: `Symfony\Component\Finder\Exception\DirectoryNotFoundException`.'
+count = 2
+
+[[issues]]
+file = "app/Core/Router/AttributeRouteLoader.php"
 code = "non-existent-class"
 message = 'Class `Symfony\Component\Finder\Finder` not found.'
 count = 1
@@ -24742,7 +24970,13 @@ count = 1
 file = "app/Core/Router/AttributeRouteLoader.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Router\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 1
+count = 2
+
+[[issues]]
+file = "app/Core/Router/AttributeRouteLoader.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\Router\logs` (also tried as `logs` in a broader scope).'
+count = 3
 
 [[issues]]
 file = "app/Core/Router/AttributeRouteLoader.php"
@@ -24785,6 +25019,24 @@ file = "app/Core/Router/AttributeRouteLoader.php"
 code = "redundant-logical-operation"
 message = "Redundant `&&` operation: left operand is evaluated and right operand is always truthy."
 count = 1
+
+[[issues]]
+file = "app/Core/Router/AttributeRouteLoader.php"
+code = "redundant-logical-operation"
+message = "Redundant `||` operation: left operand is always false and right operand is evaluated."
+count = 1
+
+[[issues]]
+file = "app/Core/Router/AttributeRouteLoader.php"
+code = "redundant-type-comparison"
+message = "Redundant condition: variable `$dir` (type `string`) is already known to be `string`."
+count = 1
+
+[[issues]]
+file = "app/Core/Router/AttributeRouteLoader.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$dir` of type `string` is always not `string`."
+count = 2
 
 [[issues]]
 file = "app/Core/Router/ContainerControllerResolver.php"
@@ -25324,13 +25576,7 @@ count = 2
 file = "app/Core/Router/Middlewares/MaintenanceMiddleware.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Router\Middlewares\config` (also tried as `config` in a broader scope).'
-count = 4
-
-[[issues]]
-file = "app/Core/Router/Middlewares/MaintenanceMiddleware.php"
-code = "non-existent-function"
-message = 'Could not find definition for function `Flute\Core\Router\Middlewares\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 1
+count = 3
 
 [[issues]]
 file = "app/Core/Router/Middlewares/MaintenanceMiddleware.php"
@@ -27322,7 +27568,7 @@ count = 2
 file = "app/Core/ServiceProviders/DatabaseServiceProvider.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 4
+count = 3
 
 [[issues]]
 file = "app/Core/ServiceProviders/DatabaseServiceProvider.php"
@@ -27637,6 +27883,30 @@ message = 'Function `DI\get` could not be found.'
 count = 1
 
 [[issues]]
+file = "app/Core/ServiceProviders/GameServerServiceProvider.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(DI\ContainerBuilder)`).'
+count = 1
+
+[[issues]]
+file = "app/Core/ServiceProviders/GameServerServiceProvider.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `DI\ContainerBuilder`.'
+count = 1
+
+[[issues]]
+file = "app/Core/ServiceProviders/GameServerServiceProvider.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `DI\Container`.'
+count = 1
+
+[[issues]]
+file = "app/Core/ServiceProviders/GameServerServiceProvider.php"
+code = "non-existent-function"
+message = 'Function `DI\autowire` could not be found.'
+count = 3
+
+[[issues]]
 file = "app/Core/ServiceProviders/LoggerServiceProvider.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(DI\Container)`).'
@@ -27806,33 +28076,9 @@ count = 1
 
 [[issues]]
 file = "app/Core/ServiceProviders/RequestServiceProvider.php"
-code = "invalid-operand"
-message = "Invalid type for left operand."
-count = 1
-
-[[issues]]
-file = "app/Core/ServiceProviders/RequestServiceProvider.php"
-code = "invalid-operand"
-message = "Invalid type for right operand."
-count = 1
-
-[[issues]]
-file = "app/Core/ServiceProviders/RequestServiceProvider.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #1 of `parse_url`: expected `string`, but found `truthy-mixed`."
-count = 1
-
-[[issues]]
-file = "app/Core/ServiceProviders/RequestServiceProvider.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 2
-
-[[issues]]
-file = "app/Core/ServiceProviders/RequestServiceProvider.php"
-code = "mixed-operand"
-message = "Left operand in binary operation has type `mixed`."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/ServiceProviders/RequestServiceProvider.php"
@@ -27863,18 +28109,6 @@ file = "app/Core/ServiceProviders/RequestServiceProvider.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `DI\Container`.'
 count = 2
-
-[[issues]]
-file = "app/Core/ServiceProviders/RequestServiceProvider.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Symfony\Component\HttpFoundation\Request` not found.'
-count = 6
-
-[[issues]]
-file = "app/Core/ServiceProviders/RequestServiceProvider.php"
-code = "non-existent-function"
-message = 'Could not find definition for function `Flute\Core\ServiceProviders\config` (also tried as `config` in a broader scope).'
-count = 3
 
 [[issues]]
 file = "app/Core/ServiceProviders/RequestServiceProvider.php"
@@ -28246,13 +28480,13 @@ count = 1
 file = "app/Core/ServiceProviders/TracyBarServiceProvider.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ServiceProviders\is_cli` (also tried as `is_cli` in a broader scope).'
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/ServiceProviders/TracyBarServiceProvider.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ServiceProviders\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 2
+count = 4
 
 [[issues]]
 file = "app/Core/ServiceProviders/TracyBarServiceProvider.php"
@@ -28828,12 +29062,6 @@ count = 2
 file = "app/Core/Services/CookieService.php"
 code = "non-existent-class"
 message = 'Class `Symfony\Component\HttpFoundation\Cookie` not found.'
-count = 1
-
-[[issues]]
-file = "app/Core/Services/CookieService.php"
-code = "non-existent-method"
-message = 'Method `issecure` does not exist on type `Flute\Core\Support\FluteRequest`.'
 count = 1
 
 [[issues]]
@@ -31366,7 +31594,7 @@ count = 3
 file = "app/Core/Services/UserService.php"
 code = "invalid-property-access"
 message = 'Attempting to access a property on a non-object type (`unknown-ref(Flute\Core\Database\Entities\User)`).'
-count = 10
+count = 11
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31390,7 +31618,7 @@ count = 1
 file = "app/Core/Services/UserService.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `flute\core\events\userchangedevent::__construct`: expected `unknown-ref(Flute\Core\Database\Entities\User)`, but found `mixed`.'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31414,13 +31642,13 @@ count = 2
 file = "app/Core/Services/UserService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 16
+count = 18
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 47
+count = 57
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31438,7 +31666,7 @@ count = 1
 file = "app/Core/Services/UserService.php"
 code = "mixed-operand"
 message = "Left operand in binary operation has type `mixed`."
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31456,7 +31684,7 @@ count = 1
 file = "app/Core/Services/UserService.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`mixed`)."
-count = 7
+count = 9
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31522,7 +31750,7 @@ count = 1
 file = "app/Core/Services/UserService.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Flute\Core\Database\Entities\User`.'
-count = 19
+count = 21
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31540,7 +31768,7 @@ count = 1
 file = "app/Core/Services/UserService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\app` (also tried as `app` in a broader scope).'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31564,13 +31792,13 @@ count = 1
 file = "app/Core/Services/UserService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\db` (also tried as `db` in a broader scope).'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\events` (also tried as `events` in a broader scope).'
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31582,7 +31810,7 @@ count = 3
 file = "app/Core/Services/UserService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\logs` (also tried as `logs` in a broader scope).'
-count = 10
+count = 11
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -31606,13 +31834,13 @@ count = 4
 file = "app/Core/Services/UserService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\transaction` (also tried as `transaction` in a broader scope).'
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
 code = "non-existent-method"
 message = 'Method `query` does not exist on type `Flute\Core\Database\Entities\User`.'
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/Services/UserService.php"
@@ -32229,12 +32457,6 @@ count = 1
 [[issues]]
 file = "app/Core/Support/FileUploader.php"
 code = "possibly-false-argument"
-message = "Argument #1 of function `dirname` is possibly `false`, but parameter type `string` does not accept it."
-count = 1
-
-[[issues]]
-file = "app/Core/Support/FileUploader.php"
-code = "possibly-false-argument"
 message = "Argument #1 of function `imagecreatefromstring` is possibly `false`, but parameter type `string` does not accept it."
 count = 1
 
@@ -32242,13 +32464,13 @@ count = 1
 file = "app/Core/Support/FileUploader.php"
 code = "possibly-false-argument"
 message = "Argument #1 of function `str_contains` is possibly `false`, but parameter type `string` does not accept it."
-count = 8
+count = 4
 
 [[issues]]
 file = "app/Core/Support/FileUploader.php"
 code = "possibly-false-argument"
 message = "Argument #1 of function `str_starts_with` is possibly `false`, but parameter type `string` does not accept it."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Support/FluteComponent.php"
@@ -32494,7 +32716,7 @@ count = 24
 file = "app/Core/Support/ModuleServiceProvider.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 65
+count = 66
 
 [[issues]]
 file = "app/Core/Support/ModuleServiceProvider.php"
@@ -32584,7 +32806,7 @@ count = 4
 file = "app/Core/Support/ModuleServiceProvider.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Support\logs` (also tried as `logs` in a broader scope).'
-count = 11
+count = 12
 
 [[issues]]
 file = "app/Core/Support/ModuleServiceProvider.php"
@@ -33542,6 +33764,12 @@ count = 1
 
 [[issues]]
 file = "app/Core/Template/TemplateAssets.php"
+code = "less-specific-nested-argument-type"
+message = "Argument type mismatch for argument #2 of `implode`: expected `array<array-key, Stringable|null|scalar>|null`, but provided type `list<mixed>` is less specific."
+count = 1
+
+[[issues]]
+file = "app/Core/Template/TemplateAssets.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `Flute\Core\Template\TemplateAssets::collectscssdependencies`: expected `string`, but found `mixed`.'
 count = 1
@@ -33597,13 +33825,13 @@ count = 1
 [[issues]]
 file = "app/Core/Template/TemplateAssets.php"
 code = "mixed-argument"
-message = "Invalid argument type for argument #1 of `strpos`: expected `string`, but found `mixed`."
+message = "Invalid argument type for argument #1 of `sort`: expected `array<array-key, ('T.sort() extends mixed)>`, but found `mixed`."
 count = 1
 
 [[issues]]
 file = "app/Core/Template/TemplateAssets.php"
 code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `implode`: expected `array<array-key, Stringable|null|scalar>|null`, but found `mixed`."
+message = "Invalid argument type for argument #1 of `strpos`: expected `string`, but found `mixed`."
 count = 1
 
 [[issues]]
@@ -33628,7 +33856,7 @@ count = 1
 file = "app/Core/Template/TemplateAssets.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 19
+count = 20
 
 [[issues]]
 file = "app/Core/Template/TemplateAssets.php"
@@ -35110,7 +35338,7 @@ count = 1
 file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "possibly-false-operand"
 message = "Left operand in arithmetic operation might be `false` (type `false|non-negative-int`)."
-count = 5
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Updaters/ModuleUpdater.php"
@@ -35234,18 +35462,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Update/Updaters/ModuleUpdater.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 4
-
-[[issues]]
-file = "app/Core/Update/Updaters/ModuleUpdater.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Update\Updaters\Throwable`.'
-count = 4
-
-[[issues]]
-file = "app/Core/Update/Updaters/ModuleUpdater.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Core\Update\Updaters\BASE_PATH`.'
 count = 1
@@ -35326,7 +35542,7 @@ count = 1
 file = "app/Core/Update/Updaters/ModuleUpdater.php"
 code = "possibly-false-operand"
 message = "Left operand in arithmetic operation might be `false` (type `false|non-negative-int`)."
-count = 4
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Updaters/ModuleUpdater.php"
@@ -35450,18 +35666,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Update/Updaters/ThemeUpdater.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Update\Updaters\Throwable`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Update/Updaters/ThemeUpdater.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Flute\Core\Database\Entities\Theme`.'
 count = 2
@@ -35542,7 +35746,7 @@ count = 1
 file = "app/Core/Update/Updaters/ThemeUpdater.php"
 code = "possibly-false-operand"
 message = "Left operand in arithmetic operation might be `false` (type `false|non-negative-int`)."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Update/Updaters/ThemeUpdater.php"

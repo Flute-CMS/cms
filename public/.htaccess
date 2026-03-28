@@ -31,8 +31,8 @@
     RewriteEngine On
     ErrorDocument 503 /maintenance.html
 
-    # Maintenance mode for updates (no PHP, fast response).
     RewriteCond %{DOCUMENT_ROOT}/.maintenance-composer -f
+    RewriteCond %{DOCUMENT_ROOT}/../vendor/autoload.php !-f
     RewriteCond %{REQUEST_URI} !^/maintenance\.html$
     RewriteCond %{REQUEST_URI} !^/maintenance-check\.php$
     RewriteCond %{REQUEST_URI} !^/assets/

@@ -185,7 +185,11 @@ $app->bootServiceProviders();
 /**
  * Register shutdown function to stop profiling
  */
-register_shutdown_function(function() {
+if (!defined('FLUTE_DEBUG')) {
+    define('FLUTE_DEBUG', function_exists('is_debug') && is_debug());
+}
+
+register_shutdown_function(function () {
     GlobalProfiler::stop();
 });
 
