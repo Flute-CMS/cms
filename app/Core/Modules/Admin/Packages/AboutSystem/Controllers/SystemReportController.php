@@ -142,6 +142,10 @@ class SystemReportController extends BaseController
 
             $encodedPaths = ini_get('ioncube.loader.encoded_paths');
             $modulesPath = path('app/Modules');
+            $suggestedEncodedPath = AboutSystemHelper::normalizeFilesystemPathForComparison($modulesPath);
+            if ($suggestedEncodedPath === '') {
+                $suggestedEncodedPath = $modulesPath;
+            }
 
             if ($encodedPaths) {
                 $lines[] = 'encoded_paths: ' . $encodedPaths;
@@ -150,7 +154,7 @@ class SystemReportController extends BaseController
                 $modulesConfigured = false;
 
                 foreach ($paths as $p) {
-                    if (str_starts_with($modulesPath, $p) || str_starts_with($p, $modulesPath)) {
+                    if (AboutSystemHelper::ioncubeEncodedPathMatchesModulesDir($p, $modulesPath)) {
                         $modulesConfigured = true;
 
                         break;
@@ -162,14 +166,15 @@ class SystemReportController extends BaseController
                 } else {
                     $lines[] = '*** WARNING: Modules path NOT in encoded_paths! ***';
                     $lines[] = '*** This causes ionCube to scan ALL files on EVERY request! ***';
-                    $lines[] = '*** Add this to php.ini: ioncube.loader.encoded_paths="' . $modulesPath . '" ***';
+                    $lines[] =
+                        '*** Add this to php.ini: ioncube.loader.encoded_paths="' . $suggestedEncodedPath . '" ***';
                 }
             } else {
                 $lines[] = 'encoded_paths: NOT SET';
                 $lines[] = '*** WARNING: encoded_paths is not configured! ***';
                 $lines[] = '*** ionCube will scan ALL PHP files on EVERY request! ***';
                 $lines[] = '*** This SIGNIFICANTLY degrades performance! ***';
-                $lines[] = '*** Add to php.ini: ioncube.loader.encoded_paths="' . $modulesPath . '" ***';
+                $lines[] = '*** Add to php.ini: ioncube.loader.encoded_paths="' . $suggestedEncodedPath . '" ***';
             }
         }
 
