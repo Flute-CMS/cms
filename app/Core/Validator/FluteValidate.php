@@ -7,6 +7,7 @@ use DateTime;
 use Flute\Core\Validator\Support\ValidatorStr;
 use InvalidArgumentException;
 use MadeSimple\Arrays\ArrDots;
+use Throwable;
 
 class FluteValidate
 {

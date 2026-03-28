@@ -7,6 +7,7 @@ use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Services\CaptchaService;
 use Nette\Schema\ValidationException;
+use Throwable;
 
 class PasswordResetComponent extends Component
 {

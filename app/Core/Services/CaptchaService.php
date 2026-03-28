@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Services;
 
+use Throwable;
+
 class CaptchaService
 {
     /**

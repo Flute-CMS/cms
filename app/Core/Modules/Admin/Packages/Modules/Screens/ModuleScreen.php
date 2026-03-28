@@ -16,6 +16,7 @@ use Flute\Admin\Platform\Support\Color;
 use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
+use Throwable;
 
 class ModuleScreen extends Screen
 {

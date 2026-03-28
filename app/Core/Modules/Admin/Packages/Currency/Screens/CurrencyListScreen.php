@@ -3,9 +3,11 @@
 namespace Flute\Admin\Packages\Currency\Screens;
 
 use Cycle\Database\Injection\Parameter;
+use Flute\Admin\Packages\Currency\Services\CurrencyRateService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\TD;
@@ -62,7 +64,20 @@ class CurrencyListScreen extends Screen
 
                 TD::make('exchange_rate', __('admin-currency.fields.rate.label'))
                     ->popover(__('admin-currency.fields.rate.help'))
-                    ->width('100px'),
+                    ->render(
+                        static fn(Currency $currency) => (
+                            $currency->exchange_rate
+                            . (
+                                $currency->auto_rate
+                                    ? ' <span class="badge badge-outline-primary" style="font-size:10px">'
+                                    . __('admin-currency.fields.auto_rate.badge')
+                                    . ( $currency->rate_markup > 0 ? ' +' . $currency->rate_markup . '%' : '' )
+                                    . '</span>'
+                                    : ''
+                            )
+                        ),
+                    )
+                    ->width('150px'),
 
                 TD::make('actions', __('admin-currency.buttons.actions'))
                     ->width('200px')
@@ -100,6 +115,12 @@ class CurrencyListScreen extends Screen
                         ->method('bulkDeleteCurrencies'),
                 ])
                 ->commands([
+                    Button::make(__('admin-currency.buttons.update_rates'))
+                        ->icon('ph.bold.arrows-clockwise-bold')
+                        ->size('medium')
+                        ->type(Color::OUTLINE_PRIMARY)
+                        ->confirm(__('admin-currency.confirms.update_rates'))
+                        ->method('updateAllRates'),
                     Button::make(__('admin-currency.buttons.add'))
                         ->icon('ph.bold.plus-bold')
                         ->size('medium')
@@ -113,10 +134,10 @@ class CurrencyListScreen extends Screen
      */
     public function createCurrencyModal(Repository $parameters)
     {
-        $paymentGateways = $this->paymentGateways;
+        $rateMode = request()->input('rate_mode', 'manual');
 
         $paymentGatewayCheckboxes = [];
-        foreach ($paymentGateways as $pg) {
+        foreach ($this->paymentGateways as $pg) {
             $paymentGatewayCheckboxes[] = LayoutFactory::field(
                 CheckBox::make("payment_gateways.{$pg->id}")
                     ->popover($pg->adapter)
@@ -130,6 +151,7 @@ class CurrencyListScreen extends Screen
             )
                 ->label(__('admin-currency.fields.code.label'))
                 ->required()
+                ->popover(__('admin-currency.fields.code.popover'))
                 ->small(__('admin-currency.fields.code.help')),
 
             LayoutFactory::field(
@@ -139,7 +161,28 @@ class CurrencyListScreen extends Screen
             )
                 ->label(__('admin-currency.fields.minimum_value.label'))
                 ->required()
+                ->popover(__('admin-currency.fields.minimum_value.popover'))
                 ->small(__('admin-currency.fields.minimum_value.help')),
+
+            LayoutFactory::field(
+                ButtonGroup::make('rate_mode')
+                    ->options([
+                        'manual' => [
+                            'label' => __('admin-currency.fields.rate_mode.manual'),
+                            'icon' => 'ph.bold.pencil-simple-bold',
+                        ],
+                        'auto' => [
+                            'label' => __('admin-currency.fields.rate_mode.auto'),
+                            'icon' => 'ph.bold.arrows-clockwise-bold',
+                        ],
+                    ])
+                    ->value($rateMode)
+                    ->yoyo()
+                    ->fullWidth(true)
+                    ->size('small'),
+            )
+                ->label(__('admin-currency.fields.rate_mode.label'))
+                ->popover(__('admin-currency.fields.rate_mode.popover')),
 
             LayoutFactory::field(
                 Input::make('exchange_rate')
@@ -149,7 +192,21 @@ class CurrencyListScreen extends Screen
             )
                 ->label(__('admin-currency.fields.rate.label'))
                 ->required()
-                ->small(__('admin-currency.fields.rate.help')),
+                ->popover(__('admin-currency.fields.rate.popover'))
+                ->small(__('admin-currency.fields.rate.help'))
+                ->setVisible($rateMode === 'manual'),
+
+            LayoutFactory::field(
+                Input::make('rate_markup')
+                    ->type('number')
+                    ->step('0.01')
+                    ->value(0)
+                    ->placeholder(__('admin-currency.fields.rate_markup.placeholder')),
+            )
+                ->label(__('admin-currency.fields.rate_markup.label'))
+                ->popover(__('admin-currency.fields.rate_markup.popover'))
+                ->small(__('admin-currency.fields.rate_markup.help'))
+                ->setVisible($rateMode === 'auto'),
 
             LayoutFactory::field(
                 Input::make('preset_amounts')
@@ -157,6 +214,7 @@ class CurrencyListScreen extends Screen
                     ->placeholder(__('admin-currency.fields.preset_amounts.placeholder')),
             )
                 ->label(__('admin-currency.fields.preset_amounts.label'))
+                ->popover(__('admin-currency.fields.preset_amounts.popover'))
                 ->small(__('admin-currency.fields.preset_amounts.help')),
 
             ...$paymentGatewayCheckboxes,
@@ -183,11 +241,16 @@ class CurrencyListScreen extends Screen
             }
         }
 
-        $validation = $this->validate([
+        $rules = [
             'code' => ['required', 'string', 'unique:currencies,code', 'size:3'],
             'minimum_value' => ['required', 'numeric', 'min:0'],
-            'exchange_rate' => ['required', 'numeric', 'min:0'],
-        ], $data);
+        ];
+
+        if (( $data['rate_mode'] ?? 'manual' ) === 'manual') {
+            $rules['exchange_rate'] = ['required', 'numeric', 'min:0'];
+        }
+
+        $validation = $this->validate($rules, $data);
 
         if (!$validation) {
             return;
@@ -205,10 +268,14 @@ class CurrencyListScreen extends Screen
             }
         }
 
+        $isAutoRate = ( $data['rate_mode'] ?? 'manual' ) === 'auto';
+
         $currency = new Currency();
         $currency->code = strtoupper($data['code']);
         $currency->minimum_value = $data['minimum_value'];
-        $currency->exchange_rate = $data['exchange_rate'];
+        $currency->exchange_rate = $isAutoRate ? 1 : (float) ( $data['exchange_rate'] ?? 1 );
+        $currency->auto_rate = $isAutoRate;
+        $currency->rate_markup = $isAutoRate ? (float) ( $data['rate_markup'] ?? 0 ) : 0;
 
         if (!empty($data['preset_amounts'])) {
             $presets = array_map('trim', explode(',', $data['preset_amounts']));
@@ -247,10 +314,10 @@ class CurrencyListScreen extends Screen
             return;
         }
 
-        $paymentGateways = $this->paymentGateways;
+        $rateMode = request()->input('rate_mode', $currency->auto_rate ? 'auto' : 'manual');
 
         $paymentGatewayCheckboxes = [];
-        foreach ($paymentGateways as $pg) {
+        foreach ($this->paymentGateways as $pg) {
             $isChecked = $currency->hasPayment($pg);
             $paymentGatewayCheckboxes[] = LayoutFactory::field(
                 CheckBox::make("payment_gateways.{$pg->id}")
@@ -269,6 +336,7 @@ class CurrencyListScreen extends Screen
             )
                 ->label(__('admin-currency.fields.code.label'))
                 ->required()
+                ->popover(__('admin-currency.fields.code.popover'))
                 ->small(__('admin-currency.fields.code.help')),
 
             LayoutFactory::field(
@@ -279,7 +347,28 @@ class CurrencyListScreen extends Screen
             )
                 ->label(__('admin-currency.fields.minimum_value.label'))
                 ->required()
+                ->popover(__('admin-currency.fields.minimum_value.popover'))
                 ->small(__('admin-currency.fields.minimum_value.help')),
+
+            LayoutFactory::field(
+                ButtonGroup::make('rate_mode')
+                    ->options([
+                        'manual' => [
+                            'label' => __('admin-currency.fields.rate_mode.manual'),
+                            'icon' => 'ph.bold.pencil-simple-bold',
+                        ],
+                        'auto' => [
+                            'label' => __('admin-currency.fields.rate_mode.auto'),
+                            'icon' => 'ph.bold.arrows-clockwise-bold',
+                        ],
+                    ])
+                    ->value($rateMode)
+                    ->yoyo()
+                    ->fullWidth(true)
+                    ->size('small'),
+            )
+                ->label(__('admin-currency.fields.rate_mode.label'))
+                ->popover(__('admin-currency.fields.rate_mode.popover')),
 
             LayoutFactory::field(
                 Input::make('exchange_rate')
@@ -290,7 +379,21 @@ class CurrencyListScreen extends Screen
             )
                 ->label(__('admin-currency.fields.rate.label'))
                 ->required()
-                ->small(__('admin-currency.fields.rate.help')),
+                ->popover(__('admin-currency.fields.rate.popover'))
+                ->small(__('admin-currency.fields.rate.help'))
+                ->setVisible($rateMode === 'manual'),
+
+            LayoutFactory::field(
+                Input::make('rate_markup')
+                    ->type('number')
+                    ->step('0.01')
+                    ->value($currency->rate_markup)
+                    ->placeholder(__('admin-currency.fields.rate_markup.placeholder')),
+            )
+                ->label(__('admin-currency.fields.rate_markup.label'))
+                ->popover(__('admin-currency.fields.rate_markup.popover'))
+                ->small(__('admin-currency.fields.rate_markup.help'))
+                ->setVisible($rateMode === 'auto'),
 
             LayoutFactory::field(
                 Input::make('preset_amounts')
@@ -299,6 +402,7 @@ class CurrencyListScreen extends Screen
                     ->value(implode(', ', $currency->getPresetAmounts())),
             )
                 ->label(__('admin-currency.fields.preset_amounts.label'))
+                ->popover(__('admin-currency.fields.preset_amounts.popover'))
                 ->small(__('admin-currency.fields.preset_amounts.help')),
 
             ...$paymentGatewayCheckboxes,
@@ -333,11 +437,18 @@ class CurrencyListScreen extends Screen
             }
         }
 
-        $validation = $this->validate([
+        $isAutoRate = ( $data['rate_mode'] ?? 'manual' ) === 'auto';
+
+        $rules = [
             'code' => ['required', 'string', "unique:currencies,code,{$currency->id}", 'size:3'],
             'minimum_value' => ['required', 'numeric', 'min:0'],
-            'exchange_rate' => ['required', 'numeric', 'min:0'],
-        ], $data);
+        ];
+
+        if (!$isAutoRate) {
+            $rules['exchange_rate'] = ['required', 'numeric', 'min:0'];
+        }
+
+        $validation = $this->validate($rules, $data);
 
         if (!$validation) {
             return;
@@ -357,7 +468,14 @@ class CurrencyListScreen extends Screen
 
         $currency->code = strtoupper($data['code']);
         $currency->minimum_value = $data['minimum_value'];
-        $currency->exchange_rate = $data['exchange_rate'];
+        $currency->auto_rate = $isAutoRate;
+
+        if ($isAutoRate) {
+            $currency->rate_markup = (float) ( $data['rate_markup'] ?? 0 );
+        } else {
+            $currency->exchange_rate = (float) ( $data['exchange_rate'] ?? 1 );
+            $currency->rate_markup = 0;
+        }
 
         if (!empty($data['preset_amounts'])) {
             $presets = array_map('trim', explode(',', $data['preset_amounts']));
@@ -434,5 +552,21 @@ class CurrencyListScreen extends Screen
 
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
         $this->flashMessage(__('admin-currency.messages.delete_success'), 'success');
+    }
+
+    public function updateAllRates(): void
+    {
+        $service = new CurrencyRateService();
+        $updated = $service->updateAutoRates();
+
+        $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
+
+        if ($updated === 0) {
+            $this->flashMessage(__('admin-currency.messages.no_auto_currencies'), 'warning');
+
+            return;
+        }
+
+        $this->flashMessage(__('admin-currency.messages.rates_updated', ['count' => $updated]), 'success');
     }
 }

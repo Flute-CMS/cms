@@ -665,7 +665,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
         $manifest = cache()->callback(
             $cacheKey,
-            function () use ($base) {
+            static function () use ($base) {
                 return [
                     'hasEntities' => is_dir($base . '/database/Entities'),
                     'hasConfigs' => is_dir($base . '/Resources/config'),

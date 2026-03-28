@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Profiling;
 
+use Throwable;
 use Xhgui\Profiler\Profiler;
 use Xhgui\Profiler\ProfilingFlags;
 

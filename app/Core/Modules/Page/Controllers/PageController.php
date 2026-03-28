@@ -7,6 +7,7 @@ use Flute\Core\Modules\Page\Services\PageManager;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Validator\FluteValidator;
+use Throwable;
 
 class PageController extends BaseController
 {

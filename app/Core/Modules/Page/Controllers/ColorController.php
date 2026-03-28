@@ -8,6 +8,7 @@ use Flute\Core\Support\FluteRequest;
 use Flute\Core\Theme\ThemeActions;
 use Flute\Core\Validator\FluteValidator;
 use Nette\Utils\Json;
+use Throwable;
 
 class ColorController extends BaseController
 {

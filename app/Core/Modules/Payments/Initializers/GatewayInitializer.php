@@ -9,6 +9,7 @@ use Flute\Core\Modules\Payments\Processors\PaymentProcessor;
 use Flute\Core\Modules\Payments\Services\PaymentPromo;
 use Omnipay\Common\Helper;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Throwable;
 
 class GatewayInitializer
 {

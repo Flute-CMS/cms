@@ -8,6 +8,7 @@ use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Modules\Auth\Events\SocialLoggedInEvent;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Throwable;
 
 class SocialAuthController extends BaseController
 {

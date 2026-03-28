@@ -13,6 +13,7 @@ use Hybridauth\Adapter\OpenID;
 use Hybridauth\Data;
 use Hybridauth\Exception\UnexpectedApiResponseException;
 use SimpleXMLElement;
+use Throwable;
 
 /**
  * Steam OpenID provider adapter.

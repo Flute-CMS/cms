@@ -37,6 +37,12 @@ class Currency extends ActiveRecord
     #[Column(type: "string", nullable: true)]
     public ?string $preset_amounts = null;
 
+    #[Column(type: "boolean", default: false)]
+    public bool $auto_rate = false;
+
+    #[Column(type: "float", default: 0)]
+    public float $rate_markup = 0;
+
     #[ManyToMany(target: "PaymentGateway", through: "CurrencyPaymentGateway")]
     public array $paymentGateways = [];
 
