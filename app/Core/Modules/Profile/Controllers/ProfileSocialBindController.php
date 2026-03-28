@@ -11,6 +11,7 @@ use Flute\Core\Services\DiscordService;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class ProfileSocialBindController extends BaseController
 {

@@ -14,6 +14,7 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
+use Throwable;
 
 class PaymentGatewayScreen extends Screen
 {

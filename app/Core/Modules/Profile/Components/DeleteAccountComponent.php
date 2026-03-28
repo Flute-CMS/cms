@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Profile\Components;
 
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Support\FluteComponent;
+use Throwable;
 
 class DeleteAccountComponent extends FluteComponent
 {

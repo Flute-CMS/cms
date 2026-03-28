@@ -16,6 +16,7 @@ use Flute\Core\Modules\Payments\Factories\PaymentDriverFactory;
 use Flute\Core\Support\FileUploader;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Throwable;
 
 class EditPaymentGatewayScreen extends Screen
 {

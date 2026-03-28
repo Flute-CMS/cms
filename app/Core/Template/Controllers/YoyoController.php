@@ -4,6 +4,7 @@ namespace Flute\Core\Template\Controllers;
 
 use Flute\Core\Support\BaseController;
 use Flute\Core\Template\Template;
+use Throwable;
 
 class YoyoController extends BaseController
 {

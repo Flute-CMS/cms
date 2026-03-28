@@ -374,6 +374,7 @@ class MarketplaceScreen extends Screen
             $this->moduleManager->clearCache();
             $this->moduleManager->refreshModules();
             $this->marketplaceService->clearModuleCache($slug);
+            $this->invalidateCompiledAssets();
             $this->loadModules(true);
         }
 
@@ -514,6 +515,36 @@ class MarketplaceScreen extends Screen
             $module->save();
         } catch (\Throwable $e) {
             logs('modules')->warning("Could not auto-register module {$moduleKey} in database: " . $e->getMessage());
+        }
+    }
+
+    protected function invalidateCompiledAssets(): void
+    {
+        try {
+            $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+
+            foreach ([
+                public_path('assets/css/cache'),
+                public_path('assets/css/cache_stale'),
+                public_path('assets/js/cache'),
+                public_path('assets/js/cache_stale'),
+            ] as $dir) {
+                if (is_dir($dir)) {
+                    $filesystem->remove($dir);
+                    @mkdir($dir, 0o775, true);
+                }
+            }
+
+            $viewFiles = glob(storage_path('app/views/*'));
+            if ($viewFiles) {
+                $filesystem->remove($viewFiles);
+            }
+
+            $translationFiles = glob(storage_path('app/translations/*'));
+            if ($translationFiles) {
+                $filesystem->remove($translationFiles);
+            }
+        } catch (\Throwable) {
         }
     }
 

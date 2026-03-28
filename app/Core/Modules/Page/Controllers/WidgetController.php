@@ -12,6 +12,7 @@ use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Validator\FluteValidator;
 use InvalidArgumentException;
+use Throwable;
 
 class WidgetController extends BaseController
 {

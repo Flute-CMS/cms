@@ -953,7 +953,24 @@ class DatabaseConnection
     {
         $dirs = array_merge([self::ENTITIES_DIR], $this->entitiesDirs);
 
-        foreach ($this->getInstalledModuleKeys() as $moduleKey) {
+        $moduleKeys = $this->getInstalledModuleKeys();
+
+        $modulesRoot = path('app/Modules');
+        if (is_dir($modulesRoot)) {
+            $scanned = @scandir($modulesRoot);
+            if (is_array($scanned)) {
+                foreach ($scanned as $dir) {
+                    if ($dir === '.' || $dir === '..' || $dir === '.disabled') {
+                        continue;
+                    }
+                    if (!in_array($dir, $moduleKeys, true)) {
+                        $moduleKeys[] = $dir;
+                    }
+                }
+            }
+        }
+
+        foreach ($moduleKeys as $moduleKey) {
             $candidates = [
                 path("app/Modules/{$moduleKey}/database/Entities"),
                 path("app/Modules/{$moduleKey}/Database/Entities"),

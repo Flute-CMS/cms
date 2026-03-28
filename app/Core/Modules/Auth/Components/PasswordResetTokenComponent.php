@@ -8,6 +8,7 @@ use Flute\Core\Exceptions\PasswordResetTokenNotFoundException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Nette\Schema\ValidationException;
+use Throwable;
 
 class PasswordResetTokenComponent extends Component
 {

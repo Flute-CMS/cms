@@ -5,6 +5,7 @@ namespace Flute\Core\Modules\Payments\Controllers;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class PaymentsApiController extends BaseController
 {

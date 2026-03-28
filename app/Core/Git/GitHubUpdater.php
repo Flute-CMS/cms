@@ -7,6 +7,7 @@ use Flute\Core\Git\Exceptions\AlreadyInstalledException;
 use Flute\Core\Git\Exceptions\FailedToExtractException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Throwable;
 use ZipArchive;
 
 class GitHubUpdater

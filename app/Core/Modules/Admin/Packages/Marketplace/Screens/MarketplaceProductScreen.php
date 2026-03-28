@@ -11,6 +11,7 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\ModulesManager\ModuleManager;
+use Throwable;
 
 class MarketplaceProductScreen extends Screen
 {

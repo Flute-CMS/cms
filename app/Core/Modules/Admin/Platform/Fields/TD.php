@@ -6,6 +6,7 @@ use Flute\Admin\Platform\Repository;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class TD extends Cell
 {

@@ -27,13 +27,16 @@ class GatewayFactory
             return $gateway;
         } catch (Throwable $e) {
             $masked = substr($gatewayEntity->additional, 0, 4) . '***';
-            logs()->warning($e->getMessage(), ['adapter' => $gatewayEntity->adapter, 'config' => $masked]);
+            logs()->warning("Gateway init failed: {$gatewayEntity->adapter}: {$e->getMessage()}", [
+                'adapter' => $gatewayEntity->adapter,
+                'config' => $masked,
+            ]);
 
             if (is_debug()) {
-                throw $e;
+                throw new PaymentException("Failed to initialize gateway '{$gatewayEntity->adapter}'", 0, $e);
             }
 
-            throw new PaymentException("Failed to initialize gateway '{$gatewayEntity->adapter}'");
+            return null;
         }
     }
 

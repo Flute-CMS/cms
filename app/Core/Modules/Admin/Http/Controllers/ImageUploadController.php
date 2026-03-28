@@ -5,6 +5,7 @@ namespace Flute\Admin\Http\Controllers;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FileUploader;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class ImageUploadController extends BaseController
 {

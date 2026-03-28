@@ -8,6 +8,7 @@ use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Nette\Schema\ValidationException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Throwable;
 
 class PaymentFormController extends BaseController
 {

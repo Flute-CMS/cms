@@ -9,6 +9,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\Utils;
+use Throwable;
 use xPaw\SteamID\SteamID;
 
 class SteamService

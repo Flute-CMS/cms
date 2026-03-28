@@ -6,6 +6,7 @@ use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Throwable;
 
 class PaymentsViewController extends BaseController
 {

@@ -22,6 +22,7 @@ use Flute\Core\Rcon\RconService;
 use Flute\Core\ServerQuery\ServerQueryService;
 use Illuminate\Support\Str;
 use PDO;
+use Throwable;
 
 class ServerEditScreen extends Screen
 {

@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Profile\Controllers;
 
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
+use Throwable;
 
 class ProfileVerificationController extends BaseController
 {
