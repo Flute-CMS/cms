@@ -32,7 +32,7 @@ class EditPaymentGatewayScreen extends Screen
 
     public bool $isEditMode = false;
 
-    protected $id = null;
+    public ?int $id = null;
 
     protected ?array $availableDrivers = null;
 
@@ -45,7 +45,7 @@ class EditPaymentGatewayScreen extends Screen
         $this->paymentService = app(PaymentService::class);
         $this->driverFactory = app(PaymentDriverFactory::class);
 
-        $this->id = (int) request()->input('id');
+        $this->id = (int) ( request()->input('id') ?: $this->id );
 
         // Read driverKey from request (sent by Yoyo select on change)
         $requestDriverKey = request()->input('driverKey');

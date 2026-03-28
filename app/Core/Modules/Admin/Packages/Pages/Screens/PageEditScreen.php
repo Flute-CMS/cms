@@ -42,7 +42,7 @@ class PageEditScreen extends Screen
      */
     public function mount(): void
     {
-        $this->pageId = (int) request()->input('id');
+        $this->pageId = (int) ( request()->input('id') ?: $this->pageId );
 
         if ($this->pageId) {
             $this->initPage();

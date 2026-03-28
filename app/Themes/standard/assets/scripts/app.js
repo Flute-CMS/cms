@@ -1471,6 +1471,8 @@ class TooltipManager {
         this.activeElement = null;
         this.observer = null;
         this.lastTooltipContent = "";
+        this.hideTimeout = null;
+        this.isInteractive = false;
         this.initTooltipEvents();
         this.initMutationObserver();
     }
@@ -1478,12 +1480,23 @@ class TooltipManager {
     initTooltipEvents() {
         document.body.addEventListener("mouseover", (event) => {
             const target = event.target.closest("[data-tooltip]");
-            if (target) this.showTooltip(target);
+            if (target) {
+                clearTimeout(this.hideTimeout);
+                this.showTooltip(target);
+            }
         });
 
         document.body.addEventListener("mouseout", (event) => {
             const target = event.target.closest("[data-tooltip]");
-            if (target) this.hideTooltip(target);
+            if (target) {
+                if (this.isInteractive) {
+                    this.hideTimeout = setTimeout(() => {
+                        this.hideTooltip(target);
+                    }, 100);
+                } else {
+                    this.hideTooltip(target);
+                }
+            }
         });
 
         window.addEventListener("beforeunload", () => {
@@ -1752,12 +1765,26 @@ class TooltipManager {
             this.tooltipEl = document.createElement("div");
             this.tooltipEl.className = "tooltip";
             document.body.appendChild(this.tooltipEl);
+
+            this.tooltipEl.addEventListener("mouseenter", () => {
+                clearTimeout(this.hideTimeout);
+            });
+
+            this.tooltipEl.addEventListener("mouseleave", () => {
+                if (this.isInteractive && this.activeElement) {
+                    this.hideTooltip(this.activeElement);
+                }
+            });
         }
+
+        this.isInteractive = isHtmlContent;
 
         if (isHtmlContent) {
             this.tooltipEl.innerHTML = content;
+            this.tooltipEl.style.pointerEvents = "auto";
         } else {
             this.tooltipEl.textContent = content;
+            this.tooltipEl.style.pointerEvents = "none";
         }
         this.tooltipEl.classList.add("show");
         this.activeElement = element;
@@ -1806,9 +1833,14 @@ class TooltipManager {
     }
 
     hideTooltip(element) {
+        clearTimeout(this.hideTimeout);
+
         if (this.tooltipEl) {
             this.tooltipEl.classList.remove("show");
+            this.tooltipEl.style.pointerEvents = "none";
         }
+
+        this.isInteractive = false;
 
         if (this.activeElement === element) {
             this.activeElement = null;
@@ -1825,9 +1857,14 @@ class TooltipManager {
     }
 
     hideAllTooltips() {
+        clearTimeout(this.hideTimeout);
+
         if (this.tooltipEl) {
             this.tooltipEl.classList.remove("show");
+            this.tooltipEl.style.pointerEvents = "none";
         }
+
+        this.isInteractive = false;
 
         if (this.activeElement) {
             this.hideTooltip(this.activeElement);

@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Platform;
 
+use Clickfwd\Yoyo\ClassHelpers;
 use Clickfwd\Yoyo\Exceptions\BypassRenderMethod;
 use Clickfwd\Yoyo\YoyoHelpers;
 use Exception;
@@ -24,6 +25,25 @@ use TypeError;
  */
 abstract class Screen extends FluteComponent implements ScreenInterface
 {
+    /**
+     * Properties that must NEVER be restored from request data.
+     * These control access, rendering, and security — overwriting them
+     * via a crafted POST would bypass permission checks or break the screen.
+     *
+     * Subclasses can extend this list by overriding protectedProperties().
+     */
+    private const PROTECTED_PROPERTIES = [
+        'name',
+        'description',
+        'permission',
+        'modalId',
+        'modalParams',
+        'slug',
+        'js',
+        'css',
+        'isEditMode',
+    ];
+
     public $modalId = null;
 
     public $slug = null;
@@ -34,15 +54,23 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     public $css = [];
 
+    /**
+     * Set to true when HMAC verification fails — signals mount()
+     * to abort with an error instead of proceeding.
+     */
+    protected bool $stateTampered = false;
+
     protected $additionalLayouts;
 
     /**
      * Boot the screen component.
      *
-     * Unlike simple Yoyo components that restore state from $_REQUEST,
-     * Screens fully reinitialize their state in mount() on every request.
-     * We only assign from template $variables (e.g. 'slug') and handle
-     * modal state from the request explicitly.
+     * Restores public properties from Yoyo request data (action POST requests)
+     * so that identifiers like $userId are available in mount() even when
+     * the request URL is /admin/live (no route params).
+     *
+     * SECURITY: Properties listed in PROTECTED_PROPERTIES / protectedProperties()
+     * are never overwritten from request data to prevent privilege escalation.
      */
     public function boot(array $variables, array $attributes): FluteComponentInterface
     {
@@ -60,6 +88,62 @@ abstract class Screen extends FluteComponent implements ScreenInterface
                     $this->{$key} = $value;
                 } catch (TypeError $e) {
                     continue;
+                }
+            }
+        }
+
+        // Restore public properties from Yoyo POST data, excluding protected ones.
+        $requestData = $this->request->all();
+        if (is_array($requestData)) {
+            $protected = array_flip($this->protectedProperties());
+            foreach (ClassHelpers::getPublicProperties($this, Screen::class) as $property) {
+                if (
+                    isset($protected[$property])
+                    || array_key_exists($property, $variables)
+                    || !array_key_exists($property, $requestData)
+                ) {
+                    continue;
+                }
+
+                try {
+                    $this->{$property} = $requestData[$property];
+                } catch (TypeError $e) {
+                    continue;
+                }
+            }
+
+            // Verify HMAC of signed properties to detect tampering.
+            // If HMAC is missing or invalid, reset signed properties to defaults.
+            // An attacker cannot bypass by omitting _stateHmac — we require it
+            // whenever signed properties are present in the POST body.
+            $signedProps = $this->resolveSignedProperties();
+            if (!empty($signedProps)) {
+                $hasSignedInPost = false;
+                foreach ($signedProps as $prop) {
+                    if (array_key_exists($prop, $requestData)) {
+                        $hasSignedInPost = true;
+                        break;
+                    }
+                }
+
+                $postedHmac = $requestData['_stateHmac'] ?? null;
+
+                if ($hasSignedInPost && ( $postedHmac === null || !$this->verifyStateHmac($postedHmac) )) {
+                    foreach ($signedProps as $prop) {
+                        if (property_exists($this, $prop)) {
+                            $this->{$prop} = null;
+                        }
+                    }
+
+                    logs()->warning(
+                        'Screen state HMAC ' . ( $postedHmac === null ? 'missing' : 'verification failed' ),
+                        [
+                            'screen' => static::class,
+                            'ip' => request()->getClientIp(),
+                        ],
+                    );
+
+                    $this->stateTampered = true;
                 }
             }
         }
@@ -209,6 +293,16 @@ abstract class Screen extends FluteComponent implements ScreenInterface
             throw new BypassRenderMethod($this->response->getStatusCode());
         }
 
+        // Compute HMAC and collect signed property values for hidden inputs in base.blade.php
+        $signedProps = $this->resolveSignedProperties();
+        $signedValues = [];
+        foreach ($signedProps as $prop) {
+            if (property_exists($this, $prop)) {
+                $signedValues[$prop] = $this->{$prop};
+            }
+        }
+        $stateHmac = !empty($signedProps) ? $this->buildHmac($signedProps) : null;
+
         $repository = new Repository($this->viewVars());
 
         $repository->set('slug', $this->slug);
@@ -249,6 +343,8 @@ abstract class Screen extends FluteComponent implements ScreenInterface
             'screenPopover' => $this->popover(),
             'screenCommandBar' => $this->commandBar(),
             'screenLayouts' => $this->build($repository),
+            'screenStateHmac' => $stateHmac,
+            'screenSignedValues' => $signedValues,
             'js' => $this->getJs(),
             'css' => $this->getCss(),
         ]);
@@ -394,6 +490,18 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         return $table->getTarget();
     }
 
+    /**
+     * Redirect for internal CMS URLs via Yoyo.
+     *
+     * JS interceptor in script.js converts Yoyo-Redirect into htmx.ajax()
+     * for admin URLs, preserving sidebar and showing toasts.
+     * Toasts are added to X-Toasts header automatically by ToastResponseListener.
+     */
+    protected function boostRedirect(string $url): void
+    {
+        $this->redirect($url);
+    }
+
     protected function checkAccess(): bool
     {
         if (!user()->isLoggedIn()) {
@@ -405,5 +513,113 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         }
 
         return user()->can($this->permission());
+    }
+
+    /**
+     * Returns the list of public property names that must never be
+     * overwritten from request data. Override in subclasses to extend.
+     *
+     * @return string[]
+     */
+    protected function protectedProperties(): array
+    {
+        return self::PROTECTED_PROPERTIES;
+    }
+
+    /**
+     * Extra properties to HMAC-sign (on top of auto-detected ones).
+     * Override in subclasses for non-standard naming.
+     *
+     * @return string[]
+     */
+    protected function signedProperties(): array
+    {
+        return [];
+    }
+
+    /**
+     * Properties to EXCLUDE from auto-detection signing.
+     * Override in subclasses if a property like `$categoryId` is
+     * user-editable (e.g. a select dropdown) and should not be signed.
+     *
+     * @return string[]
+     */
+    protected function unsignedProperties(): array
+    {
+        return [];
+    }
+
+    /**
+     * Collect all properties that must be HMAC-signed.
+     *
+     * Auto-detects public int/nullable-int properties whose name matches
+     * the pattern `id` or `*Id` (e.g. userId, serverId, pageId).
+     * Merges with explicit signedProperties() and removes unsignedProperties().
+     *
+     * @return string[]
+     */
+    private function resolveSignedProperties(): array
+    {
+        $protected = array_flip($this->protectedProperties());
+        $unsigned = array_flip($this->unsignedProperties());
+        $signed = [];
+
+        // Auto-detect: public properties named "id" or ending with "Id", typed as int
+        $ref = new \ReflectionClass($this);
+        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
+            if ($prop->getDeclaringClass()->getName() === self::class) {
+                continue; // skip Screen's own properties
+            }
+
+            $name = $prop->getName();
+            if (isset($protected[$name]) || isset($unsigned[$name])) {
+                continue;
+            }
+
+            if ($name === 'id' || str_ends_with($name, 'Id')) {
+                $type = $prop->getType();
+                if (
+                    $type === null // untyped — sign conservatively
+                    || $type instanceof \ReflectionNamedType
+                    && ( $type->getName() === 'int' || $type->getName() === 'string' )
+                ) {
+                    $signed[] = $name;
+                }
+            }
+        }
+
+        // Merge with explicit list
+        return array_values(array_unique(array_merge($signed, $this->signedProperties())));
+    }
+
+    /**
+     * Verify that the HMAC from the request matches the current signed property values.
+     */
+    private function verifyStateHmac(string $postedHmac): bool
+    {
+        $props = $this->resolveSignedProperties();
+        if (empty($props)) {
+            return true;
+        }
+
+        return hash_equals($this->buildHmac($props), $postedHmac);
+    }
+
+    /**
+     * Build HMAC string from signed property values + screen class name.
+     */
+    private function buildHmac(array $properties): string
+    {
+        $payload = [];
+        foreach ($properties as $prop) {
+            $payload[$prop] = property_exists($this, $prop) ? $this->{$prop} : null;
+        }
+
+        // Include screen class to prevent cross-screen replay attacks
+        $payload['__screen'] = static::class;
+
+        $key = function_exists('encrypt') ? encrypt()->getKey() : 'flute-screen-state';
+
+        return hash_hmac('sha256', json_encode($payload, JSON_THROW_ON_ERROR), $key);
     }
 }

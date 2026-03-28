@@ -66,7 +66,7 @@ class ServerEditScreen extends Screen
     public function mount(): void
     {
         $this->serversService = app(AdminServersService::class);
-        $this->serverId = (int) request()->input('id');
+        $this->serverId = (int) ( request()->input('id') ?: $this->serverId );
 
         if ($this->serverId) {
             $this->initServer();

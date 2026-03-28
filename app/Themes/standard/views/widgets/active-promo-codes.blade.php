@@ -26,7 +26,7 @@
                             @if ($promoCode->type === 'percentage')
                                 -{{ $promoCode->value }}%
                             @else
-                                -{{ $promoCode->value }} {{ config('lk.currency_view') }}
+                                +{{ $promoCode->value }} {{ config('lk.currency_view') }}
                             @endif
                         </span>
                         @if ($promoCode->expires_at)

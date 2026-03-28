@@ -112,10 +112,14 @@ class WidgetManager
     /**
      * Returns a single widget instance by name.
      */
-    public function getWidget(string $name): WidgetInterface
+    public function getWidget(string $name): ?WidgetInterface
     {
         if (!isset($this->widgets[$name])) {
-            throw new InvalidArgumentException("Widget {$name} is not registered in the system.");
+            if (function_exists('logs')) {
+                logs()->warning("Widget {$name} is not registered in the system.");
+            }
+
+            return null;
         }
 
         try {
@@ -131,7 +135,7 @@ class WidgetManager
                 ]);
             }
 
-            throw new InvalidArgumentException("Widget {$name} failed to load: " . $e->getMessage(), 0, $e);
+            return null;
         }
     }
 

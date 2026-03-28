@@ -286,6 +286,15 @@ class TranslationService
         }
 
         $cacheKey = 'translation.dir.' . md5($directory);
+
+        $dirMtimeKey = $cacheKey . '.dirmtime';
+        $cachedDirMtime = cache()->get($dirMtimeKey);
+        $currentDirMtime = $this->getDirectoryMtime($directory);
+
+        if ($cachedDirMtime !== null && $currentDirMtime > $cachedDirMtime) {
+            cache()->deleteImmediately($cacheKey);
+        }
+
         $translationFiles = cache()->callback(
             $cacheKey,
             static function () use ($directory) {
@@ -306,6 +315,10 @@ class TranslationService
             },
             $cacheDuration,
         );
+
+        if ($currentDirMtime !== $cachedDirMtime) {
+            cache()->set($dirMtimeKey, $currentDirMtime, $cacheDuration);
+        }
 
         if (empty($translationFiles)) {
             $this->loadedDirectories[$directory] = true;
@@ -385,15 +398,31 @@ class TranslationService
      */
     protected function registerKnownTranslationDirectories(): void
     {
+        $knownDirsCacheKey = 'translation.known_dirs.v2';
+        $knownDirsMtimeKey = 'translation.known_dirs.roots_mtime';
+        $rootDirs = [path('app/Modules'), path('app/Core/Modules/Admin/Packages')];
+        $currentRootsMtime = 0;
+        foreach ($rootDirs as $rootDir) {
+            if (is_dir($rootDir)) {
+                $mt = @filemtime($rootDir) ?: 0;
+                if ($mt > $currentRootsMtime) {
+                    $currentRootsMtime = $mt;
+                }
+            }
+        }
+        $cachedRootsMtime = cache()->get($knownDirsMtimeKey);
+        if ($cachedRootsMtime !== null && $currentRootsMtime > $cachedRootsMtime) {
+            cache()->deleteImmediately($knownDirsCacheKey);
+        }
+
         $dirs = cache()->callback(
-            'translation.known_dirs.v2',
+            $knownDirsCacheKey,
             function () {
                 $result = [];
                 $seen = [];
 
                 $glob = fn(string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
 
-                // Modules
                 $modulesRoot = path('app/Modules');
                 if (is_dir($modulesRoot)) {
                     $patterns = [
@@ -419,7 +448,6 @@ class TranslationService
                     }
                 }
 
-                // Core admin packages
                 $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
                 if (is_dir($adminPkgsRoot)) {
                     foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
@@ -444,35 +472,11 @@ class TranslationService
             self::CACHE_TIME,
         );
 
-        $currentLocale = app()->getLang();
-        $indexCacheKey = 'translation.domain_index.' . md5(implode('|', $dirs)) . '.' . $currentLocale;
-        $cachedIndex = !is_debug() ? cache()->get($indexCacheKey) : null;
-
-        if (is_array($cachedIndex) && !empty($cachedIndex)) {
-            foreach ($dirs as $dir) {
-                $this->translationDirectories[$dir] = true;
-                $this->loadedDirectories[$dir] = true;
-            }
-            foreach ($cachedIndex as $locale => $domains) {
-                foreach ($domains as $domain => $path) {
-                    $this->domainFileIndex[$locale][$domain] = $path;
-                }
-            }
-
-            // Eagerly load resources for current locale.
-            $fallbacks = $this->translator->getFallbackLocales();
-            $eagerLocales = array_unique(array_filter(array_merge([$currentLocale], $fallbacks)));
-            foreach ($eagerLocales as $locale) {
-                if (!isset($cachedIndex[$locale])) {
-                    continue;
-                }
-                foreach ($cachedIndex[$locale] as $domain => $path) {
-                    $this->registerResource($path, $locale, $domain);
-                }
-            }
-
-            return;
+        if ($currentRootsMtime !== $cachedRootsMtime) {
+            cache()->set($knownDirsMtimeKey, $currentRootsMtime, self::CACHE_TIME);
         }
+
+        $currentLocale = app()->getLang();
 
         $this->bulkLoad = true;
         foreach ($dirs as $dir) {
@@ -481,6 +485,7 @@ class TranslationService
         }
         $this->bulkLoad = false;
 
+        $indexCacheKey = 'translation.domain_index.' . md5(implode('|', $dirs)) . '.' . $currentLocale;
         if (!empty($this->domainFileIndex) && !is_debug()) {
             cache()->set($indexCacheKey, $this->domainFileIndex, self::CACHE_TIME);
         }
@@ -524,6 +529,20 @@ class TranslationService
         $matches = glob($pattern, $flags);
 
         return $matches === false ? [] : $matches;
+    }
+
+    protected function getDirectoryMtime(string $directory): int
+    {
+        $mtime = @filemtime($directory) ?: 0;
+
+        foreach ($this->globSafe($directory . '/*', GLOB_ONLYDIR) as $subdir) {
+            $subdirMtime = @filemtime($subdir) ?: 0;
+            if ($subdirMtime > $mtime) {
+                $mtime = $subdirMtime;
+            }
+        }
+
+        return $mtime;
     }
 
     protected function _importTranslationsForLocale(Translator $translator, string $locale)

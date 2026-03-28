@@ -33,6 +33,7 @@ function destroyFilePondsIn(scope) {
     if (scope.matches?.('.input-wrapper')) wrappers.push(scope);
     scope.querySelectorAll?.('.input-wrapper').forEach(w => wrappers.push(w));
     wrappers.forEach(wrapper => {
+        wrapper._pondDestroying = true;
         const pond = _filePondInstances.get(wrapper);
         if (pond) {
             try { pond.destroy(); } catch (_) {}
@@ -64,24 +65,10 @@ function initializeFilePondElement(element) {
                     errorElement.style.display = 'block';
                 }
             },
-            onremovefile: (error, file) => {
-                if (!error && fieldName) {
-                    let clearInput = wrapper.querySelector(`input[name="${fieldName}_clear"]`);
-                    if (!clearInput) {
-                        clearInput = document.createElement('input');
-                        clearInput.type = 'hidden';
-                        clearInput.name = `${fieldName}_clear`;
-                        wrapper.appendChild(clearInput);
-                    }
-                    clearInput.value = '1';
-                }
-            },
-            onaddfile: (error, file) => {
-                if (!error && fieldName) {
-                    const clearInput = wrapper.querySelector(`input[name="${fieldName}_clear"]`);
-                    if (clearInput) {
-                        clearInput.value = '';
-                    }
+            onupdatefiles: (files) => {
+                if (fieldName && !wrapper._pondDestroying) {
+                    const clearInput = (wrapper.parentElement || wrapper).querySelector(`input[data-filepond-clear="${fieldName}"]`);
+                    if (clearInput) clearInput.value = files.length === 0 ? '1' : '0';
                 }
             }
         };

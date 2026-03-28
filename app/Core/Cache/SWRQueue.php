@@ -15,6 +15,11 @@ final class SWRQueue
 
     private static bool $ran = false;
 
+    private static ?int $epochAtFlush = null;
+
+    /** @var array<string,int> */
+    private static array $taskEpochs = [];
+
     public static function queue(string $id, callable $task): void
     {
         if (self::$ran) {
@@ -26,6 +31,7 @@ final class SWRQueue
         }
 
         self::$tasks[$id] = $task;
+        self::$taskEpochs[$id] = $GLOBALS['flute_cache_epoch'] ?? 0;
     }
 
     /**
@@ -36,6 +42,8 @@ final class SWRQueue
     public static function flush(): void
     {
         self::$tasks = [];
+        self::$taskEpochs = [];
+        self::$epochAtFlush = $GLOBALS['flute_cache_epoch'] ?? 0;
     }
 
     public static function hasTasks(): bool
@@ -74,10 +82,19 @@ final class SWRQueue
             $startedAt = microtime(true);
             $timings = [];
 
+            $currentEpoch = $GLOBALS['flute_cache_epoch'] ?? 0;
+
             $count = 0;
             foreach (self::$tasks as $id => $task) {
                 if ($count >= $limit) {
                     break;
+                }
+
+                $taskEpoch = self::$taskEpochs[$id] ?? 0;
+                if ($taskEpoch < $currentEpoch) {
+                    $count++;
+
+                    continue;
                 }
 
                 $elapsed = microtime(true) - $startedAt;

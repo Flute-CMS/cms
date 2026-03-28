@@ -16,6 +16,12 @@
 
 <!-- ID need for correct htmx swap -->
 <div id="screen-container" hx-encoding="multipart/form-data">
+    @if (! empty($screenStateHmac))
+        <input type="hidden" name="_stateHmac" value="{{ $screenStateHmac }}">
+        @foreach ($screenSignedValues ?? [] as $propName => $propValue)
+            <input type="hidden" name="{{ $propName }}" value="{{ $propValue }}">
+        @endforeach
+    @endif
     @section('title', (string) __($screenName ?? ''))
     @section('description', (string) __($screenDescription ?? ''))
 

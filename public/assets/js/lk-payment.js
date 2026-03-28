@@ -282,7 +282,7 @@
         var min = getEffectiveMin();
         if (min > 0) {
             var tpl = cfg.i18n.min_amount_info || '';
-            hintEl.textContent = tpl.replace(':amount', min).replace(':currency', state.currency);
+            hintEl.textContent = tpl.replace(/:amount/g, min).replace(/:currency/g, state.currency);
         } else {
             hintEl.textContent = '';
         }

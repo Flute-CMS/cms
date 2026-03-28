@@ -146,6 +146,31 @@ window.addEventListener('htmx:sendError', (evt) => {
     });
 });
 
+// Intercept Yoyo-Redirect for admin URLs and use htmx boost instead of full reload.
+// Shows toasts before navigating so the user sees feedback immediately.
+window.addEventListener('htmx:beforeOnLoad', (evt) => {
+    const xhr = evt.detail.xhr;
+    const redirectUrl = xhr.getResponseHeader('Yoyo-Redirect');
+    if (!redirectUrl || !redirectUrl.startsWith('/admin')) return;
+
+    // Show toasts from response
+    handleToasts(evt);
+
+    // Prevent Yoyo's window.location redirect
+    const origGetHeader = xhr.getResponseHeader.bind(xhr);
+    xhr.getResponseHeader = (name) => {
+        if (name === 'Yoyo-Redirect' || name === 'X-Toasts') return null;
+        return origGetHeader(name);
+    };
+
+    // Navigate via htmx boost (include HX-Boosted so server sends breadcrumb OOB swap)
+    htmx.ajax('GET', redirectUrl, {
+        target: '#main',
+        swap: 'morph:outerHTML transition:true',
+        headers: { 'HX-Boosted': 'true' },
+    });
+});
+
 // HTMX events
 window.addEventListener('htmx:afterOnLoad', handleToasts);
 

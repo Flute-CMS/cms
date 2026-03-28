@@ -31,7 +31,7 @@ class EditSocialScreen extends Screen
 
     public bool $isEditMode = false;
 
-    protected $id = null;
+    public ?int $id = null;
 
     protected array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token', 'proxy'];
 
@@ -112,7 +112,7 @@ class EditSocialScreen extends Screen
 
     public function mount(): void
     {
-        $this->id = (int) request()->attributes->get('id');
+        $this->id = (int) ( request()->attributes->get('id') ?: request()->input('id') ?: $this->id );
 
         // Read driverKey from request (sent by Yoyo select on change)
         $requestDriverKey = request()->input('driverKey');

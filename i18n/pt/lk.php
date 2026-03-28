@@ -45,7 +45,7 @@ return [
     'you_will_receive' => 'Você receberá',
     'agree_terms' => 'Eu concordo com',
     'terms_of_offer' => 'termos de oferta',
-    'top_up_button' => 'Recarga :amount :currency_view',
+    'top_up_button' => 'Prosseguir para pagamento',
     'redirect' => 'Redirecionando para a página de pagamento...',
     'payment_form_title' => 'Recarga de Saldo do Jogo',
     'payment_form_subtitle' => 'Escolha o seu método de pagamento e valor preferidos',

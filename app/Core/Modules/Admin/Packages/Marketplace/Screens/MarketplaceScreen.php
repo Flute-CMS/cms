@@ -455,6 +455,20 @@ class MarketplaceScreen extends Screen
                         if ($moduleManager->issetModule($candidate)) {
                             return $candidate;
                         }
+
+                        $decoded = @json_decode($content, true);
+                        if (is_array($decoded) && !empty($decoded['key'])) {
+                            $jsonKey = (string) $decoded['key'];
+                            if ($jsonKey !== $candidate && $moduleManager->issetModule($jsonKey)) {
+                                return $jsonKey;
+                            }
+                        }
+
+                        foreach ($moduleManager->getModules() as $key => $info) {
+                            if (strcasecmp($key, $candidate) === 0) {
+                                return $key;
+                            }
+                        }
                     }
                 }
             }

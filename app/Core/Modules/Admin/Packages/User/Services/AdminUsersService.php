@@ -35,11 +35,20 @@ class AdminUsersService
     /**
      * Сохранение пользователя.
      */
-    public function saveUser(User $user, array $data, \Symfony\Component\HttpFoundation\FileBag $files): void
+    public function saveUser(User $user, array $data, \Symfony\Component\HttpFoundation\FileBag $files, bool $removeAvatar = false, bool $removeBanner = false): void
     {
         $this->handleRoles($user, $data['roles'] ?? []);
 
         $this->handleFiles($user, $files);
+
+        if ($removeAvatar) {
+            $user->avatar = config('profile.default_avatar');
+        }
+
+        if ($removeBanner) {
+            $user->banner = null;
+        }
+
         $this->updateUserData($user, $data);
 
         $user->saveOrFail();

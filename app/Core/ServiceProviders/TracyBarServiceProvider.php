@@ -2,6 +2,8 @@
 
 namespace Flute\Core\ServiceProviders;
 
+use Flute\Core\Events\RoutingStartedEvent;
+use Flute\Core\Listeners\TracyBarMaintenanceListener;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\TracyBar\FluteTracyBar;
 
@@ -20,5 +22,18 @@ class TracyBarServiceProvider extends AbstractServiceProvider
         if (is_debug() && !is_cli()) {
             $container->get(FluteTracyBar::class);
         }
+    }
+
+    public function getEventListeners(): array
+    {
+        if (!is_debug() || is_cli()) {
+            return [];
+        }
+
+        return [
+            RoutingStartedEvent::NAME => [
+                TracyBarMaintenanceListener::class,
+            ],
+        ];
     }
 }

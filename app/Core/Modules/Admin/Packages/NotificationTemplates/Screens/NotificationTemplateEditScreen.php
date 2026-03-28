@@ -31,7 +31,7 @@ class NotificationTemplateEditScreen extends Screen
 
     public function mount(): void
     {
-        $this->templateId = (int) request()->input('id');
+        $this->templateId = (int) ( request()->input('id') ?: $this->templateId );
 
         $service = app(NotificationTemplateService::class);
         $this->channelOptions = $service->getChannels();
