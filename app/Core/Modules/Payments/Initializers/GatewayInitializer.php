@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Initializers;
 
-use Exception;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
 use Flute\Core\Modules\Payments\Events\RegisterPaymentFactoriesEvent;
 use Flute\Core\Modules\Payments\Factories\GatewayFactory;

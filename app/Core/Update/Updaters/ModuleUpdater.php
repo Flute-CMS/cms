@@ -2,12 +2,12 @@
 
 namespace Flute\Core\Update\Updaters;
 
-use Exception;
 use Flute\Core\Composer\ComposerManager;
 use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Support\FileUploader;
+use Throwable;
 
 class ModuleUpdater extends AbstractUpdater
 {
@@ -318,7 +318,7 @@ class ModuleUpdater extends AbstractUpdater
             $isExcluded = false;
             foreach ($this->excludedPaths as $excludedPath) {
                 $relativePath = str_replace($source . '/', '', $sourcePath);
-                if ($relativePath === $excludedPath || strpos($relativePath, $excludedPath . '/') === 0) {
+                if ($relativePath === $excludedPath || str_starts_with($relativePath, $excludedPath . '/')) {
                     $isExcluded = true;
                     logs()->info('Skipping excluded path: ' . $relativePath);
 

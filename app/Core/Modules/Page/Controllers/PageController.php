@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Page\Controllers;
 
-use Exception;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Modules\Page\Services\PageManager;
 use Flute\Core\Support\BaseController;

@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Social\Screens;
 
-use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;

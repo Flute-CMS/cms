@@ -199,15 +199,15 @@ class FileUploader
 
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $entryName = $zip->getNameIndex($i);
+            $normalized = str_replace('\\', '/', (string) $entryName);
 
-            if (str_contains($entryName, '..') || str_starts_with($entryName, '/') || str_contains($entryName, "\0")) {
+            if (str_starts_with($normalized, '/') || str_contains($normalized, "\0")) {
                 $zip->close();
 
                 throw new Exception('ZIP Slip detected.');
             }
 
-            $targetPath = realpath($realDestination . '/' . dirname($entryName));
-            if ($targetPath !== false && !str_starts_with($targetPath, $realDestination)) {
+            if (!$this->zipArchiveEntryPathStaysInsideRoot($normalized)) {
                 $zip->close();
 
                 throw new Exception('ZIP Slip detected.');
@@ -228,6 +228,35 @@ class FileUploader
     public function getTargetDirectory()
     {
         return BASE_PATH . $this->targetDirectory;
+    }
+
+    /**
+     * Reject paths that escape the extraction root (works before subdirs exist; handles mixed slashes).
+     */
+    private function zipArchiveEntryPathStaysInsideRoot(string $normalizedEntryPath): bool
+    {
+        $parts = array_values(array_filter(
+            explode('/', $normalizedEntryPath),
+            static fn(string $p): bool => $p !== '',
+        ));
+
+        $depth = 0;
+        foreach ($parts as $part) {
+            if ($part === '.') {
+                continue;
+            }
+            if ($part === '..') {
+                $depth--;
+                if ($depth < 0) {
+                    return false;
+                }
+
+                continue;
+            }
+            $depth++;
+        }
+
+        return true;
     }
 
     /**

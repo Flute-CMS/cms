@@ -373,7 +373,7 @@ class RoleListScreen extends Screen
 
     private function reorderRoles(array $roles)
     {
-        $roleIds = array_map(fn($r) => (int) $r['id'], array_reverse($roles));
+        $roleIds = array_map(static fn($r) => (int) $r['id'], array_reverse($roles));
         $allRoles = Role::query()->where('id', 'IN', new Parameter($roleIds))->fetchAll();
         $rolesById = [];
         foreach ($allRoles as $role) {

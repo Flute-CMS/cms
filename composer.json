@@ -129,7 +129,14 @@
 		"analyse": "vendor/bin/mago analyze",
 		"format": "vendor/bin/mago format",
 		"format-check": "vendor/bin/mago format --check",
-		"fix": "vendor/bin/mago format",
+		"fix": [
+			"vendor/bin/mago lint --fix --format-after-fix",
+			"vendor/bin/mago format"
+		],
+		"test-fix": [
+			"vendor/bin/mago lint --fix --format-after-fix",
+			"vendor/bin/mago format"
+		],
 		"optimize": [
 			"php flute cache:clear"
 		]

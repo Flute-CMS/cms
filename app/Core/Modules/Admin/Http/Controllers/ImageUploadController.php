@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Http\Controllers;
 
-use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FileUploader;
 use Symfony\Component\HttpFoundation\Response;

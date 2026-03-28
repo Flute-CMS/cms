@@ -2,6 +2,12 @@
 
 namespace Flute\Core\Update\Updaters;
 
+/**
+ * Base updater with shared filesystem helpers for concrete updaters.
+ *
+ * @method void atomicCopyFile(string $source, string $destination)
+ * @method void resetOpcache()
+ */
 abstract class AbstractUpdater
 {
     /**

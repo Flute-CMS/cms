@@ -5,7 +5,6 @@ namespace Flute\Core\ModulesManager;
 use Cycle\ORM\Exception\ORMException;
 use DI\DependencyException;
 use DI\NotFoundException;
-use Exception;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Support\ModuleServiceProvider;
 use Throwable;

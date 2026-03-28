@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Auth\Components;
 
 use Clickfwd\Yoyo\Component;
-use Exception;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Services\CaptchaService;

@@ -3,7 +3,6 @@
 namespace Flute\Core\Services;
 
 use DateTimeImmutable;
-use Flute\Core\Database\Entities\BalanceHistory;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Exceptions\BalanceNotEnoughException;

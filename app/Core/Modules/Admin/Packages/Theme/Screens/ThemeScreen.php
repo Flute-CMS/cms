@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Theme\Screens;
 
-use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;

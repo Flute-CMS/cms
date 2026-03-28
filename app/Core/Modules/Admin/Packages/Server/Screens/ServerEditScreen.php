@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Server\Screens;
 
-use Exception;
 use Flute\Admin\Packages\MainSettings\Services\MainSettingsPackageService;
 use Flute\Admin\Packages\Server\Services\AdminServersService;
 use Flute\Admin\Platform\Actions\Button;

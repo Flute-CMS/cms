@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Template;
 
-use Exception;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Theme\ThemeManager;
 use MatthiasMullie\Minify;
@@ -854,10 +853,7 @@ class TemplateAssets
         $sortedScssFiles = $this->additionalScssFiles[$this->context];
         sort($sortedScssFiles);
         $cacheKey = sha1(
-            $scssPath
-            . implode(',', $sortedScssFiles)
-            . implode(',', $this->additionalPartials)
-            . $this->context,
+            $scssPath . implode(',', $sortedScssFiles) . implode(',', $this->additionalPartials) . $this->context,
         );
 
         $cssCacheDir = $this->getCacheDir('css');

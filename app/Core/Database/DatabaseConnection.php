@@ -735,6 +735,10 @@ class DatabaseConnection
      */
     protected function getEntitiesFromDirectory(string $directory): array
     {
+        if (!is_dir($directory)) {
+            return [];
+        }
+
         $finder = finder();
         $finder->files()->in($directory)->name('*.php');
 

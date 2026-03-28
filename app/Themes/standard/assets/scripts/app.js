@@ -1461,6 +1461,9 @@ class ModalManager {
     }
 }
 
+const TOOLTIP_HIDE_DELAY_SIMPLE_MS = 200;
+const TOOLTIP_HIDE_DELAY_INTERACTIVE_MS = 380;
+
 /**
  * Tooltip management
  */
@@ -1488,15 +1491,21 @@ class TooltipManager {
 
         document.body.addEventListener("mouseout", (event) => {
             const target = event.target.closest("[data-tooltip]");
-            if (target) {
-                if (this.isInteractive) {
-                    this.hideTimeout = setTimeout(() => {
-                        this.hideTooltip(target);
-                    }, 100);
-                } else {
-                    this.hideTooltip(target);
-                }
+            if (!target) return;
+
+            const related = event.relatedTarget;
+            if (related instanceof Node) {
+                if (target.contains(related)) return;
+                if (this.tooltipEl && this.tooltipEl.contains(related)) return;
             }
+
+            clearTimeout(this.hideTimeout);
+            const delay = this.isInteractive
+                ? TOOLTIP_HIDE_DELAY_INTERACTIVE_MS
+                : TOOLTIP_HIDE_DELAY_SIMPLE_MS;
+            this.hideTimeout = setTimeout(() => {
+                this.hideTooltip(target);
+            }, delay);
         });
 
         window.addEventListener("beforeunload", () => {
@@ -1770,10 +1779,19 @@ class TooltipManager {
                 clearTimeout(this.hideTimeout);
             });
 
-            this.tooltipEl.addEventListener("mouseleave", () => {
-                if (this.isInteractive && this.activeElement) {
-                    this.hideTooltip(this.activeElement);
+            this.tooltipEl.addEventListener("mouseleave", (event) => {
+                if (!this.isInteractive || !this.activeElement) return;
+                const related = event.relatedTarget;
+                if (related instanceof Node) {
+                    if (this.activeElement.contains(related)) return;
+                    if (this.tooltipEl.contains(related)) return;
                 }
+                clearTimeout(this.hideTimeout);
+                this.hideTimeout = setTimeout(() => {
+                    if (this.activeElement) {
+                        this.hideTooltip(this.activeElement);
+                    }
+                }, TOOLTIP_HIDE_DELAY_INTERACTIVE_MS);
             });
         }
 

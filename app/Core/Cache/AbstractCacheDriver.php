@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Cache;
 
-use Exception;
 use Flute\Core\Cache\Contracts\CacheInterface;
 use Flute\Core\Services\FileLockService;
 use Psr\Cache\InvalidArgumentException;

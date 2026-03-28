@@ -209,7 +209,7 @@
 
     @if (!$isPartialRequest)
         <link rel="stylesheet" href="@asset('animate')" media="print" onload="this.media='all'">
-        <link rel="stylesheet" href="@asset('grid')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('grid')" type="text/css">
         <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" media="print" onload="this.media='all'">
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')" media="print" onload="this.media='all'">

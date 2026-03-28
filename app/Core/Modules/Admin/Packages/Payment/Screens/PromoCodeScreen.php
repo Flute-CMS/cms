@@ -3,7 +3,6 @@
 namespace Flute\Admin\Packages\Payment\Screens;
 
 use DateTimeImmutable;
-use Exception;
 use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;

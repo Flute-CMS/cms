@@ -2,9 +2,9 @@
 
 namespace Flute\Core\Update\Updaters;
 
-use Exception;
 use Flute\Core\Database\Entities\Theme;
 use Flute\Core\Support\FileUploader;
+use Throwable;
 
 class ThemeUpdater extends AbstractUpdater
 {

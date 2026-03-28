@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Controllers;
 
-use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;

@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Console\Command;
 
-use Exception;
 use GO\Scheduler;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

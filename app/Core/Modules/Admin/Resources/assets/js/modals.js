@@ -192,18 +192,24 @@ document.addEventListener('click', (event) => {
     }
 });
 
+function closeDropdownsBeforeModal() {
+    if (typeof window.closeAllDropdowns === 'function') {
+        window.closeAllDropdowns();
+    } else if (window.flute && window.flute.dropdowns) {
+        window.flute.dropdowns.closeAllDropdowns();
+    } else {
+        $('[data-dropdown].active').each(function () {
+            $(this).removeClass('active').hide();
+            $('body').removeClass('no-scroll');
+        });
+    }
+}
+
 function openModal(modalId) {
     const modalElement = document.getElementById(modalId);
 
     if (modalElement && modalElement.dialogInstance) {
-        if (window.flute && window.flute.dropdowns) {
-            window.flute.dropdowns.closeAllDropdowns();
-        } else {
-            $('[data-dropdown].active').each(function () {
-                $(this).removeClass('active').hide();
-                $('body').removeClass('no-scroll');
-            });
-        }
+        closeDropdownsBeforeModal();
 
         if (isMobileDevice()) {
             modalElement.classList.add('bottom-sheet');
@@ -244,6 +250,7 @@ document.addEventListener('click', (event) => {
     }
 
     if (modalElement.dialogInstance) {
+        closeDropdownsBeforeModal();
         modalElement.dialogInstance.show();
     }
 });

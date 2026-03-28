@@ -9,6 +9,7 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use SplFileInfo;
+use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
 class AttributeRouteLoader
@@ -56,13 +57,37 @@ class AttributeRouteLoader
     public function loadFromDirectories(array $directories, string $namespace): int
     {
         $routeCount = 0;
-        $cacheKey = 'route_loader_' . md5(implode('|', $directories) . '_' . $namespace);
+        $existingDirectories = $this->filterExistingDirectories($directories);
+        if ($existingDirectories === []) {
+            return 0;
+        }
+
+        $cacheKey = 'route_loader_' . md5(implode('|', $existingDirectories) . '_' . $namespace);
         $ttl = is_debug() ? 30 : 86400;
-        $classNames = cache()->callback(
-            $cacheKey,
-            fn() => $this->scanDirectoriesForControllers($directories, $namespace),
-            $ttl,
-        );
+
+        try {
+            $classNames = cache()->callback(
+                $cacheKey,
+                fn() => $this->scanDirectoriesForControllers($existingDirectories, $namespace),
+                $ttl,
+            );
+        } catch (DirectoryNotFoundException $e) {
+            if (function_exists('logs')) {
+                logs('router')->warning('Attribute routes scan skipped (directory missing): ' . $e->getMessage());
+            }
+
+            return 0;
+        } catch (\Throwable $e) {
+            if (function_exists('logs')) {
+                logs('router')->error('Attribute routes scan failed: ' . $e->getMessage(), ['exception' => $e]);
+            }
+
+            if (function_exists('is_debug') && is_debug()) {
+                throw $e;
+            }
+
+            return 0;
+        }
 
         foreach ($classNames as $className) {
             $routeCount += $this->loadFromClass($className);
@@ -169,6 +194,11 @@ class AttributeRouteLoader
      */
     private function scanDirectoriesForControllers(array $directories, string $namespace): array
     {
+        $directories = $this->filterExistingDirectories($directories);
+        if ($directories === []) {
+            return [];
+        }
+
         $cacheKey = 'route_loader_dirs_' . md5(implode('|', $directories));
 
         if (isset($this->loadedClassNamesCache[$cacheKey])) {
@@ -179,16 +209,46 @@ class AttributeRouteLoader
         $finder = new Finder();
         $finder->files()->name('*.php')->in($directories);
 
-        foreach ($finder as $file) {
-            $className = $this->getClassNameFromFile($file, $directories, $namespace);
-            if ($className && class_exists($className)) {
-                $classNames[] = $className;
+        try {
+            foreach ($finder as $file) {
+                $className = $this->getClassNameFromFile($file, $directories, $namespace);
+                if ($className && class_exists($className)) {
+                    $classNames[] = $className;
+                }
             }
+        } catch (DirectoryNotFoundException $e) {
+            if (function_exists('logs')) {
+                logs('router')->warning('Controller directory scan skipped: ' . $e->getMessage());
+            }
+
+            $this->loadedClassNamesCache[$cacheKey] = [];
+
+            return [];
         }
 
         $this->loadedClassNamesCache[$cacheKey] = $classNames;
 
         return $classNames;
+    }
+
+    /**
+     * @param array<int|string,string> $directories
+     * @return list<string>
+     */
+    private function filterExistingDirectories(array $directories): array
+    {
+        $out = [];
+        foreach ($directories as $dir) {
+            if (!is_string($dir) || $dir === '') {
+                continue;
+            }
+
+            if (is_dir($dir)) {
+                $out[] = $dir;
+            }
+        }
+
+        return $out;
     }
 
     private function getInheritedClassMiddleware(ReflectionClass $class): array
