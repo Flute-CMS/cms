@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Profile\Controllers;
 
-use Exception;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
 

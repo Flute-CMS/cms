@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Controllers;
 
-use Exception;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Exceptions\PaymentPromoException;
 use Flute\Core\Support\BaseController;

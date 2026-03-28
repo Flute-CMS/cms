@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Profile\Controllers;
 
 use DateTime;
-use Exception;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\UserSocialNetwork;
 use Flute\Core\Exceptions\SocialNotFoundException;

@@ -2,8 +2,6 @@
 
 namespace Flute\Core\Services;
 
-use Exception;
-
 class CaptchaService
 {
     /**

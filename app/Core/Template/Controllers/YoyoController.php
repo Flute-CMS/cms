@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Template\Controllers;
 
-use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Template\Template;
 

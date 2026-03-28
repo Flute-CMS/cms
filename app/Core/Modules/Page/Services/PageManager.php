@@ -307,7 +307,7 @@ class PageManager
         try {
             $cached = cache()->callback(
                 self::GLOBAL_LAYOUT_CACHE_KEY,
-                fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
+                static fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
                 is_performance() ? self::GLOBAL_LAYOUT_CACHE_TIME : 30,
             );
 
@@ -861,7 +861,7 @@ class PageManager
 
             return cache()->callback(
                 $cacheKey,
-                function () use ($widget, $widgetName, $settings) {
+                static function () use ($widget, $widgetName, $settings) {
                     $startTime = microtime(true);
                     $html = $widget->render($settings);
                     WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);

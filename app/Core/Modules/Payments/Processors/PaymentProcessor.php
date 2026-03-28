@@ -210,8 +210,8 @@ class PaymentProcessor
 
             $gateway = PaymentGateway::findOne(['adapter' => $invoice->gateway]);
 
-            // Use post-conversion amount for verification when currency conversion was applied
-            $expectedAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
+            // Use original currency amount for verification when currency conversion was applied
+            $expectedAmount = $invoice->currency ? $invoice->originalAmount : $invoice->amount;
 
             // Gateway receives fee-inclusive amount, so adjust expected for verification
             $gatewayFee = $gateway && $gateway->fee > 0 ? $gateway->fee : 0;
@@ -387,7 +387,7 @@ class PaymentProcessor
 
         $gateway = $this->gatewayFactory->create($gatewayEntity);
 
-        $gatewayAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
+        $gatewayAmount = $invoice->currency ? $invoice->originalAmount : $invoice->amount;
         if ($gatewayEntity->fee > 0) {
             $gatewayAmount = round($gatewayAmount + ( ( $gatewayAmount * $gatewayEntity->fee ) / 100 ), 2);
         }

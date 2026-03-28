@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Components;
 
-use Exception;
 use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Exceptions\PaymentPromoException;

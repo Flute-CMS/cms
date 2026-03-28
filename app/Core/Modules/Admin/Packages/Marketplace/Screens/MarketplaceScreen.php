@@ -445,30 +445,40 @@ class MarketplaceScreen extends Screen
 
             foreach ($candidates as $candidate) {
                 $moduleJsonPath = $modulesPath . DIRECTORY_SEPARATOR . $candidate . DIRECTORY_SEPARATOR . 'module.json';
-                if (is_file($moduleJsonPath) && is_readable($moduleJsonPath)) {
-                    $content = @file_get_contents($moduleJsonPath);
-                    if ($content !== false && strlen($content) > 10) {
-                        $moduleManager->clearCache();
-                        $moduleManager->forceReloadModulesJson();
-                        $moduleManager->refreshModules();
+                if (!is_file($moduleJsonPath) || !is_readable($moduleJsonPath)) {
+                    continue;
+                }
 
-                        if ($moduleManager->issetModule($candidate)) {
-                            return $candidate;
-                        }
+                $content = @file_get_contents($moduleJsonPath);
+                if ($content === false || strlen($content) <= 10) {
+                    continue;
+                }
 
-                        $decoded = @json_decode($content, true);
-                        if (is_array($decoded) && !empty($decoded['key'])) {
-                            $jsonKey = (string) $decoded['key'];
-                            if ($jsonKey !== $candidate && $moduleManager->issetModule($jsonKey)) {
-                                return $jsonKey;
-                            }
-                        }
+                $decoded = @json_decode($content, true);
+                $moduleKey = $candidate;
 
-                        foreach ($moduleManager->getModules() as $key => $info) {
-                            if (strcasecmp($key, $candidate) === 0) {
-                                return $key;
-                            }
-                        }
+                if (is_array($decoded) && !empty($decoded['name']) && is_string($decoded['name'])) {
+                    $moduleKey = $decoded['name'];
+                }
+
+                $moduleManager->clearCache();
+                $moduleManager->forceReloadModulesJson();
+
+                $this->ensureModuleInDatabase($moduleManager, $moduleKey, $decoded);
+
+                $moduleManager->refreshModules();
+
+                if ($moduleManager->issetModule($moduleKey)) {
+                    return $moduleKey;
+                }
+
+                if ($moduleKey !== $candidate && $moduleManager->issetModule($candidate)) {
+                    return $candidate;
+                }
+
+                foreach ($moduleManager->getModules() as $key => $info) {
+                    if (strcasecmp($key, $candidate) === 0 || strcasecmp($key, $moduleKey) === 0) {
+                        return $key;
                     }
                 }
             }
@@ -481,6 +491,30 @@ class MarketplaceScreen extends Screen
         }
 
         return null;
+    }
+
+    protected function ensureModuleInDatabase(ModuleManager $moduleManager, string $moduleKey, ?array $moduleJson): void
+    {
+        if ($moduleManager->issetModule($moduleKey)) {
+            return;
+        }
+
+        try {
+            $existing = \Flute\Core\Database\Entities\Module::findOne(['key' => $moduleKey]);
+            if ($existing !== null) {
+                return;
+            }
+
+            $module = new \Flute\Core\Database\Entities\Module();
+            $module->key = $moduleKey;
+            $module->name = $moduleJson['name'] ?? $moduleKey;
+            $module->description = $moduleJson['description'] ?? '';
+            $module->installedVersion = $moduleJson['version'] ?? '0.0.0';
+            $module->status = \Flute\Core\ModulesManager\ModuleManager::NOTINSTALLED;
+            $module->save();
+        } catch (\Throwable $e) {
+            logs('modules')->warning("Could not auto-register module {$moduleKey} in database: " . $e->getMessage());
+        }
     }
 
     /**

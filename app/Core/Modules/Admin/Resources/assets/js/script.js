@@ -237,6 +237,8 @@ function closeAllDropdowns() {
     });
 }
 
+window.closeAllDropdowns = closeAllDropdowns;
+
 function updatePosition(toggle, menu) {
     return () => {
         if (

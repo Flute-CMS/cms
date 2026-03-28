@@ -5,7 +5,6 @@ namespace Flute\Admin\Packages\User\Screens;
 use Carbon\Carbon;
 use Cycle\ORM\Select\JoinableLoader;
 use DateTimeImmutable;
-use Exception;
 use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;

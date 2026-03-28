@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Icons\Services;
 
-use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 

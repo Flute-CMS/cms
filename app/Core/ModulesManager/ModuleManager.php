@@ -220,6 +220,32 @@ class ModuleManager
         cache()->delete('flute.modules.collection');
         cache()->delete('flute.modules.alldb');
         cache()->delete('flute.modules.json');
+        $this->invalidateCompiledRouteCaches();
+    }
+
+    /**
+     * Drop compiled Symfony URL matchers so routes are rebuilt after module install/remove.
+     */
+    protected function invalidateCompiledRouteCaches(): void
+    {
+        $names = ['routes_compiled_front.php', 'routes_compiled_admin.php'];
+        foreach ($names as $name) {
+            $p = path('storage/app/cache/' . $name);
+            if (is_file($p)) {
+                @unlink($p);
+            }
+        }
+
+        $staleDir = (string) ( config('cache.stale_directory') ?? '' );
+        if ($staleDir !== '') {
+            $staleDir = rtrim(str_replace('\\', '/', $staleDir), '/');
+            foreach ($names as $name) {
+                $p = $staleDir . '/' . $name;
+                if (is_file($p)) {
+                    @unlink($p);
+                }
+            }
+        }
     }
 
     public function registerModules(): void
@@ -405,6 +431,20 @@ class ModuleManager
             fn() => ModuleFinder::getAllJson($this->modulesPath),
             self::CACHE_TIME,
         );
+
+        $removed = false;
+        foreach ($this->modulesJson as $moduleName => $jsonPath) {
+            if (!is_file($jsonPath)) {
+                unset($this->modulesJson[$moduleName]);
+                $removed = true;
+            }
+        }
+
+        if ($removed) {
+            cache()->delete('flute.modules.json');
+            cache()->delete('flute.modules.collection');
+            $this->modulesJson = ModuleFinder::getAllJson($this->modulesPath);
+        }
     }
 
     protected function loadModulesFromDatabase(): void
@@ -511,7 +551,22 @@ class ModuleManager
                 $collection = collect();
 
                 foreach ($this->modulesJson as $moduleName => $modulePath) {
-                    $moduleData = ModuleFinder::getModuleJson($modulePath);
+                    if (!is_file($modulePath)) {
+                        logs('modules')->warning("Skipping module {$moduleName}: module.json missing at {$modulePath}");
+
+                        continue;
+                    }
+
+                    try {
+                        $moduleData = ModuleFinder::getModuleJson($modulePath);
+                    } catch (Throwable $e) {
+                        logs('modules')->warning("Skipping module {$moduleName}: " . $e->getMessage(), [
+                            'exception' => $e,
+                        ]);
+
+                        continue;
+                    }
+
                     $moduleInformation = new ModuleInformation($moduleData, $moduleName);
                     $this->createModuleInCollection($moduleName, $moduleInformation);
                     $collection->put($moduleName, $moduleInformation);

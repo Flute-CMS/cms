@@ -130,5 +130,9 @@ return [
         'flute_key_not_set' => 'Flute API key is not set. Please set it in the main settings.',
         'refresh_success' => 'Modules refreshed successfully',
         'rollback_success' => 'Module rolled back successfully',
+        'concurrent_marketplace_operation' => 'Another marketplace install or update is already running. Please wait and try again.',
+        'invalid_zip' => 'Downloaded file is not a valid ZIP archive or is too small.',
+        'directory_not_writable' => 'Directory is missing or not writable: :path',
+        'download_url_not_allowed' => 'Download URL is not allowed (host must match marketplace mirrors).',
     ],
 ];

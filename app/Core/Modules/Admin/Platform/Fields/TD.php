@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Platform\Fields;
 
-use Exception;
 use Flute\Admin\Platform\Repository;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;

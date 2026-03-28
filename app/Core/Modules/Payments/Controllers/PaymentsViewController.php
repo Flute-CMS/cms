@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Controllers;
 
-use Exception;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Support\BaseController;

@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Backup\Screens;
 
-use Exception;
 use Flute\Admin\Packages\Backup\Services\BackupService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;

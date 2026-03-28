@@ -4,7 +4,6 @@ namespace Flute\Core\Validator;
 
 use Countable;
 use DateTime;
-use Exception;
 use Flute\Core\Validator\Support\ValidatorStr;
 use InvalidArgumentException;
 use MadeSimple\Arrays\ArrDots;

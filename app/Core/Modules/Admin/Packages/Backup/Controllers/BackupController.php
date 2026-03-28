@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Backup\Controllers;
 
-use Exception;
 use Flute\Admin\Packages\Backup\Services\BackupService;
 use Flute\Core\Support\BaseController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;

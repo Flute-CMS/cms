@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Factories;
 
-use Exception;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Omnipay\Omnipay;

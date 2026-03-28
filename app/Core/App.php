@@ -15,7 +15,6 @@ use DI\NotFoundException;
 use Exception;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Contracts\ServiceProviderInterface;
-use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\ModulesManager\Contracts\ModuleServiceProviderInterface;
 use Flute\Core\Profiling\GlobalProfiler;
@@ -49,7 +48,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '1.0.1';
+    public const VERSION = '1.0.2';
 
     /**
      * Set the base path of the application
@@ -548,7 +547,7 @@ final class App
             foreach ($listeners as $listener) {
                 try {
                     $instance = new $listener();
-                    $dispatcher->addListener($event, function () use ($instance, $listener) {
+                    $dispatcher->addListener($event, static function () use ($instance, $listener) {
                         try {
                             return $instance->handle(...func_get_args());
                         } catch (\Throwable $e) {

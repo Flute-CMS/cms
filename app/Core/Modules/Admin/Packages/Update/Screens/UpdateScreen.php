@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Update\Screens;
 
-use Exception;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Core\App;

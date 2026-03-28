@@ -35,8 +35,13 @@ class AdminUsersService
     /**
      * Сохранение пользователя.
      */
-    public function saveUser(User $user, array $data, \Symfony\Component\HttpFoundation\FileBag $files, bool $removeAvatar = false, bool $removeBanner = false): void
-    {
+    public function saveUser(
+        User $user,
+        array $data,
+        \Symfony\Component\HttpFoundation\FileBag $files,
+        bool $removeAvatar = false,
+        bool $removeBanner = false,
+    ): void {
         $this->handleRoles($user, $data['roles'] ?? []);
 
         $this->handleFiles($user, $files);

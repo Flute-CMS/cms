@@ -10,7 +10,6 @@ namespace Hybridauth\Provider;
 
 use Hybridauth\Adapter\OAuth2;
 use Hybridauth\Exception\UnexpectedApiResponseException;
-use Hybridauth\HttpClient;
 use Hybridauth\User;
 
 /**

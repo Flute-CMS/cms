@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Page\Controllers;
 
-use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FileUploader;
 use Flute\Core\Support\FluteRequest;
@@ -68,7 +67,7 @@ class ColorController extends BaseController
 
         try {
             if (isset($colors['--border1'])) {
-                $colors['--border1'] = $colors['--border1'] . 'rem';
+                $colors['--border1'] .= 'rem';
                 $colors['--border05'] = ( floatval($colors['--border1']) / 2 ) . 'rem';
             }
 

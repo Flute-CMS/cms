@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Profiling;
 
-use Exception;
 use Xhgui\Profiler\Profiler;
 use Xhgui\Profiler\ProfilingFlags;
 

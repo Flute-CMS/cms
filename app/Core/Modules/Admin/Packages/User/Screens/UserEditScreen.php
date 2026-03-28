@@ -3,7 +3,6 @@
 namespace Flute\Admin\Packages\User\Screens;
 
 use DateTimeZone;
-use Exception;
 use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
@@ -176,8 +175,8 @@ class UserEditScreen extends Screen
         $files = request()->files;
 
         // FilePond sets {name}_clear=1 when user removes the file
-        $removeAvatar = ($data['avatar_clear'] ?? '0') === '1';
-        $removeBanner = ($data['banner_clear'] ?? '0') === '1';
+        $removeAvatar = ( $data['avatar_clear'] ?? '0' ) === '1';
+        $removeBanner = ( $data['banner_clear'] ?? '0' ) === '1';
 
         // Don't validate avatar/banner URL strings
         unset($data['avatar'], $data['banner'], $data['avatar_clear'], $data['banner_clear']);

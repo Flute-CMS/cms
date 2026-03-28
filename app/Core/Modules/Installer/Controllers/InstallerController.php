@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Installer\Controllers;
 
 use DateTimeZone;
-use Exception;
 use Flute\Core\Database\DatabaseCapabilities;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Permission;
@@ -17,7 +16,6 @@ use Flute\Core\Services\ConfigurationService;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\SystemHealth\Migrations\CheckPermissionsMigration;
-use GuzzleHttp\Client;
 use PDO;
 use PDOException;
 use Throwable;

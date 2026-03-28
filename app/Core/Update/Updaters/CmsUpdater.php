@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Update\Updaters;
 
-use Exception;
 use Flute\Core\App;
 use Flute\Core\Composer\ComposerManager;
 use Flute\Core\Support\FileUploader;

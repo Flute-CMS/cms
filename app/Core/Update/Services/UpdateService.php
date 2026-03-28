@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Update\Services;
 
-use Exception;
 use Flute\Core\App;
 use Flute\Core\Markdown\Parser;
 use Flute\Core\ModulesManager\ModuleManager;

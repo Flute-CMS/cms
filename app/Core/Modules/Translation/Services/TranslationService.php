@@ -298,6 +298,10 @@ class TranslationService
         $translationFiles = cache()->callback(
             $cacheKey,
             static function () use ($directory) {
+                if (!is_dir($directory)) {
+                    return [];
+                }
+
                 $finder = finder();
                 $finder->files()->in($directory)->name('*.php');
 
