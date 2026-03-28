@@ -5,7 +5,6 @@ namespace Flute\Core\Router\Middlewares;
 use Closure;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Throwable;
@@ -87,9 +86,13 @@ class RateLimiterMiddleware extends BaseMiddleware
             $factoryCacheKey = md5(serialize($opts));
 
             if (!isset(self::$factoryCache[$factoryCacheKey])) {
-                $storage = $this->cache
-                    ? new \Symfony\Component\RateLimiter\Storage\CacheStorage($this->cache)
-                    : throw new RuntimeException('RateLimiter: cache storage is required in production');
+                if (!$this->cache) {
+                    logs()->warning('RateLimiter: cache storage is not available, skipping rate limit');
+
+                    return $next($request);
+                }
+
+                $storage = new \Symfony\Component\RateLimiter\Storage\CacheStorage($this->cache);
 
                 self::$factoryCache[$factoryCacheKey] = new \Symfony\Component\RateLimiter\RateLimiterFactory(
                     $opts,

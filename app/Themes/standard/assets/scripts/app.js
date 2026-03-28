@@ -181,6 +181,18 @@ class FluteApp {
     }
 
     setupHtmxEvents() {
+        if (typeof document.startViewTransition !== 'function') {
+            document.querySelectorAll('[hx-swap*="transition:true"]').forEach(el => {
+                el.setAttribute('hx-swap', el.getAttribute('hx-swap').replace(/\s*transition:true/g, ''));
+            });
+            htmx.on('htmx:afterProcessNode', (evt) => {
+                const el = evt.detail.elt;
+                if (el && el.getAttribute && (el.getAttribute('hx-swap') || '').includes('transition:true')) {
+                    el.setAttribute('hx-swap', el.getAttribute('hx-swap').replace(/\s*transition:true/g, ''));
+                }
+            });
+        }
+
         window.addEventListener("htmx:sendError", (evt) => {
             const lang = document.querySelector("html").getAttribute("lang");
             const message =

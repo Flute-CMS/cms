@@ -8,6 +8,7 @@ $sidebar-ease: cubic-bezier(0.32, 0.72, 0, 1);
     top: 0;
     left: 0;
     bottom: 0;
+    view-transition-name: sidebar-nav;
     width: var(--sidebar-width, #{$sidebar-width});
     background-color: var(--blurred-background);
     border-right: 1px solid var(--sidebar-border);

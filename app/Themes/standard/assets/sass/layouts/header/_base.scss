@@ -5,6 +5,7 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     position: sticky;
     top: 0;
     z-index: 60;
+    view-transition-name: flute-header;
 }
 
 .navbar {
