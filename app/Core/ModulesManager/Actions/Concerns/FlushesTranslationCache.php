@@ -50,6 +50,8 @@ trait FlushesTranslationCache
 
         $this->flushAssetCaches();
 
+        \Flute\Core\Support\StoragePermissionFixer::fixAfterModuleAction(BASE_PATH);
+
         if (function_exists('cache_warmup_mark')) {
             cache_warmup_mark();
         }

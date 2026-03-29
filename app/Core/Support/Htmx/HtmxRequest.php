@@ -92,4 +92,12 @@ class HtmxRequest
     {
         return filter_var($this->headers->get(self::HX_REQUEST, 'false'), FILTER_VALIDATE_BOOLEAN);
     }
+
+    /**
+     * True when the layout shell (navbar, footer, sidebar frame) must not be rendered — only the swap target (e.g. #main).
+     */
+    public function omitsLayoutShell(): bool
+    {
+        return $this->isHtmxRequest() || $this->isBoosted();
+    }
 }

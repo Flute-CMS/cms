@@ -54,4 +54,12 @@ return [
     'update_all_confirm' => 'Are you sure you want to update all available components? A backup will be created before proceeding.',
     'update_all_complete' => 'All updates installed successfully',
     'update_all_preparing' => 'Preparing bulk update...',
+    'active_channel' => 'Active channel',
+    'preview_only' => 'Preview only',
+    'other_channel_hint' => 'These updates are available on the <strong>:channel</strong> channel. Switch your active channel to install them.',
+    'on_other_channel' => 'Available on :channel',
+    'switch_to_channel' => 'Switch to :channel',
+    'install_version_confirm' => 'Are you sure you want to install version :version? A backup will be created.',
+    'version_installed' => 'Version :version installed successfully',
+    'no_version_selected' => 'No version selected for installation',
 ];

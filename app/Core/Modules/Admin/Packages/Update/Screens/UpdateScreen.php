@@ -47,16 +47,25 @@ class UpdateScreen extends Screen
      */
     public function layout(): array
     {
+        $activeChannel = $this->updateService->getChannel();
+        $otherChannel = $activeChannel === 'stable' ? 'early' : 'stable';
+
         $updates = $this->updateService->getAvailableUpdates();
+        $otherUpdates = $this->updateService->getAllVersionsForChannel($otherChannel);
 
         return [
             LayoutFactory::view('admin-update::components.javascript'),
 
             LayoutFactory::view('admin-update::layouts.update-center', [
                 'current_version' => App::VERSION,
+                'active_channel' => $activeChannel,
                 'update' => $updates['cms'] ?? null,
                 'modules' => $updates['modules'] ?? [],
                 'themes' => $updates['themes'] ?? [],
+                'other_channel' => $otherChannel,
+                'other_update' => $otherUpdates['cms'] ?? null,
+                'other_modules' => $otherUpdates['modules'] ?? [],
+                'other_themes' => $otherUpdates['themes'] ?? [],
             ]),
         ];
     }
@@ -289,6 +298,59 @@ class UpdateScreen extends Screen
                 throw $e;
             }
             logs()->error('Bulk update error: ' . $e->getMessage());
+            $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
+        }
+    }
+
+    /**
+     * Install a specific CMS version from the catalog (upgrade or rollback)
+     */
+    public function handleInstallVersion(): void
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
+
+        try {
+            $data = request()->all();
+            $version = $data['version'] ?? null;
+
+            if (empty($version)) {
+                throw new InvalidArgumentException(__('admin-update.no_version_selected'));
+            }
+
+            $this->flashMessage(__('admin-update.update_downloading'));
+            $packageFile = $this->updateService->downloadVersionFromCatalog($version);
+
+            if (empty($packageFile) || !file_exists($packageFile)) {
+                throw new RuntimeException(__('admin-update.update_failed'));
+            }
+
+            $this->flashMessage(__('admin-update.update_extracting'));
+
+            $success = (new CmsUpdater())->update(['package_file' => $packageFile]);
+
+            if ($success) {
+                $this->updateService->clearCache();
+                app(ModuleManager::class)->clearCache();
+
+                if (file_exists($packageFile)) {
+                    @unlink($packageFile);
+                }
+
+                $this->flashMessage(__('admin-update.version_installed', ['version' => $version]));
+                $this->triggerSidebarRefresh();
+            } else {
+                throw new RuntimeException(__('admin-update.update_failed'));
+            }
+        } catch (Throwable $e) {
+            if (is_debug()) {
+                throw $e;
+            }
+            logs()->error('Version install error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
         }
     }

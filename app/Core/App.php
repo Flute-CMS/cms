@@ -521,11 +521,6 @@ final class App
         ]);
 
         if (!( php_sapi_name() === 'cli' || defined('STDIN') )) {
-            if (function_exists('is_performance') && is_performance()) {
-                $containerBuilder->enableCompilation(
-                    BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
-                );
-            }
             $containerBuilder->writeProxiesToFile(
                 true,
                 BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'proxies',

@@ -45,6 +45,8 @@ class MiddlewareRunner
 
         try {
             return $middleware($request, fn($request) => $this->process($request));
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             if (function_exists('is_debug') && is_debug()) {
                 throw $e;

@@ -1,20 +1,40 @@
-<div class="updates-panel">
-    <div class="headerbar">
-        <div class="channel" title="{{ __('admin-update.updates_available') }}">
-            <div class="toggle-group" aria-label="{{ __('admin-update.update_channel') }}">
-                <button class="toggle {{ config('app.update_channel', 'stable') === 'stable' ? 'active' : '' }}"
-                    yoyo:val.channel="stable" yoyo:post="switchChannel">{{ __('admin-update.channel_stable') }}</button>
-                <button class="toggle {{ config('app.update_channel', 'stable') === 'early' ? 'active' : '' }}"
-                    yoyo:val.channel="early" yoyo:post="switchChannel">{{ __('admin-update.channel_early') }}</button>
-            </div>
+@php
+    $hasCurrentUpdates = !empty($update) || !empty($modules) || !empty($themes);
+    $hasOtherUpdates = !empty($other_update) || !empty($other_modules) || !empty($other_themes);
+    $totalCurrent = ($update ? 1 : 0) + count($modules) + count($themes);
+    $channelLabel = [
+        'stable' => __('admin-update.channel_stable'),
+        'early' => __('admin-update.channel_early'),
+    ];
+@endphp
+
+<div class="su">
+    <div class="su-bar">
+        <div class="su-bar-left">
+            <span class="su-bar-ver">Flute v{{ $current_version }}</span>
+            <span class="su-pill su-pill--{{ $active_channel }}">
+                <span class="su-pill-dot"></span>
+                {{ $channelLabel[$active_channel] ?? $active_channel }}
+            </span>
         </div>
-        <div class="actions">
-            <x-button size="sm" type="secondary" yoyo:post="handleCheckUpdates">
+        <div class="su-bar-right">
+            <div class="su-channel-seg" role="radiogroup">
+                <button class="su-chseg {{ $active_channel === 'stable' ? 'is-on' : '' }}"
+                    role="radio" aria-checked="{{ $active_channel === 'stable' ? 'true' : 'false' }}"
+                    yoyo:val.channel="stable" yoyo:post="switchChannel">
+                    {{ __('admin-update.channel_stable') }}
+                </button>
+                <button class="su-chseg {{ $active_channel === 'early' ? 'is-on' : '' }}"
+                    role="radio" aria-checked="{{ $active_channel === 'early' ? 'true' : 'false' }}"
+                    yoyo:val.channel="early" yoyo:post="switchChannel">
+                    {{ __('admin-update.channel_early') }}
+                </button>
+            </div>
+            <x-button size="sm" type="outline" yoyo:post="handleCheckUpdates">
                 <x-icon path="ph.bold.arrows-clockwise-bold" />
                 {{ __('admin-update.check_updates') }}
             </x-button>
-            @php $hasUpdates = !empty($update) || !empty($modules) || !empty($themes); @endphp
-            @if ($hasUpdates)
+            @if ($hasCurrentUpdates)
                 <x-button size="sm" type="accent" yoyo:post="handleUpdateAll"
                     hx-flute-confirm="{{ __('admin-update.update_all_confirm') }}" hx-flute-confirm-type="success">
                     <x-icon path="ph.bold.arrow-circle-up-bold" />
@@ -24,316 +44,110 @@
         </div>
     </div>
 
-    <div class="content-col">
+    @if ($hasCurrentUpdates)
         @if (!empty($update))
-            <section class="card card-primary">
-                <i class="overlay-border-shift" aria-hidden="true"></i>
-                <div class="card-row">
-                    <div class="info">
-                        <div class="name">CMS</div>
-                        <div class="sub">
-                            <span class="kv">{{ __('admin-update.current') }}:</span>
-                            <span class="badge neutral">v{{ $current_version }}</span>
-                            <x-icon path="ph.regular.arrow-right" class="sep" />
-                            <span class="kv">{{ __('admin-update.available') }}:</span>
-                            <span class="badge accent">v{{ $update['version'] }}</span>
-                        </div>
-                        <div class="meta">{{ $update['release_date'] ?? date(default_date_format(true)) }}</div>
-                    </div>
-                    <div class="cta">
-                        <x-button size="sm" yoyo:post="handleUpdate" yoyo:val.type="cms"
-                            hx-flute-confirm="{{ __('admin-update.update_confirm') }}" hx-flute-confirm-type="info"
-                            hx-flute-action-key="cms_update_{{ str_replace('.', '_', $update['version']) }}"
-                            hx-trigger="confirmed" type="accent">
-                            <x-icon path="ph.bold.arrow-circle-up-bold" />
-                            {{ __('admin-update.update') }}
-                        </x-button>
-                    </div>
-                </div>
-                <details class="more">
-                    <summary>
-                        <x-icon path="ph.regular.caret-right" class="chevron" />
-                        <span>{{ __('admin-update.more_info') }}</span>
-                    </summary>
-                    <div class="more-body">
-                        @if (!empty($update['changelog_html']))
-                            @include('admin-update::components.markdown', [
-                                'html' => $update['changelog_html'],
-                            ])
-                        @elseif (!empty($update['changes']))
-                            <ul class="changes">
-                                @foreach ($update['changes'] as $change)
-                                    @php $changeItem = preg_replace('/^\s*[-*]\s*/', '', (string) $change); @endphp
-                                    <li>@include('admin-update::components.markdown', ['markdown' => $changeItem])</li>
-                                @endforeach
-                            </ul>
-                        @elseif (!empty($update['changelog']))
-                            @include('admin-update::components.markdown', ['markdown' => $update['changelog']])
-                        @endif
-                    </div>
-                </details>
-                @if (!empty($update['previous_versions']))
-                    <details class="versions">
-                        <summary>
-                            <x-icon path="ph.regular.caret-right" class="chevron" />
-                            <span>{{ __('admin-update.version_history') }}</span>
-                        </summary>
-                        <div class="history-timeline">
-                            @foreach ($update['previous_versions'] as $v)
-                                <div class="timeline-item">
-                                    <div class="timeline-header">
-                                        <span class="timeline-version">v{{ $v['version'] }}</span>
-                                        <span class="timeline-date">{{ $v['release_date'] ?? '' }}</span>
-                                    </div>
-                                    <div class="timeline-content">
-                                        @if (!empty($v['changelog_html']))
-                                            @include('admin-update::components.markdown', [
-                                                'html' => $v['changelog_html'],
-                                            ])
-                                         @elseif (!empty($v['changes']))
-                                             <ul>
-                                                 @foreach ($v['changes'] as $c)
-                                                     @php $changeItem = preg_replace('/^\s*[-*]\s*/', '', (string) $c); @endphp
-                                                     <li>@include('admin-update::components.markdown', [
-                                                         'markdown' => $changeItem,
-                                                     ])</li>
-                                                 @endforeach
-                                             </ul>
-                                         @elseif (!empty($v['changelog']))
-                                             @include('admin-update::components.markdown', ['markdown' => $v['changelog']])
-                                        @endif
-                                        {{-- <div class="timeline-actions">
-                                            <button class="install-button size-sm" yoyo:post="handleUpdate"
-                                                yoyo:val.type="cms" yoyo:val.version="{{ $v['version'] }}"
-                                                hx-flute-confirm="{{ __('admin-update.install_old_confirm') }}"
-                                                hx-flute-confirm-type="warning"
-                                                hx-flute-action-key="cms_update_{{ str_replace('.', '_', $v['version']) }}"
-                                                hx-trigger="confirmed">
-                                                <x-icon path="ph.bold.arrow-circle-up-bold" />
-                                                {{ __('admin-update.install_version') }}
-                                            </button>
-                                        </div> --}}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </details>
-                @endif
-            </section>
+            <div class="su-group">
+                @include('admin-update::layouts.partials.update-card', [
+                    'item' => $update,
+                    'type' => 'cms',
+                    'itemId' => null,
+                    'name' => 'Flute CMS',
+                    'current_ver' => $current_version,
+                    'is_primary' => true,
+                ])
+            </div>
         @endif
 
-        @if (!empty($modules) || !empty($themes))
-            <h3 class="section-title">{{ __('admin-update.also_available') }}</h3>
+        @if (!empty($modules))
+            <div class="su-section-label">{{ __('admin-update.update_modules') }}</div>
+            <div class="su-group">
+                @foreach ($modules as $moduleId => $m)
+                    @include('admin-update::layouts.partials.update-card', [
+                        'item' => $m,
+                        'type' => 'module',
+                        'itemId' => $moduleId,
+                        'name' => $m['name'],
+                        'current_ver' => $m['current_version'] ?? '?',
+                    ])
+                @endforeach
+            </div>
         @endif
 
-        @foreach ($modules as $moduleId => $m)
-            <section class="card card-compact">
-                <div class="card-row">
-                    <div class="info">
-                        <div class="name">{{ $m['name'] }}</div>
-                        <div class="sub">
-                            <span class="kv">{{ __('admin-update.current') }}:</span>
-                            <span class="badge neutral">v{{ $m['current_version'] }}</span>
-                            <x-icon path="ph.regular.arrow-right" class="sep" />
-                            <span class="kv">{{ __('admin-update.available') }}:</span>
-                            <span class="badge accent">v{{ $m['version'] }}</span>
-                        </div>
-                    </div>
-                    <div class="cta"
-                        yoyo:vals='{"id": "{{ $moduleId }}", "version": "{{ $m['version'] }}", "type": "module"}'>
-                        <x-button yoyo:post="handleUpdate" hx-flute-confirm="{{ __('admin-update.update_confirm') }}"
-                            hx-flute-confirm-type="info"
-                            hx-flute-action-key="module_update_{{ $moduleId }}_{{ str_replace('.', '_', $m['version']) }}"
-                            hx-trigger="confirmed" type="accent">
-                            {{ __('admin-update.update') }}
-                        </x-button>
-                    </div>
-                </div>
-                <details class="more">
-                    <summary>
-                        <x-icon path="ph.regular.caret-right" class="chevron" />
-                        <span>{{ __('admin-update.more_info') }}</span>
-                    </summary>
-                    <div class="more-body">
-                        @if (!empty($m['changelog_html']))
-                            @include('admin-update::components.markdown', ['html' => $m['changelog_html']])
-                        @elseif (!empty($m['changes']))
-                            <ul class="changes">
-                                @foreach ($m['changes'] as $change)
-                                    @php $changeItem = preg_replace('/^\s*[-*]\s*/', '', (string) $change); @endphp
-                                    <li>@include('admin-update::components.markdown', ['markdown' => $changeItem])</li>
-                                @endforeach
-                            </ul>
-                        @elseif (!empty($m['changelog']))
-                            @include('admin-update::components.markdown', ['markdown' => $m['changelog']])
-                        @elseif (!empty($m['description']))
-                            @php
-                                $desc = (string) $m['description'];
-                                $hasNewlines = str_contains((string)$desc, "\n");
-                                $inlineDashCount = preg_match_all('/\s-\s+/', $desc, $__m) ?: 0;
-                                $looksLikeInlineList = !$hasNewlines && $inlineDashCount > 0;
-                            @endphp
-                            @if ($looksLikeInlineList)
-                                <ul class="changes">
-                                    @foreach (preg_split('/\s-\s+/', ltrim($desc, " -")) as $item)
-                                        @if (trim($item) !== '')
-                                            <li>@include('admin-update::components.markdown', ['markdown' => $item])</li>
-                                        @endif
-                                    @endforeach
-                                </ul>
-                            @else
-                                @include('admin-update::components.markdown', [
-                                    'markdown' => $desc,
-                                ])
-                            @endif
-                        @endif
-                    </div>
-                </details>
-                @if (!empty($m['previous_versions']))
-                    <details class="versions">
-                        <summary>
-                            <x-icon path="ph.regular.caret-right" class="chevron" />
-                            <span>{{ __('admin-update.version_history') }}</span>
-                        </summary>
-                        <div class="history-timeline">
-                            @foreach ($m['previous_versions'] as $v)
-                                <div class="timeline-item">
-                                    <div class="timeline-header">
-                                        <span class="timeline-version">v{{ $v['version'] }}</span>
-                                        <span class="timeline-date">{{ $v['release_date'] ?? '' }}</span>
-                                    </div>
-                                    <div class="timeline-content">
-                                        @if (!empty($v['changelog_html']))
-                                            @include('admin-update::components.markdown', [
-                                                'html' => $v['changelog_html'],
-                                            ])
-                                         @elseif (!empty($v['changes']))
-                                             <ul>
-                                                 @foreach ($v['changes'] as $c)
-                                                     @php $changeItem = preg_replace('/^\s*[-*]\s*/', '', (string) $c); @endphp
-                                                     <li>@include('admin-update::components.markdown', [
-                                                         'markdown' => $changeItem,
-                                                     ])</li>
-                                                 @endforeach
-                                             </ul>
-                                         @elseif (!empty($v['changelog']))
-                                             @include('admin-update::components.markdown', ['markdown' => $v['changelog']])
-                                        @endif
-                                        {{-- <div class="timeline-actions"
-                                            yoyo:vals='{"id": "{{ $moduleId }}", "version": "{{ $v['version'] }}", "type": "module"}'>
-                                            <button class="install-button size-sm" yoyo:post="handleUpdate"
-                                                hx-flute-confirm="{{ __('admin-update.install_old_confirm') }}"
-                                                hx-flute-confirm-type="warning"
-                                                hx-flute-action-key="module_update_{{ $moduleId }}_{{ str_replace('.', '_', $v['version']) }}"
-                                                hx-trigger="confirmed">
-                                                <x-icon path="ph.bold.arrow-circle-up-bold" />
-                                                {{ __('admin-update.install_version') }}
-                                            </button>
-                                        </div> --}}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </details>
-                @endif
-            </section>
-        @endforeach
-
-        @foreach ($themes as $themeId => $t)
-            <section class="card card-compact">
-                <div class="card-row">
-                    <div class="info">
-                        <div class="name">{{ $t['name'] }}</div>
-                        <div class="sub">
-                            <span class="kv">{{ __('admin-update.current') }}:</span>
-                            <span class="badge neutral">v{{ $t['current_version'] }}</span>
-                            <x-icon path="ph.regular.arrow-right" class="sep" />
-                            <span class="kv">{{ __('admin-update.available') }}:</span>
-                            <span class="badge accent">v{{ $t['version'] }}</span>
-                        </div>
-                    </div>
-                    <div class="cta"
-                        yoyo:vals='{"id": "{{ $themeId }}", "version": "{{ $t['version'] }}", "type": "theme"}'>
-                        <x-button yoyo:post="handleUpdate" hx-flute-confirm="{{ __('admin-update.update_confirm') }}"
-                            hx-flute-confirm-type="info"
-                            hx-flute-action-key="theme_update_{{ $themeId }}_{{ str_replace('.', '_', $t['version']) }}"
-                            hx-trigger="confirmed" type="accent">
-                            {{ __('admin-update.update') }}
-                        </x-button>
-                    </div>
-                </div>
-                <details class="more">
-                    <summary>
-                        <x-icon path="ph.regular.caret-right" class="chevron" />
-                        <span>{{ __('admin-update.more_info') }}</span>
-                    </summary>
-                    <div class="more-body">
-                        @if (!empty($t['changelog_html']))
-                            @include('admin-update::components.markdown', ['html' => $t['changelog_html']])
-                        @elseif (!empty($t['changes']))
-                            <ul class="changes">
-                                @foreach ($t['changes'] as $change)
-                                    @php $changeItem = preg_replace('/^\s*[-*]\s*/', '', (string) $change); @endphp
-                                    <li>@include('admin-update::components.markdown', ['markdown' => $changeItem])</li>
-                                @endforeach
-                            </ul>
-                        @elseif (!empty($t['changelog']))
-                            @include('admin-update::components.markdown', ['markdown' => $t['changelog']])
-                        @endif
-                    </div>
-                </details>
-                @if (!empty($t['previous_versions']))
-                    <details class="versions">
-                        <summary>
-                            <x-icon path="ph.regular.caret-right" class="chevron" />
-                            <span>{{ __('admin-update.version_history') }}</span>
-                        </summary>
-                        <div class="history-timeline">
-                            @foreach ($t['previous_versions'] as $v)
-                                <div class="timeline-item">
-                                    <div class="timeline-header">
-                                        <span class="timeline-version">v{{ $v['version'] }}</span>
-                                        <span class="timeline-date">{{ $v['release_date'] ?? '' }}</span>
-                                    </div>
-                                    <div class="timeline-content">
-                                        @if (!empty($v['changelog_html']))
-                                            @include('admin-update::components.markdown', [
-                                                'html' => $v['changelog_html'],
-                                            ])
-                                         @elseif (!empty($v['changes']))
-                                             <ul>
-                                                 @foreach ($v['changes'] as $c)
-                                                     @php $changeItem = preg_replace('/^\s*[-*]\s*/', '', (string) $c); @endphp
-                                                     <li>@include('admin-update::components.markdown', [
-                                                         'markdown' => $changeItem,
-                                                     ])</li>
-                                                 @endforeach
-                                             </ul>
-                                         @elseif (!empty($v['changelog']))
-                                             @include('admin-update::components.markdown', ['markdown' => $v['changelog']])
-                                        @endif
-                                        {{-- <div class="timeline-actions"
-                                            yoyo:vals='{"id": "{{ $themeId }}", "version": "{{ $v['version'] }}", "type": "theme"}'>
-                                            <button class="install-button size-sm" yoyo:post="handleUpdate"
-                                                hx-flute-confirm="{{ __('admin-update.install_old_confirm') }}"
-                                                hx-flute-confirm-type="warning"
-                                                hx-flute-action-key="theme_update_{{ $themeId }}_{{ str_replace('.', '_', $v['version']) }}"
-                                                hx-trigger="confirmed">
-                                                <x-icon path="ph.bold.arrow-circle-up-bold" />
-                                                {{ __('admin-update.install_version') }}
-                                            </button>
-                                        </div> --}}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </details>
-                @endif
-            </section>
-        @endforeach
-
-        @if (empty($update) && empty($modules) && empty($themes))
-            @include('admin-update::components.no-updates')
+        @if (!empty($themes))
+            <div class="su-section-label">{{ __('admin-update.update_themes') }}</div>
+            <div class="su-group">
+                @foreach ($themes as $themeId => $t)
+                    @include('admin-update::layouts.partials.update-card', [
+                        'item' => $t,
+                        'type' => 'theme',
+                        'itemId' => $themeId,
+                        'name' => $t['name'],
+                        'current_ver' => $t['current_version'] ?? '?',
+                    ])
+                @endforeach
+            </div>
         @endif
-    </div>
+    @else
+        @include('admin-update::components.no-updates')
+    @endif
+
+    @if ($hasOtherUpdates)
+        <div class="su-divider"></div>
+
+        <div class="su-other-head">
+            <span class="su-other-title">
+                {{ __('admin-update.on_other_channel', ['channel' => $channelLabel[$other_channel] ?? $other_channel]) }}
+            </span>
+            <button class="su-other-switch" yoyo:val.channel="{{ $other_channel }}" yoyo:post="switchChannel">
+                {{ __('admin-update.switch_to_channel', ['channel' => $channelLabel[$other_channel] ?? $other_channel]) }}
+                <x-icon path="ph.bold.arrow-right-bold" />
+            </button>
+        </div>
+
+        @if (!empty($other_update))
+            <div class="su-group su-group--muted">
+                @include('admin-update::layouts.partials.update-card', [
+                    'item' => $other_update,
+                    'type' => 'cms',
+                    'itemId' => null,
+                    'name' => 'Flute CMS',
+                    'current_ver' => $current_version,
+                    'is_primary' => true,
+                    'catalog' => true,
+                ])
+            </div>
+        @endif
+
+        @if (!empty($other_modules))
+            <div class="su-section-label">{{ __('admin-update.update_modules') }}</div>
+            <div class="su-group su-group--muted">
+                @foreach ($other_modules as $moduleId => $m)
+                    @include('admin-update::layouts.partials.update-card', [
+                        'item' => $m,
+                        'type' => 'module',
+                        'itemId' => $moduleId,
+                        'name' => $m['name'],
+                        'current_ver' => $m['current_version'] ?? '?',
+                        'catalog' => true,
+                    ])
+                @endforeach
+            </div>
+        @endif
+
+        @if (!empty($other_themes))
+            <div class="su-section-label">{{ __('admin-update.update_themes') }}</div>
+            <div class="su-group su-group--muted">
+                @foreach ($other_themes as $themeId => $t)
+                    @include('admin-update::layouts.partials.update-card', [
+                        'item' => $t,
+                        'type' => 'theme',
+                        'itemId' => $themeId,
+                        'name' => $t['name'],
+                        'current_ver' => $t['current_version'] ?? '?',
+                        'catalog' => true,
+                    ])
+                @endforeach
+            </div>
+        @endif
+    @endif
 </div>

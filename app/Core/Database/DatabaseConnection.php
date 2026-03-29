@@ -336,7 +336,7 @@ class DatabaseConnection
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
             self::ensureGroupWritable(self::SCHEMA_FILE);
-            $this->writeSchemaMeta($this->entitiesDirs);
+            $this->writeSchemaMeta($this->entitiesDirs, count($schemaArray));
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
 
@@ -876,6 +876,18 @@ class DatabaseConnection
 
         $valid = hash_equals($expectedFingerprint, $current);
 
+        if ($valid && isset($meta['entity_count'])) {
+            $schemaArray = @include self::SCHEMA_FILE;
+            if (is_array($schemaArray)) {
+                $schemaEntityCount = count($schemaArray);
+                $expectedEntityCount = (int) $meta['entity_count'];
+
+                if ($expectedEntityCount > 0 && $schemaEntityCount < $expectedEntityCount * 0.8) {
+                    return false;
+                }
+            }
+        }
+
         if ($valid) {
             $dir = dirname($cachedFpFile);
             if (!is_dir($dir)) {
@@ -1081,7 +1093,7 @@ class DatabaseConnection
     /**
      * @param array<int,string> $dirs
      */
-    private function writeSchemaMeta(array $dirs): void
+    private function writeSchemaMeta(array $dirs, ?int $entityCount = null): void
     {
         $dirs = $this->normalizeDirs($dirs);
 
@@ -1089,6 +1101,7 @@ class DatabaseConnection
             'fingerprint' => $this->computeEntitiesFingerprint($dirs),
             'dirs' => $dirs,
             'written_at' => time(),
+            'entity_count' => $entityCount ?? $this->countEntityFiles($dirs),
         ];
 
         $tmp = self::SCHEMA_META_FILE . '.tmp';
@@ -1096,6 +1109,31 @@ class DatabaseConnection
         @file_put_contents($tmp, $content, LOCK_EX);
         self::ensureGroupWritable($tmp);
         @rename($tmp, self::SCHEMA_META_FILE);
+    }
+
+    private function countEntityFiles(array $dirs): int
+    {
+        $count = 0;
+
+        foreach ($dirs as $dir) {
+            $resolved = is_string($dir) && $dir !== '' ? realpath($dir) : false;
+            if ($resolved === false || !is_dir($resolved)) {
+                continue;
+            }
+
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+                $resolved,
+                FilesystemIterator::SKIP_DOTS,
+            ));
+
+            foreach ($iterator as $fileInfo) {
+                if ($fileInfo->isFile() && $fileInfo->getExtension() === 'php') {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
     }
 
     /**

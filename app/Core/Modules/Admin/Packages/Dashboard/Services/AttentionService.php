@@ -96,32 +96,20 @@ class AttentionService
 
     protected function checkDirectoryPermissions(): void
     {
-        if (PHP_OS_FAMILY === 'Windows') {
-            return;
+        $problems = \Flute\Core\Support\StoragePermissionFixer::getPermissionProblems(BASE_PATH);
+
+        if (!empty($problems)) {
+            \Flute\Core\Support\StoragePermissionFixer::fixAfterModuleAction(BASE_PATH);
+
+            $problems = \Flute\Core\Support\StoragePermissionFixer::getPermissionProblems(BASE_PATH);
         }
 
-        $dirs = [
-            BASE_PATH . 'storage',
-            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'logs',
-            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
-            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
-            BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app',
-        ];
-
-        $problems = 0;
-
-        foreach ($dirs as $dir) {
-            if (is_dir($dir) && !is_writable($dir)) {
-                $problems++;
-            }
-        }
-
-        if ($problems > 0) {
+        if (!empty($problems)) {
             $this->items[] = [
                 'key' => 'permissions',
                 'type' => 'error',
                 'icon' => 'ph.bold.folder-lock-bold',
-                'count' => $problems,
+                'count' => count($problems),
                 'url' => url('/admin/about-system'),
             ];
         }

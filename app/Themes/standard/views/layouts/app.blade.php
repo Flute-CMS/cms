@@ -79,8 +79,7 @@
             $_final_twitter_image = asset('assets/img/social-image.png');
         }
 
-        // --- HX Detect ---
-        $isPartialRequest = request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted();
+        $isPartialRequest = request()->htmx()->omitsLayoutShell();
 
         // --- Theme colors ---
         $__colors = app('flute.view.manager')->getColors();

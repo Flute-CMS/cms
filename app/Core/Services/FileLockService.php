@@ -111,8 +111,11 @@ class FileLockService
             }
         }
 
-        // Open file in 'c+' mode (Create, Read/Write, NO truncate)
-        $handle = fopen($lockFile, 'c+');
+        $handle = @fopen($lockFile, 'c+');
+        if (!$handle && is_file($lockFile)) {
+            @unlink($lockFile);
+            $handle = @fopen($lockFile, 'c+');
+        }
         if (!$handle) {
             throw new RuntimeException("Cannot open lock file: {$lockFile}");
         }
@@ -232,7 +235,11 @@ class FileLockService
             return false;
         }
 
-        $handle = fopen($lockFile, 'c+');
+        $handle = @fopen($lockFile, 'c+');
+        if ($handle === false && is_file($lockFile)) {
+            @unlink($lockFile);
+            $handle = @fopen($lockFile, 'c+');
+        }
         if ($handle === false) {
             return false;
         }
@@ -280,7 +287,11 @@ class FileLockService
             return false;
         }
 
-        $handle = fopen($lockFile, 'c+');
+        $handle = @fopen($lockFile, 'c+');
+        if ($handle === false && is_file($lockFile)) {
+            @unlink($lockFile);
+            $handle = @fopen($lockFile, 'c+');
+        }
         if ($handle === false) {
             return false;
         }

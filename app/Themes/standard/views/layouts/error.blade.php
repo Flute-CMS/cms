@@ -33,8 +33,8 @@
         $_final_description = config('app.description');
         $_final_description = __($_final_description);
 
-        // --- HX Detect ---
-        $isPartialRequest = request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted();
+        // HTMX: без навбара и футера — только контент для подмены #main
+        $isPartialRequest = request()->htmx()->omitsLayoutShell();
 
         // --- Theme colors ---
         $__colors = app('flute.view.manager')->getColors();
