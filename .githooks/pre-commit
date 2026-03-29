@@ -25,4 +25,8 @@ else
     echo "  ✔ Format OK"
 fi
 
+echo "  ⏳ Mago analyze..."
+vendor/bin/mago analyze
+echo "  ✔ Analysis passed"
+
 echo "✅ All checks passed"
