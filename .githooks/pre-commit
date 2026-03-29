@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT" || exit 1
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.php$' || true)
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+if ! command -v composer >/dev/null 2>&1; then
+  echo "pre-commit: composer not found in PATH" >&2
+  exit 1
+fi
+
+composer fix
+
+git add -u app/Core
