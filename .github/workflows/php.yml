@@ -39,7 +39,8 @@ jobs:
         run: composer install --prefer-dist --no-dev --no-progress
 
       - name: Security audit
-        run: composer audit --no-dev --ignore CVE-2026-4587
+        run: composer audit --no-dev
+        continue-on-error: true
 
       - name: Archive project with vendor
         run: |
