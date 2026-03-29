@@ -1,18 +1,28 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
 set -e
-ROOT="$(git rev-parse --show-toplevel)"
-cd "$ROOT" || exit 1
 
-STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.php$' || true)
-if [ -z "$STAGED" ]; then
-  exit 0
+echo "🔍 Pre-commit checks..."
+
+if [ ! -x "vendor/bin/mago" ]; then
+    echo "⚠️  Mago not found, skipping checks"
+    exit 0
 fi
 
-if ! command -v composer >/dev/null 2>&1; then
-  echo "pre-commit: composer not found in PATH" >&2
-  exit 1
+echo "  ⏳ Mago lint..."
+vendor/bin/mago lint --minimum-fail-level=error
+echo "  ✔ Lint passed"
+
+echo "  ⏳ Mago format check..."
+if ! vendor/bin/mago format --check > /dev/null 2>&1; then
+    echo "  🔧 Auto-formatting..."
+    vendor/bin/mago format > /dev/null 2>&1
+    git diff --name-only -- '*.php' | while read -r f; do
+        git add "$f"
+    done
+    echo "  ✔ Formatted and re-staged"
+else
+    echo "  ✔ Format OK"
 fi
 
-composer fix
-
-git add -u app/Core
+echo "✅ All checks passed"

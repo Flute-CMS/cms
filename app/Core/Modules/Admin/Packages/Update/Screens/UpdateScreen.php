@@ -331,7 +331,7 @@ class UpdateScreen extends Screen
 
             $this->flashMessage(__('admin-update.update_extracting'));
 
-            $success = (new CmsUpdater())->update(['package_file' => $packageFile]);
+            $success = ( new CmsUpdater() )->update(['package_file' => $packageFile]);
 
             if ($success) {
                 $this->updateService->clearCache();

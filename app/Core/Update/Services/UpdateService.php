@@ -102,9 +102,13 @@ class UpdateService
         $channel = in_array($channel, ['stable', 'early'], true) ? $channel : 'stable';
         $cacheKey = self::CACHE_KEY . '_catalog_' . $channel;
 
-        return cache()->callback($cacheKey, function () use ($channel) {
-            return $this->fetchVersionCatalog($channel);
-        }, self::CACHE_DURATION);
+        return cache()->callback(
+            $cacheKey,
+            function () use ($channel) {
+                return $this->fetchVersionCatalog($channel);
+            },
+            self::CACHE_DURATION,
+        );
     }
 
     private function fetchVersionCatalog(string $channel): array
@@ -140,7 +144,7 @@ class UpdateService
                 return [];
             }
 
-            $filtered = array_values(array_filter($versions, static fn(array $v) => ($v['isPublic'] ?? false)));
+            $filtered = array_values(array_filter($versions, static fn(array $v) => $v['isPublic'] ?? false));
 
             if (empty($filtered)) {
                 return [];
@@ -151,7 +155,9 @@ class UpdateService
             $cms = [
                 'version' => $latest['version'] ?? '',
                 'current_version' => App::VERSION,
-                'release_date' => isset($latest['releaseDate']) ? date(default_date_format(true), strtotime($latest['releaseDate'])) : null,
+                'release_date' => isset($latest['releaseDate'])
+                    ? date(default_date_format(true), strtotime($latest['releaseDate']))
+                    : null,
                 'changelog' => $latest['changelog'] ?? '',
                 'download_url' => $latest['downloadUrl'] ?? '',
                 'previous_versions' => [],
@@ -164,7 +170,9 @@ class UpdateService
             foreach ($filtered as $v) {
                 $prev = [
                     'version' => $v['version'] ?? '',
-                    'release_date' => isset($v['releaseDate']) ? date(default_date_format(true), strtotime($v['releaseDate'])) : null,
+                    'release_date' => isset($v['releaseDate'])
+                        ? date(default_date_format(true), strtotime($v['releaseDate']))
+                        : null,
                     'changelog' => $v['changelog'] ?? '',
                     'download_url' => $v['downloadUrl'] ?? '',
                 ];

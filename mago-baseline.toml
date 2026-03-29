@@ -352,7 +352,7 @@ count = 5
 file = "app/Core/App.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Core\BASE_PATH`.'
-count = 5
+count = 4
 
 [[issues]]
 file = "app/Core/App.php"
@@ -382,7 +382,7 @@ count = 4
 file = "app/Core/App.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\is_performance` (also tried as `is_performance` in a broader scope).'
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/App.php"
@@ -1666,7 +1666,7 @@ count = 5
 file = "app/Core/Database/DatabaseConnection.php"
 code = "invalid-method-access"
 message = "Attempting to access a method on a non-object type (`string`)."
-count = 7
+count = 10
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -1768,13 +1768,19 @@ count = 1
 file = "app/Core/Database/DatabaseConnection.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
-count = 3
+count = 4
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `method_exists`: expected `class-string|object`, but found `mixed`."
 count = 2
+
+[[issues]]
+file = "app/Core/Database/DatabaseConnection.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `scandir`: expected `string`, but found `mixed`."
+count = 1
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -1786,7 +1792,7 @@ count = 1
 file = "app/Core/Database/DatabaseConnection.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 42
+count = 45
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -2158,7 +2164,7 @@ count = 16
 file = "app/Core/Database/DatabaseConnection.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Database\path` (also tried as `path` in a broader scope).'
-count = 6
+count = 7
 
 [[issues]]
 file = "app/Core/Database/DatabaseConnection.php"
@@ -2620,13 +2626,7 @@ count = 1
 file = "app/Core/Git/GitHubUpdater.php"
 code = "no-valid-catch-type-found"
 message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 3
-
-[[issues]]
-file = "app/Core/Git/GitHubUpdater.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Git\Throwable`.'
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Git/GitHubUpdater.php"
@@ -3860,18 +3860,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/AdminPanel.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/AdminPanel.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Throwable`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/AdminPanel.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\cache` (also tried as `cache` in a broader scope).'
 count = 2
@@ -3971,18 +3959,6 @@ file = "app/Core/Modules/Admin/Http/Controllers/ImageUploadController.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `flute\admin\http\controllers\imageuploadcontroller::upload`. Saw type `mixed`.'
 count = 4
-
-[[issues]]
-file = "app/Core/Modules/Admin/Http/Controllers/ImageUploadController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Http/Controllers/ImageUploadController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Http\Controllers\Throwable`.'
-count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Http/Controllers/ImageUploadController.php"
@@ -4449,6 +4425,12 @@ count = 2
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `flute\admin\packages\aboutsystem\helpers\aboutsystemhelper::normalizefilesystempathforcomparison`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
+code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
 count = 3
 
@@ -4480,12 +4462,6 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `reset`: expected `array<('K.reset() extends mixed), ('V.reset() extends mixed)>|object`, but found `truthy-mixed`."
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #1 of `str_starts_with`: expected `string`, but found `mixed`."
 count = 2
 
 [[issues]]
@@ -4539,6 +4515,12 @@ count = 6
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
+message = 'Invalid argument type for argument #2 of `flute\admin\packages\aboutsystem\helpers\aboutsystemhelper::ioncubeencodedpathmatchesmodulesdir`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
+code = "mixed-argument"
 message = "Invalid argument type for argument #2 of `implode`: expected `array<array-key, Stringable|null|scalar>|null`, but found `mixed`."
 count = 1
 
@@ -4559,12 +4541,6 @@ file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportCont
 code = "mixed-argument"
 message = "Invalid argument type for argument #2 of `sprintf`: expected `Stringable|null|scalar`, but found `nonnull`."
 count = 2
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `str_starts_with`: expected `string`, but found `mixed`."
-count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4708,7 +4684,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 55
+count = 56
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -5324,18 +5300,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Backup/Controllers/BackupController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Backup/Controllers/BackupController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Packages\Backup\Controllers\Throwable`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Backup/Controllers/BackupController.php"
 code = "non-existent-class"
 message = 'Class `Symfony\Component\HttpFoundation\BinaryFileResponse` not found.'
 count = 1
@@ -5672,6 +5636,12 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Currency/CurrencyPackage.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 3
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/CurrencyPackage.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Currency\__` (also tried as `__` in a broader scope).'
 count = 1
@@ -5679,8 +5649,128 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Currency/CurrencyPackage.php"
 code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Currency\cache` (also tried as `cache` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/CurrencyPackage.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Currency\config` (also tried as `config` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/CurrencyPackage.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Currency\scheduler` (also tried as `scheduler` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/CurrencyPackage.php"
+code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Currency\url` (also tried as `url` in a broader scope).'
 count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "invalid-iterator"
+message = "The expression provided to `foreach` is not iterable. It resolved to type `truthy-mixed`, which is not iterable."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "invalid-type-cast"
+message = "Casting `mixed` to `float`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Flute\Admin\Packages\Currency\Services\CurrencyRateService::fetchrates`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `round`: expected `float|int`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `strtoupper`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 6
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 8
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-operand"
+message = "Invalid right operand: type `mixed` cannot be reliably used in string concatenation."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-operand"
+message = "Left operand in `>` comparison has `mixed` type."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-operand"
+message = "Left operand in binary operation has type `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-operand"
+message = "Right operand in binary operation has type `mixed`."
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-property-access"
+message = "Attempting to access a property on a non-object type (`mixed`)."
+count = 3
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-property-access"
+message = "Attempting to access a property on a non-object type (`truthy-mixed`)."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `flute\admin\packages\currency\services\currencyrateservice::fetchrates`. Saw type `nonnull`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Currency\Services\cache` (also tried as `cache` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Admin\Packages\Currency\Services\logs` (also tried as `logs` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Currency/Services/CurrencyRateService.php"
+code = "non-existent-method"
+message = 'Method `query` does not exist on type `Flute\Core\Database\Entities\Currency`.'
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Currency/routes.php"
@@ -5714,6 +5804,18 @@ count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `flute\core\support\storagepermissionfixer::fixaftermoduleaction`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `flute\core\support\storagepermissionfixer::getpermissionproblems`: expected `string`, but found `mixed`.'
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
 count = 2
@@ -5728,7 +5830,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
 code = "non-existent-constant"
 message = 'Undefined constant: `Flute\Admin\Packages\Dashboard\Services\BASE_PATH`.'
-count = 6
+count = 4
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Dashboard/Services/AttentionService.php"
@@ -6442,18 +6544,6 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Logs/Services/LogViewerService.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `flute\admin\packages\logs\services\logviewerservice::getloglevelstats`. Saw type `mixed`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Logs/Services/LogViewerService.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Logs/Services/LogViewerService.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Packages\Logs\Services\Throwable`.'
 count = 1
 
 [[issues]]
@@ -7724,20 +7814,8 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Modules/Controllers/ModulesController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Modules/Controllers/ModulesController.php"
 code = "non-documented-property"
 message = 'Ambiguous property access: $files on class `Flute\Core\Support\FluteRequest`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/Modules/Controllers/ModulesController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Packages\Modules\Controllers\Throwable`.'
 count = 1
 
 [[issues]]
@@ -10592,18 +10670,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Platform/Fields/TD.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Platform/Fields/TD.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Admin\Platform\Fields\Throwable`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Platform/Fields/TD.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Illuminate\Contracts\View\Factory`.'
 count = 3
@@ -12536,18 +12602,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Auth/Controllers/AuthController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 3
-
-[[issues]]
-file = "app/Core/Modules/Auth/Controllers/AuthController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Auth\Controllers\Throwable`.'
-count = 3
-
-[[issues]]
-file = "app/Core/Modules/Auth/Controllers/AuthController.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\HttpFoundation\Response`.'
 count = 1
@@ -12742,18 +12796,6 @@ count = 1
 file = "app/Core/Modules/Auth/Controllers/SocialAuthController.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `flute\core\modules\auth\controllers\socialauthcontroller::getsiteorigin`. Saw type `mixed`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Auth/Controllers/SocialAuthController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Auth/Controllers/SocialAuthController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Auth\Controllers\Throwable`.'
 count = 1
 
 [[issues]]
@@ -13144,6 +13186,18 @@ count = 3
 file = "app/Core/Modules/Auth/Hybrid/Discord.php"
 code = "non-existent-class-like"
 message = 'Class `Hybridauth\Provider\Discord` cannot extend unknown type `OAuth2`'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Auth/Hybrid/HttpClient/Curl.php"
+code = "non-existent-class-like"
+message = 'Class `Hybridauth\HttpClient\Curl` cannot implement unknown type `HttpClientInterface`'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Auth/Hybrid/HttpClient/Curl.php"
+code = "unused-method"
+message = "Method `isinsecuresslcurloption()` is never used."
 count = 1
 
 [[issues]]
@@ -15158,18 +15212,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Icons/Services/IconFinder.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Icons/Services/IconFinder.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Icons\Services\Throwable`.'
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Icons/Services/IconFinder.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Illuminate\Support\Collection`.'
 count = 1
@@ -17042,21 +17084,9 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/ColorController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 5
-
-[[issues]]
-file = "app/Core/Modules/Page/Controllers/ColorController.php"
 code = "non-documented-property"
 message = 'Ambiguous property access: $files on class `Flute\Core\Support\FluteRequest`.'
 count = 1
-
-[[issues]]
-file = "app/Core/Modules/Page/Controllers/ColorController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Page\Controllers\Throwable`.'
-count = 5
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/ColorController.php"
@@ -17165,18 +17195,6 @@ file = "app/Core/Modules/Page/Controllers/PageController.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`truthy-mixed`)."
 count = 6
-
-[[issues]]
-file = "app/Core/Modules/Page/Controllers/PageController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Page/Controllers/PageController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Page\Controllers\Throwable`.'
-count = 1
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/PageController.php"
@@ -17396,12 +17414,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 13
-
-[[issues]]
-file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "non-documented-property"
 message = 'Ambiguous property access: $attributes on class `Flute\Core\Support\FluteRequest`.'
 count = 1
@@ -17417,12 +17429,6 @@ file = "app/Core/Modules/Page/Controllers/WidgetController.php"
 code = "non-documented-property"
 message = 'Ambiguous property access: $request on class `Flute\Core\Support\FluteRequest`.'
 count = 1
-
-[[issues]]
-file = "app/Core/Modules/Page/Controllers/WidgetController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Page\Controllers\Throwable`.'
-count = 13
 
 [[issues]]
 file = "app/Core/Modules/Page/Controllers/WidgetController.php"
@@ -19096,18 +19102,12 @@ count = 12
 file = "app/Core/Modules/Payments/Controllers/PaymentFormController.php"
 code = "no-valid-catch-type-found"
 message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 3
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Payments/Controllers/PaymentFormController.php"
 code = "non-documented-property"
 message = 'Ambiguous property access: $headers on class `Flute\Core\Support\FluteRequest`.'
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Payments/Controllers/PaymentFormController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Payments\Controllers\Throwable`.'
 count = 2
 
 [[issues]]
@@ -19214,18 +19214,6 @@ count = 5
 
 [[issues]]
 file = "app/Core/Modules/Payments/Controllers/PaymentsApiController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Payments/Controllers/PaymentsApiController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Payments\Controllers\Throwable`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Payments/Controllers/PaymentsApiController.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\HttpFoundation\Response`.'
 count = 1
@@ -19283,18 +19271,6 @@ file = "app/Core/Modules/Payments/Controllers/PaymentsViewController.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`truthy-mixed`)."
 count = 5
-
-[[issues]]
-file = "app/Core/Modules/Payments/Controllers/PaymentsViewController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Payments/Controllers/PaymentsViewController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Payments\Controllers\Throwable`.'
-count = 2
 
 [[issues]]
 file = "app/Core/Modules/Payments/Controllers/PaymentsViewController.php"
@@ -19588,18 +19564,6 @@ count = 3
 file = "app/Core/Modules/Payments/Initializers/GatewayInitializer.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`mixed`)."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Payments/Initializers/GatewayInitializer.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Payments/Initializers/GatewayInitializer.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Payments\Initializers\Throwable`.'
 count = 1
 
 [[issues]]
@@ -21392,18 +21356,6 @@ count = 6
 
 [[issues]]
 file = "app/Core/Modules/Profile/Controllers/ProfileSocialBindController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Profile/Controllers/ProfileSocialBindController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Profile\Controllers\Throwable`.'
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Profile/Controllers/ProfileSocialBindController.php"
 code = "non-existent-class"
 message = 'Class `Flute\Core\Database\Entities\UserSocialNetwork` not found.'
 count = 1
@@ -21545,18 +21497,6 @@ file = "app/Core/Modules/Profile/Controllers/ProfileVerificationController.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`mixed`)."
 count = 3
-
-[[issues]]
-file = "app/Core/Modules/Profile/Controllers/ProfileVerificationController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Profile/Controllers/ProfileVerificationController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Modules\Profile\Controllers\Throwable`.'
-count = 1
 
 [[issues]]
 file = "app/Core/Modules/Profile/Controllers/ProfileVerificationController.php"
@@ -22995,6 +22935,12 @@ count = 1
 [[issues]]
 file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
 code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `flute\core\support\storagepermissionfixer::fixaftermoduleaction`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `glob`: expected `string`, but found `mixed`."
 count = 1
 
@@ -23038,6 +22984,12 @@ count = 1
 file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
 code = "non-existent-class"
 message = 'Class `Symfony\Component\Filesystem\Filesystem` not found.'
+count = 1
+
+[[issues]]
+file = "app/Core/ModulesManager/Actions/Concerns/FlushesTranslationCache.php"
+code = "non-existent-constant"
+message = 'Undefined constant: `Flute\Core\ModulesManager\Actions\Concerns\BASE_PATH`.'
 count = 1
 
 [[issues]]
@@ -23230,18 +23182,6 @@ count = 3
 file = "app/Core/ModulesManager/Actions/ModuleInstall.php"
 code = "mixed-property-type-coercion"
 message = 'A value with a less specific type `mixed` is being assigned to property `$$moduleManager` (Flute\Core\ModulesManager\ModuleManager).'
-count = 1
-
-[[issues]]
-file = "app/Core/ModulesManager/Actions/ModuleInstall.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/ModulesManager/Actions/ModuleInstall.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\ModulesManager\Actions\Throwable`.'
 count = 1
 
 [[issues]]
@@ -24340,13 +24280,7 @@ count = 5
 file = "app/Core/ModulesManager/ModuleRegister.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 11
-
-[[issues]]
-file = "app/Core/ModulesManager/ModuleRegister.php"
-code = "mixed-operand"
-message = "Left operand in `&&` operation has `mixed` type."
-count = 1
+count = 9
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleRegister.php"
@@ -24358,7 +24292,7 @@ count = 1
 file = "app/Core/ModulesManager/ModuleRegister.php"
 code = "non-existent-class-like"
 message = 'Class, Interface, or Trait `Cycle\ORM\Exception\ORMException` does not exist.'
-count = 5
+count = 4
 
 [[issues]]
 file = "app/Core/ModulesManager/ModuleRegister.php"
@@ -24376,12 +24310,6 @@ count = 4
 file = "app/Core/ModulesManager/ModuleRegister.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\ModulesManager\logs` (also tried as `logs` in a broader scope).'
-count = 2
-
-[[issues]]
-file = "app/Core/ModulesManager/ModuleRegister.php"
-code = "non-existent-function"
-message = 'Could not find definition for function `Flute\Core\ModulesManager\user` (also tried as `user` in a broader scope).'
 count = 2
 
 [[issues]]
@@ -24539,18 +24467,6 @@ file = "app/Core/Profiling/GlobalProfiler.php"
 code = "mixed-property-type-coercion"
 message = "Mixed property type coercion"
 count = 1
-
-[[issues]]
-file = "app/Core/Profiling/GlobalProfiler.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 3
-
-[[issues]]
-file = "app/Core/Profiling/GlobalProfiler.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Profiling\Throwable`.'
-count = 3
 
 [[issues]]
 file = "app/Core/Profiling/GlobalProfiler.php"
@@ -25226,6 +25142,18 @@ count = 3
 
 [[issues]]
 file = "app/Core/Router/MiddlewareRunner.php"
+code = "no-valid-catch-type-found"
+message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
+count = 1
+
+[[issues]]
+file = "app/Core/Router/MiddlewareRunner.php"
+code = "non-existent-catch-type"
+message = 'Attempting to catch an undefined class or interface: `Symfony\Component\HttpKernel\Exception\HttpException`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Router/MiddlewareRunner.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\HttpFoundation\Response`.'
 count = 2
@@ -25678,7 +25606,7 @@ count = 2
 file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 7
+count = 8
 
 [[issues]]
 file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
@@ -25708,7 +25636,7 @@ count = 2
 file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `flute\core\router\middlewares\ratelimitermiddleware::handle`. Saw type `mixed`.'
-count = 3
+count = 4
 
 [[issues]]
 file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
@@ -25751,6 +25679,12 @@ file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Router\Middlewares\config` (also tried as `config` in a broader scope).'
 count = 2
+
+[[issues]]
+file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Flute\Core\Router\Middlewares\logs` (also tried as `logs` in a broader scope).'
+count = 1
 
 [[issues]]
 file = "app/Core/Router/Middlewares/RateLimiterMiddleware.php"
@@ -28174,7 +28108,7 @@ count = 1
 file = "app/Core/ServiceProviders/RouterServiceProvider.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(DI\Container)`).'
-count = 5
+count = 6
 
 [[issues]]
 file = "app/Core/ServiceProviders/RouterServiceProvider.php"
@@ -28246,7 +28180,7 @@ count = 1
 file = "app/Core/ServiceProviders/RouterServiceProvider.php"
 code = "non-existent-class-like"
 message = 'Cannot find class, interface, enum, or type alias `DI\Container`.'
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/ServiceProviders/RouterServiceProvider.php"
@@ -28270,7 +28204,7 @@ count = 1
 file = "app/Core/ServiceProviders/RouterServiceProvider.php"
 code = "non-existent-function"
 message = 'Function `DI\factory` could not be found.'
-count = 3
+count = 4
 
 [[issues]]
 file = "app/Core/ServiceProviders/RouterServiceProvider.php"
@@ -28916,18 +28850,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Services/CaptchaService.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 5
-
-[[issues]]
-file = "app/Core/Services/CaptchaService.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Services\Throwable`.'
-count = 5
-
-[[issues]]
-file = "app/Core/Services/CaptchaService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Services\config` (also tried as `config` in a broader scope).'
 count = 13
@@ -29558,21 +29480,9 @@ count = 1
 
 [[issues]]
 file = "app/Core/Services/EmailService.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 3
-
-[[issues]]
-file = "app/Core/Services/EmailService.php"
 code = "no-value"
 message = "Argument #1 passed to function `rawurlencode` has type `never`, meaning it cannot produce a value."
 count = 2
-
-[[issues]]
-file = "app/Core/Services/EmailService.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Services\Throwable`.'
-count = 3
 
 [[issues]]
 file = "app/Core/Services/EmailService.php"
@@ -31073,18 +30983,6 @@ file = "app/Core/Services/SteamService.php"
 code = "never-return"
 message = "Cannot return value with type 'never' from this function."
 count = 2
-
-[[issues]]
-file = "app/Core/Services/SteamService.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 3
-
-[[issues]]
-file = "app/Core/Services/SteamService.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Services\Throwable`.'
-count = 3
 
 [[issues]]
 file = "app/Core/Services/SteamService.php"
@@ -33236,18 +33134,6 @@ count = 4
 
 [[issues]]
 file = "app/Core/Template/Controllers/YoyoController.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 1
-
-[[issues]]
-file = "app/Core/Template/Controllers/YoyoController.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Template\Controllers\Throwable`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Template/Controllers/YoyoController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Template\Controllers\__` (also tried as `__` in a broader scope).'
 count = 1
@@ -34978,19 +34864,25 @@ count = 2
 file = "app/Core/Update/Services/UpdateService.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(GuzzleHttp\Client)`).'
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(Psr\Http\Message\ResponseInterface)`).'
-count = 2
+count = 4
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "less-specific-nested-argument-type"
+message = "Argument type mismatch for argument #2 of `array_filter`: expected `(callable(array-key): bool)|(callable(mixed): bool)|(callable(mixed, array-key): bool)|null`, but provided type `(closure(array<array-key, mixed>): nonnull)` is less specific."
+count = 1
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `Flute\Core\Markdown\Parser::parse`: expected `string`, but found `truthy-mixed`.'
-count = 6
+count = 8
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35002,7 +34894,7 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `date`: expected `string`, but found `mixed`."
-count = 1
+count = 3
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35020,25 +34912,31 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `json_decode`: expected `string`, but found `mixed`."
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `mkdir`: expected `string`, but found `mixed`."
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `parse_url`: expected `string`, but found `truthy-mixed`."
 count = 1
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `strtotime`: expected `string`, but found `nonnull`."
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35068,7 +34966,7 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 17
+count = 23
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35080,13 +34978,13 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 10
+count = 17
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-operand"
 message = "Invalid left operand: type `mixed` cannot be reliably used in string concatenation."
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35099,6 +34997,12 @@ file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-property-access"
 message = "Attempting to access a property on a non-object type (`mixed`)."
 count = 2
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `flute\core\update\services\updateservice::getallversionsforchannel`. Saw type `mixed`.'
+count = 1
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35128,37 +35032,43 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\cache` (also tried as `cache` in a broader scope).'
-count = 4
+count = 7
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\config` (also tried as `config` in a broader scope).'
-count = 2
+count = 4
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\default_date_format` (also tried as `default_date_format` in a broader scope).'
-count = 1
+count = 3
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 2
+count = 3
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\logs` (also tried as `logs` in a broader scope).'
-count = 6
+count = 10
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\storage_path` (also tried as `storage_path` in a broader scope).'
-count = 1
+count = 2
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "possibly-false-argument"
+message = "Argument #2 of function `date` is possibly `false`, but parameter type `int|null` does not accept it."
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35170,6 +35080,12 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "possibly-null-argument"
 message = 'Argument #2 of method `flute\core\update\updaters\themeupdater::__construct` is possibly `null`, but parameter type `array<array-key, mixed>` does not accept it.'
+count = 1
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "possibly-null-operand"
+message = "Possibly null middle operand used in string concatenation (type `null|string`)."
 count = 1
 
 [[issues]]
@@ -36365,18 +36281,6 @@ file = "app/Core/Validator/FluteValidate.php"
 code = "mixed-operand"
 message = "Right operand in binary operation has type `mixed`."
 count = 1
-
-[[issues]]
-file = "app/Core/Validator/FluteValidate.php"
-code = "no-valid-catch-type-found"
-message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
-count = 2
-
-[[issues]]
-file = "app/Core/Validator/FluteValidate.php"
-code = "non-existent-catch-type"
-message = 'Attempting to catch an undefined class or interface: `Flute\Core\Validator\Throwable`.'
-count = 2
 
 [[issues]]
 file = "app/Core/Validator/FluteValidate.php"

@@ -882,7 +882,7 @@ class DatabaseConnection
                 $schemaEntityCount = count($schemaArray);
                 $expectedEntityCount = (int) $meta['entity_count'];
 
-                if ($expectedEntityCount > 0 && $schemaEntityCount < $expectedEntityCount * 0.8) {
+                if ($expectedEntityCount > 0 && $schemaEntityCount < ( $expectedEntityCount * 0.8 )) {
                     return false;
                 }
             }

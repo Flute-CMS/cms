@@ -47,7 +47,14 @@ class StoragePermissionFixer
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'logs',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
-            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'locks',
+            $basePath
+                . 'storage'
+                . DIRECTORY_SEPARATOR
+                . 'app'
+                . DIRECTORY_SEPARATOR
+                . 'cache'
+                . DIRECTORY_SEPARATOR
+                . 'locks',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'temp',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'translations',
@@ -145,7 +152,15 @@ class StoragePermissionFixer
             return;
         }
 
-        $lockDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'locks';
+        $lockDir =
+            $basePath
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'locks';
 
         if (is_dir($lockDir)) {
             $files = @scandir($lockDir);
@@ -157,8 +172,8 @@ class StoragePermissionFixer
                     $path = $lockDir . DIRECTORY_SEPARATOR . $file;
                     if (is_file($path)) {
                         $perms = @fileperms($path);
-                        if ($perms !== false && ($perms & 0o020) === 0) {
-                            @chmod($path, ($perms | 0o060) & 0o7777);
+                        if ($perms !== false && ( $perms & 0o020 ) === 0) {
+                            @chmod($path, ( $perms | 0o060 ) & 0o7777);
                         }
                     }
                 }
@@ -210,7 +225,15 @@ class StoragePermissionFixer
             }
         }
 
-        $lockDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'locks';
+        $lockDir =
+            $basePath
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'locks';
         if (is_dir($lockDir)) {
             $files = @scandir($lockDir);
             if ($files !== false) {
