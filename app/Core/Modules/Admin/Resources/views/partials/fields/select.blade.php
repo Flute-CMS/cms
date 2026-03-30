@@ -17,7 +17,7 @@
 
 <div class="field field--select" data-field>
     <div class="field__wrapper">
-        <div class="select-wrapper" @if ($yoyo) yoyo hx-trigger="change delay:10ms" @endif>
+        <div class="select-wrapper" @if ($yoyo) yoyo hx-trigger="change delay:10ms" hx-include="#screen-container" @endif>
             <select id="{{ $id }}" name="{{ $name }}" class="select__field"
                 @if ($multiple) multiple @endif @if ($required) required @endif
                 @if ($disabled) disabled @endif data-select data-mode="{{ $mode }}"

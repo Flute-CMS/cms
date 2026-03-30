@@ -113,15 +113,18 @@ class ValveQueryDriver implements QueryDriverInterface
             if ($players !== null && !empty($players)) {
                 $filtered = array_filter(
                     $players,
-                    static fn($p) => !empty(trim($p['name'])) && isset($p['time']) && $p['time'] < 20000,
+                    static fn($p) => (
+                        !empty(trim($p['name']))
+                        && isset($p['time'])
+                        && ( $p['time'] ?? 0 )
+                        >= 0
+                        && ( $p['time'] ?? 0 )
+                        < 86400
+                    ),
                 );
                 $filtered = array_values($filtered);
 
                 $result->playersData = $filtered;
-
-                if (!empty($filtered)) {
-                    $result->players = count($filtered);
-                }
             }
         } finally {
             fclose($socket2);
@@ -215,14 +218,17 @@ class ValveQueryDriver implements QueryDriverInterface
 
             $filtered = array_values(array_filter(
                 $players,
-                static fn($p) => !empty(trim($p['name'])) && isset($p['time']) && $p['time'] < 20000,
+                static fn($p) => (
+                    !empty(trim($p['name']))
+                    && isset($p['time'])
+                    && ( $p['time'] ?? 0 )
+                    >= 0
+                    && ( $p['time'] ?? 0 )
+                    < 86400
+                ),
             ));
 
             $results[$id]->playersData = $filtered;
-
-            if (!empty($filtered)) {
-                $results[$id]->players = count($filtered);
-            }
         }
 
         // === FALLBACK: Steam Web API for servers that didn't respond via UDP ===

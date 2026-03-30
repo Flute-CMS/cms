@@ -17,7 +17,7 @@
     $hasError = $errors->has($name);
 @endphp
 
-<div class="select-wrapper" @if ($yoyo) yoyo hx-trigger="change delay:50ms" @endif>
+<div class="select-wrapper" @if ($yoyo) yoyo hx-trigger="change delay:50ms" hx-include="#screen-container" @endif>
     @if ($label)
         <label class="select__prefix" for="{{ $attributes->get('id', $name) }}">
             {{ $label }}
