@@ -3,8 +3,13 @@
 namespace Flute\Core\Update\Updaters;
 
 use Flute\Core\App;
+use Flute\Core\Cache\CacheManager;
 use Flute\Core\Composer\ComposerManager;
+use Flute\Core\Database\DatabaseConnection;
+use Flute\Core\Services\ConfigurationService;
 use Flute\Core\Support\FileUploader;
+use Flute\Core\Update\Services\UpdateService;
+use RuntimeException;
 use Throwable;
 
 class CmsUpdater extends AbstractUpdater
@@ -110,6 +115,8 @@ class CmsUpdater extends AbstractUpdater
                     ( new ComposerManager() )->install();
                 } catch (Throwable $e) {
                     logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
+
+                    \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.cms.composer']);
                 }
             }
 
@@ -121,6 +128,8 @@ class CmsUpdater extends AbstractUpdater
         } catch (Throwable $e) {
             logs()->error('Error during CMS update: ' . $e->getMessage());
             $this->removeDirectory($extractDir);
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.cms']);
 
             return false;
         }
@@ -269,14 +278,33 @@ class CmsUpdater extends AbstractUpdater
      */
     protected function clearCache(): void
     {
-        cache()->clear();
+        $app = App::getInstance();
 
-        if (function_exists('app') && app()->has('Flute\Core\Update\Services\UpdateService')) {
-            app('Flute\Core\Update\Services\UpdateService')->clearCache();
+        if ($app->has(CacheManager::class)) {
+            /** @var CacheManager $cacheManager */
+            $cacheManager = $app->get(CacheManager::class);
+            try {
+                $cacheManager->getAdapter()->clear();
+            } catch (RuntimeException) {
+                if ($app->has(ConfigurationService::class)) {
+                    /** @var ConfigurationService $configuration */
+                    $configuration = $app->get(ConfigurationService::class);
+                    $rawCache = $configuration->get('cache');
+                    $cacheConfig = [];
+                    if (is_array($rawCache)) {
+                        $cacheConfig = $rawCache;
+                    }
+                    $cacheManager->create($cacheConfig)->clear();
+                }
+            }
         }
 
-        if (function_exists('cache_warmup_mark')) {
-            cache_warmup_mark();
+        if ($app->has(UpdateService::class)) {
+            $app->get(UpdateService::class)->clearCache();
+        }
+
+        if ($app->has(DatabaseConnection::class)) {
+            $app->get(DatabaseConnection::class)->forceRefreshSchemaDeferred();
         }
 
         $this->resetOpcache();

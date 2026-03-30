@@ -5,7 +5,9 @@ namespace Flute\Core\Services;
 use Exception;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\RotatingFileHandler;
+use Monolog\Level;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Monolog\Processor\IntrospectionProcessor;
 use Monolog\Processor\WebProcessor;
 
@@ -39,6 +41,7 @@ class LoggerService
 
         $logger->pushProcessor(new IntrospectionProcessor());
         $logger->pushProcessor(new WebProcessor());
+        $logger->pushProcessor(self::crashReportProcessor());
 
         $handler = new RotatingFileHandler($logFile, self::MAX_FILES, $logLevel, true, 0o666, true);
 
@@ -114,6 +117,41 @@ class LoggerService
         $name = strtolower(trim($name));
 
         return $name !== '' ? $name : 'flute';
+    }
+
+    /**
+     * @return callable(LogRecord): LogRecord
+     */
+    private static function crashReportProcessor(): callable
+    {
+        return static function (LogRecord $record): LogRecord {
+            if ($record->level->value < Level::Error->value) {
+                return $record;
+            }
+
+            if (isset($record->context['exception']) && $record->context['exception'] instanceof \Throwable) {
+                CrashReportService::capture($record->context['exception'], [
+                    'source' => 'log.' . $record->channel,
+                ]);
+
+                return $record;
+            }
+
+            $text = trim($record->message);
+
+            CrashReportService::capture(
+                new \ErrorException(
+                    $text,
+                    0,
+                    E_ERROR,
+                    $record->extra['file'] ?? __FILE__,
+                    (int) ( $record->extra['line'] ?? 0 ),
+                ),
+                ['source' => 'log.' . $record->channel],
+            );
+
+            return $record;
+        };
     }
 
     protected function createDynamicLogger(string $name): void

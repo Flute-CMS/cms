@@ -37,6 +37,7 @@ app/Modules
 tools/tiptap-build/node_modules/
 /storage/composer/
 /storage/backup/
+/storage/crash-reports/
 /storage/bin/
 /storage/app/temp/
 /public/meta.json

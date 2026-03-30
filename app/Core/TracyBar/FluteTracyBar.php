@@ -3,6 +3,7 @@
 namespace Flute\Core\TracyBar;
 
 use Flute\Core\App;
+use Flute\Core\Services\CrashReportService;
 use Tracy\Bridges\Psr\PsrToTracyLoggerAdapter;
 use Tracy\Debugger;
 
@@ -45,6 +46,10 @@ class FluteTracyBar
         } else {
             unset($_SERVER['REMOTE_ADDR']);
         }
+
+        Debugger::$onFatalError[] = static function (\Throwable $e): void {
+            CrashReportService::capture($e, ['source' => 'tracy']);
+        };
 
         $this->addPanels();
     }

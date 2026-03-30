@@ -1,6 +1,7 @@
 <?php
 
 use Flute\Core\App;
+use Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException;
 
 $basePath = dirname(__DIR__) . DIRECTORY_SEPARATOR;
 
@@ -21,6 +22,26 @@ try {
     $app = require_once $basePath . 'bootstrap/app.php';
     $app->run();
 } catch (\Throwable $e) {
+    if ($e instanceof SuspiciousOperationException) {
+        http_response_code(400);
+        exit('Bad Request');
+    }
+
+    // Crash report — try full service, fall back to primitive
+    if (class_exists(\Flute\Core\Services\CrashReportService::class, false)) {
+        \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'index']);
+    } else {
+        $payload = flute_build_crash_payload(
+            get_class($e),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            (int) $e->getCode(),
+            $e->getTrace(),
+        );
+        flute_crash_report($payload);
+    }
+
     $isDebug = defined('FLUTE_DEBUG') && FLUTE_DEBUG;
 
     if (function_exists('logs')) {

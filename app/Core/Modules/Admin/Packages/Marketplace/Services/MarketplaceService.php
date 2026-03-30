@@ -102,19 +102,44 @@ class MarketplaceService
                 $downloadUrl = rtrim($this->api->getActiveBaseUrl(), '/') . '/' . ltrim($downloadUrl, '/');
             }
 
+            $tempDir = storage_path('app/temp/modules');
+            if (!is_dir($tempDir)) {
+                @mkdir($tempDir, 0o755, true);
+            }
+
+            $filePath = $tempDir . '/' . $slug . '.zip';
+
             $response = $this->api->getClient()->get($downloadUrl, [
-                'sink' => storage_path('app/temp/modules/' . $slug . '.zip'),
+                'sink' => $filePath,
+                'http_errors' => false,
                 'timeout' => 60,
                 'connect_timeout' => 10,
             ]);
 
             $statusCode = $response->getStatusCode();
 
-            if ($statusCode !== 200) {
-                throw new Exception('Error downloading module');
+            if ($statusCode >= 400) {
+                $body = is_file($filePath) ? (string) @file_get_contents($filePath, false, null, 0, 512) : '';
+                @unlink($filePath);
+                throw new Exception("Module download returned HTTP {$statusCode}: {$body}");
             }
 
-            return storage_path('app/temp/modules/' . $slug . '.zip');
+            if (!is_file($filePath) || filesize($filePath) < 22) {
+                @unlink($filePath);
+                throw new Exception('Downloaded module file is empty or too small');
+            }
+
+            if (class_exists(\ZipArchive::class)) {
+                $zip = new \ZipArchive();
+                if ($zip->open($filePath, \ZipArchive::CHECKCONS) !== true) {
+                    $contentType = $response->getHeaderLine('Content-Type');
+                    @unlink($filePath);
+                    throw new Exception("Downloaded module is not a valid ZIP (Content-Type: {$contentType})");
+                }
+                $zip->close();
+            }
+
+            return $filePath;
         } catch (\Throwable $e) {
             logs()->error('Marketplace download error: ' . $e->getMessage());
 
@@ -217,6 +242,7 @@ class MarketplaceService
     {
         return $this->fetchOrFallback($cacheKey, fn() => $this->api->getJson("/api/external/modules/{$slug}/versions", [
             'accessKey' => $this->api->getApiKey(),
+            'php' => $this->getPHPVersion(),
         ]), []);
     }
 

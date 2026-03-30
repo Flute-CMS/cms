@@ -191,6 +191,8 @@ class UpdateService
             ];
         } catch (\Throwable $e) {
             logs()->error('Failed to fetch version catalog: ' . $e->getMessage());
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.catalog']);
         }
 
         return [];
@@ -319,34 +321,53 @@ class UpdateService
 
             $api = new FluteApiClient(timeout: 120, connectTimeout: 10);
 
-            $fullUrl = $downloadUrl;
-            if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $fullUrl =
-                    rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim(str_replace('api/', '', $downloadUrl), '/');
-            }
-
-            // parse ?token safely
+            $isAbsoluteUrl = (bool) preg_match('/^https?:\/\//', $downloadUrl);
             $parsedDownloadUrl = parse_url($downloadUrl);
             $queryParams = [];
             if (isset($parsedDownloadUrl['query'])) {
                 parse_str($parsedDownloadUrl['query'], $queryParams);
             }
-            $token = $queryParams['token'] ?? '';
 
-            $api->getClient()->request('GET', $fullUrl, [
+            $hasJwtToken = !empty($queryParams['token']);
+
+            if ($isAbsoluteUrl) {
+                $fullUrl = $downloadUrl;
+            } else {
+                $path = $parsedDownloadUrl['path'] ?? $downloadUrl;
+                $fullUrl = rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim($path, '/');
+            }
+
+            $requestQuery = [];
+            if ($hasJwtToken) {
+                $requestQuery['token'] = $queryParams['token'];
+            } else {
+                $requestQuery['accessKey'] = config('app.flute_key');
+                $requestQuery['versionId'] = $version ?? $latestVersion;
+            }
+
+            $response = $api->getClient()->request('GET', $fullUrl, [
                 'headers' => [
                     'User-Agent' => 'Flute-CMS/' . App::VERSION,
                 ],
                 'sink' => $fileName,
-                'query' => [
-                    'accessKey' => config('app.flute_key'),
-                    'versionId' => $version ?? $latestVersion,
-                    'token' => $token,
-                ],
+                'http_errors' => false,
+                'query' => $isAbsoluteUrl ? [] : $requestQuery,
             ]);
 
-            if (!file_exists($fileName) || mime_content_type($fileName) !== 'application/zip') {
-                logs()->error("Downloaded file is not a valid ZIP archive: {$fileName}");
+            $statusCode = $response->getStatusCode();
+            if ($statusCode >= 400) {
+                $body = is_file($fileName) ? (string) @file_get_contents($fileName, false, null, 0, 512) : '';
+                logs()->error("Update download returned HTTP {$statusCode} for {$type}/{$identifier}: {$body}", [
+                    'url' => $fullUrl,
+                ]);
+                @unlink($fileName);
+
+                return null;
+            }
+
+            if (!$this->isValidZipArchive($fileName)) {
+                $contentType = $response->getHeaderLine('Content-Type');
+                logs()->error("Downloaded file is not a valid ZIP archive: {$fileName} (Content-Type: {$contentType})");
                 @unlink($fileName);
 
                 return null;
@@ -356,11 +377,15 @@ class UpdateService
         } catch (GuzzleException $e) {
             logs()->error('Failed to download update: ' . $e->getMessage());
 
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.download']);
+
             if (is_debug()) {
                 throw $e;
             }
         } catch (Throwable $e) {
             logs()->error('Error processing update download: ' . $e->getMessage());
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.download']);
 
             if (is_debug()) {
                 throw $e;
@@ -398,9 +423,32 @@ class UpdateService
 
             $api = new FluteApiClient(timeout: 120, connectTimeout: 10);
 
-            $downloadUrl = '/api/engine/download';
+            $downloadUrl = $this->findCatalogVersionDownloadUrl($version) ?? '/api/engine/download';
+            $parsedUrl = parse_url($downloadUrl);
+            $urlQuery = [];
+            if (isset($parsedUrl['query']) && is_string($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $urlQuery);
+            }
 
-            $fullUrl = rtrim($api->getActiveBaseUrl(), '/') . $downloadUrl;
+            $isAbsoluteUrl = (bool) preg_match('/^https?:\/\//', $downloadUrl);
+            $hasJwtToken = !empty($urlQuery['token']);
+
+            if ($isAbsoluteUrl) {
+                $fullUrl = $downloadUrl;
+            } else {
+                $path = $parsedUrl['path'] ?? '/api/engine/download';
+                $fullUrl = rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim($path, '/');
+            }
+
+            $requestQuery = [];
+            if ($hasJwtToken) {
+                $requestQuery['token'] = $urlQuery['token'];
+            } else {
+                $requestQuery = array_merge($urlQuery, [
+                    'version' => $version,
+                    'accessKey' => $apiKey,
+                ]);
+            }
 
             $tempDir = storage_path('app/temp/updates');
             if (!is_dir($tempDir)) {
@@ -410,19 +458,29 @@ class UpdateService
             $safeVersion = preg_replace('/[^a-zA-Z0-9._\-]/', '_', $version);
             $fileName = $tempDir . '/cms-' . $safeVersion . '.zip';
 
-            $api->getClient()->request('GET', $fullUrl, [
+            $response = $api->getClient()->request('GET', $fullUrl, [
                 'headers' => [
                     'User-Agent' => 'Flute-CMS/' . App::VERSION,
                 ],
                 'sink' => $fileName,
-                'query' => [
-                    'version' => $version,
-                    'accessKey' => $apiKey,
-                ],
+                'http_errors' => false,
+                'query' => $isAbsoluteUrl ? [] : $requestQuery,
             ]);
 
-            if (!file_exists($fileName) || mime_content_type($fileName) !== 'application/zip') {
-                logs()->error("Downloaded catalog file is not a valid ZIP: {$fileName}");
+            $statusCode = $response->getStatusCode();
+            if ($statusCode >= 400) {
+                $body = is_file($fileName) ? (string) @file_get_contents($fileName, false, null, 0, 512) : '';
+                logs()->error("Catalog download returned HTTP {$statusCode} for version {$version}: {$body}", [
+                    'url' => $fullUrl,
+                ]);
+                @unlink($fileName);
+
+                return null;
+            }
+
+            if (!$this->isValidZipArchive($fileName)) {
+                $contentType = $response->getHeaderLine('Content-Type');
+                logs()->error("Downloaded catalog file is not a valid ZIP: {$fileName} (Content-Type: {$contentType})");
                 @unlink($fileName);
 
                 return null;
@@ -431,6 +489,8 @@ class UpdateService
             return $fileName;
         } catch (\Throwable $e) {
             logs()->error('Failed to download version from catalog: ' . $e->getMessage());
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.catalog.download']);
 
             if (is_debug()) {
                 throw $e;
@@ -485,7 +545,7 @@ class UpdateService
                     'themes' => json_encode($this->getInstalledThemes()),
                     'accessKey' => $apiKey,
                     'phpVersion' => $this->getPHPVersion(),
-                    'branch' => $this->channel,
+                    'branch' => strtoupper($this->channel),
                     'nocache' => time(),
                 ],
             ]);
@@ -683,5 +743,68 @@ class UpdateService
     private function getPHPVersion(): string
     {
         return substr(PHP_VERSION, 0, 3);
+    }
+
+    private function findCatalogVersionDownloadUrl(string $version): ?string
+    {
+        $catalog = $this->getAllVersionsForChannel($this->channel);
+        $cms = $catalog['cms'] ?? null;
+
+        if (!is_array($cms)) {
+            return null;
+        }
+
+        if (( $cms['version'] ?? null ) === $version && !empty($cms['download_url'])) {
+            return (string) $cms['download_url'];
+        }
+
+        $previous = $cms['previous_versions'] ?? [];
+        if (!is_array($previous)) {
+            return null;
+        }
+
+        foreach ($previous as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            if (( $entry['version'] ?? null ) === $version && !empty($entry['download_url'])) {
+                return (string) $entry['download_url'];
+            }
+        }
+
+        return null;
+    }
+
+    private function isValidZipArchive(string $fileName): bool
+    {
+        if (!is_file($fileName) || !is_readable($fileName)) {
+            return false;
+        }
+
+        $size = @filesize($fileName);
+        if (!is_int($size) || $size < 22) {
+            return false;
+        }
+
+        if (class_exists(\ZipArchive::class)) {
+            $zip = new \ZipArchive();
+            $status = $zip->open($fileName, \ZipArchive::CHECKCONS);
+            if ($status === true) {
+                $zip->close();
+
+                return true;
+            }
+        }
+
+        $handle = @fopen($fileName, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $signature = (string) fread($handle, 4);
+        fclose($handle);
+
+        return in_array($signature, ["PK\x03\x04", "PK\x05\x06", "PK\x07\x08"], true);
     }
 }

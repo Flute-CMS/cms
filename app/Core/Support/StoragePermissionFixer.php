@@ -45,8 +45,10 @@ class StoragePermissionFixer
         $dirs = [
             $basePath . 'storage',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'logs',
+            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'cache',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app',
             $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
+            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache_stale',
             $basePath
                 . 'storage'
                 . DIRECTORY_SEPARATOR
@@ -63,81 +65,64 @@ class StoragePermissionFixer
             $basePath . 'config',
         ];
 
-        $fixed = 0;
-
         foreach ($dirs as $dir) {
             if (!is_dir($dir)) {
                 continue;
             }
 
-            $stat = @stat($dir);
-            if ($stat === false) {
-                continue;
+            if (!is_writable($dir)) {
+                @chmod($dir, 0o777);
             }
+        }
 
-            // Ensure directory is group-writable (g+w)
-            if (( $stat['mode'] & 0o020 ) === 0) {
-                $newMode = ( $stat['mode'] | 0o070 ) & 0o7777; // g+rwx for directories
-                if (@chmod($dir, $newMode)) {
-                    $fixed++;
+        $cacheDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'cache';
+        if (is_dir($cacheDir)) {
+            $entries = @scandir($cacheDir);
+            if ($entries !== false) {
+                foreach ($entries as $entry) {
+                    if ($entry === '.' || $entry === '..') {
+                        continue;
+                    }
+                    $sub = $cacheDir . DIRECTORY_SEPARATOR . $entry;
+                    if (is_dir($sub) && !is_writable($sub)) {
+                        @chmod($sub, 0o777);
+                    }
                 }
             }
+        }
 
-            // Ensure directory is writable by current process
-            if (!is_writable($dir)) {
-                @chmod($dir, ( $stat['mode'] | 0o070 ) & 0o7777);
-                $fixed++;
+        $appCacheDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache';
+        if (is_dir($appCacheDir) && is_readable($appCacheDir)) {
+            $entries = @scandir($appCacheDir);
+            if ($entries !== false) {
+                foreach ($entries as $entry) {
+                    if ($entry === '.' || $entry === '..' || $entry === 'locks') {
+                        continue;
+                    }
+                    $file = $appCacheDir . DIRECTORY_SEPARATOR . $entry;
+                    if (is_file($file) && !is_writable($file)) {
+                        @unlink($file);
+                    }
+                }
             }
         }
 
-        // Fix files in storage/app that might have wrong permissions (ORM schema, cache, etc.)
-        $criticalFiles = [
-            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php',
-            $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php',
-            $basePath
-                . 'storage'
-                . DIRECTORY_SEPARATOR
-                . 'app'
-                . DIRECTORY_SEPARATOR
-                . 'cache'
-                . DIRECTORY_SEPARATOR
-                . 'orm_schema.lock',
-            $basePath
-                . 'storage'
-                . DIRECTORY_SEPARATOR
-                . 'app'
-                . DIRECTORY_SEPARATOR
-                . 'cache'
-                . DIRECTORY_SEPARATOR
-                . 'helpers.cache.php',
-            $basePath
-                . 'storage'
-                . DIRECTORY_SEPARATOR
-                . 'app'
-                . DIRECTORY_SEPARATOR
-                . 'cache'
-                . DIRECTORY_SEPARATOR
-                . 'helpers.cache.lock',
-        ];
-
-        foreach ($criticalFiles as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
-
-            $perms = @fileperms($file);
-            if ($perms === false) {
-                continue;
-            }
-
-            // Ensure file is group-writable (g+rw)
-            if (( $perms & 0o020 ) === 0) {
-                @chmod($file, ( $perms | 0o060 ) & 0o7777);
-                $fixed++;
+        $appDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app';
+        if (is_dir($appDir) && is_readable($appDir)) {
+            $entries = @scandir($appDir);
+            if ($entries !== false) {
+                foreach ($entries as $entry) {
+                    if ($entry === '.' || $entry === '..') {
+                        continue;
+                    }
+                    $file = $appDir . DIRECTORY_SEPARATOR . $entry;
+                    if (is_file($file) && !is_writable($file)) {
+                        @unlink($file);
+                    }
+                }
             }
         }
 
-        // Update stamp
         @touch($stampFile);
         @chmod($stampFile, 0o664);
     }
@@ -170,23 +155,35 @@ class StoragePermissionFixer
                         continue;
                     }
                     $path = $lockDir . DIRECTORY_SEPARATOR . $file;
-                    if (is_file($path)) {
-                        $perms = @fileperms($path);
-                        if ($perms !== false && ( $perms & 0o020 ) === 0) {
-                            @chmod($path, ( $perms | 0o060 ) & 0o7777);
-                        }
+                    if (is_file($path) && !is_writable($path)) {
+                        @unlink($path);
                     }
                 }
             }
-            @chmod($lockDir, 0o775);
+            @chmod($lockDir, 0o777);
         }
 
         $cacheDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache';
         if (is_dir($cacheDir)) {
-            @chmod($cacheDir, 0o775);
+            @chmod($cacheDir, 0o777);
         }
 
-        // Invalidate stamp so full check runs on next request
+        $sysCacheDir = $basePath . 'storage' . DIRECTORY_SEPARATOR . 'cache';
+        if (is_dir($sysCacheDir)) {
+            $entries = @scandir($sysCacheDir);
+            if ($entries !== false) {
+                foreach ($entries as $entry) {
+                    if ($entry === '.' || $entry === '..') {
+                        continue;
+                    }
+                    $sub = $sysCacheDir . DIRECTORY_SEPARATOR . $entry;
+                    if (is_dir($sub) && !is_writable($sub)) {
+                        @chmod($sub, 0o777);
+                    }
+                }
+            }
+        }
+
         $stampFile = $basePath . self::STAMP_FILE;
         @unlink($stampFile);
     }

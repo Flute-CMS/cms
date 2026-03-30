@@ -143,6 +143,8 @@ class ModuleUpdater extends AbstractUpdater
                 $this->removeDirectory($extractDir);
             }
 
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.module']);
+
             return false;
         }
     }
@@ -158,6 +160,8 @@ class ModuleUpdater extends AbstractUpdater
             app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
         } catch (Throwable $e) {
             logs()->error('Failed to extract module update package: ' . $e->getMessage());
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.module.extract']);
 
             return false;
         }
@@ -258,6 +262,8 @@ class ModuleUpdater extends AbstractUpdater
             return false;
         } catch (Throwable $e) {
             logs()->error('Failed to update module information: ' . $e->getMessage());
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.module.info']);
 
             return false;
         }

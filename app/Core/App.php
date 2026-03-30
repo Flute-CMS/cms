@@ -242,6 +242,8 @@ final class App
             if (function_exists('logs')) {
                 logs()->error($e);
             }
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'provider.register']);
         }
 
         return $this;
@@ -277,6 +279,8 @@ final class App
                 if (function_exists('logs')) {
                     logs()->error($e);
                 }
+
+                \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'provider.boot']);
             }
         }
 
@@ -555,6 +559,8 @@ final class App
                                     'exception' => $e,
                                 ]);
                             }
+
+                            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'event.listener']);
 
                             return null;
                         }

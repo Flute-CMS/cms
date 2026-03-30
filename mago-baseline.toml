@@ -7125,7 +7125,19 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `is_dir`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
+code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `ltrim`: expected `string`, but found `truthy-mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `mkdir`: expected `string`, but found `mixed`."
 count = 1
 
 [[issues]]
@@ -7156,7 +7168,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 13
+count = 15
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
@@ -7168,12 +7180,18 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 22
+count = 23
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
-code = "mixed-return-statement"
-message = 'Could not infer a precise return type for function `flute\admin\packages\marketplace\services\marketplaceservice::downloadmodule`. Saw type `mixed`.'
+code = "mixed-operand"
+message = "Invalid left operand: type `mixed` cannot be reliably used in string concatenation."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
+code = "mixed-operand"
+message = "Left operand in `>=` comparison has `mixed` type."
 count = 1
 
 [[issues]]
@@ -7222,7 +7240,13 @@ count = 2
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\Marketplace\Services\storage_path` (also tried as `storage_path` in a broader scope).'
-count = 2
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/Marketplace/Services/MarketplaceService.php"
+code = "possibly-false-operand"
+message = "Left operand in `<` comparison might be `false` (type `false|non-negative-int`)."
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/Marketplace/Services/ModuleCategoryService.php"
@@ -28987,6 +29011,36 @@ message = 'Class `Symfony\Component\HttpFoundation\Cookie` not found.'
 count = 1
 
 [[issues]]
+file = "app/Core/Services/CrashReportService.php"
+code = "impossible-type-comparison"
+message = 'Impossible type assertion: `$active` of type `unknown-ref(Illuminate\Support\Collection)` can never be `iterable<mixed, mixed>`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Services/CrashReportService.php"
+code = "impossible-type-comparison"
+message = 'Impossible type assertion: `$installed` of type `unknown-ref(Illuminate\Support\Collection)` can never be `iterable<mixed, mixed>`.'
+count = 1
+
+[[issues]]
+file = "app/Core/Services/CrashReportService.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 7
+
+[[issues]]
+file = "app/Core/Services/CrashReportService.php"
+code = "mixed-operand"
+message = "Casting `mixed` to `bool`."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/CrashReportService.php"
+code = "mixed-operand"
+message = "Left operand in `<` comparison has `mixed` type."
+count = 1
+
+[[issues]]
 file = "app/Core/Services/CsrfTokenService.php"
 code = "impossible-assignment"
 message = "Invalid assignment: the right-hand side has type `never` and cannot produce a value."
@@ -30284,9 +30338,27 @@ count = 3
 
 [[issues]]
 file = "app/Core/Services/LoggerService.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
 code = "invalid-iterator"
 message = "The expression provided to `foreach` is not iterable. It resolved to type `mixed`, which is not iterable."
 count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "invalid-property-access"
+message = "Attempting to access a property on a non-object type (`never`)."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "invalid-property-access"
+message = 'Attempting to access a property on a non-object type (`unknown-ref(Monolog\LogRecord)`).'
+count = 7
 
 [[issues]]
 file = "app/Core/Services/LoggerService.php"
@@ -30357,8 +30429,20 @@ count = 1
 [[issues]]
 file = "app/Core/Services/LoggerService.php"
 code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Monolog\LogRecord`.'
+count = 4
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "non-existent-class-like"
 message = 'Class, Interface, or Trait `Monolog\Handler\RotatingFileHandler` does not exist.'
 count = 3
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Monolog\Level` not found.'
+count = 1
 
 [[issues]]
 file = "app/Core/Services/LoggerService.php"
@@ -30401,6 +30485,48 @@ file = "app/Core/Services/LoggerService.php"
 code = "non-existent-method"
 message = 'Method `close` does not exist on type `Monolog\Handler\RotatingFileHandler`.'
 count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "null-argument"
+message = "Argument #1 of function `trim` is `null`, but parameter type `string` does not accept it."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "null-operand"
+message = "Implicit conversion of `null` to empty string for right operand in string concatenation."
+count = 2
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "null-operand"
+message = "Left operand in `<` comparison is `null`."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "null-operand"
+message = "Right operand in `<` comparison is `null`."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "null-property-access"
+message = "Attempting to access a property on an expression that is always `null`."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "redundant-comparison"
+message = "Redundant `<` comparison: left-hand side is never less than right-hand side."
+count = 1
+
+[[issues]]
+file = "app/Core/Services/LoggerService.php"
+code = "redundant-null-coalesce"
+message = "Redundant null coalesce: left-hand side is always `null`."
+count = 2
 
 [[issues]]
 file = "app/Core/Services/NavbarService.php"
@@ -34946,12 +35072,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #3 of `str_replace`: expected `array<array-key, string>|string`, but found `truthy-mixed`."
-count = 1
-
-[[issues]]
-file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-array-assignment"
 message = "Unsafe array assignment on type `mixed`."
 count = 9
@@ -34966,7 +35086,13 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 23
+count = 31
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "mixed-assignment"
+message = "Assigning `nonnull` type to a variable may lead to unexpected behavior."
+count = 1
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -34978,7 +35104,7 @@ count = 1
 file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 17
+count = 23
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -34991,6 +35117,12 @@ file = "app/Core/Update/Services/UpdateService.php"
 code = "mixed-operand"
 message = "Invalid middle operand: type `mixed` cannot be reliably used in string concatenation."
 count = 1
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "mixed-operand"
+message = "Left operand in `>=` comparison has `mixed` type."
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35056,7 +35188,7 @@ count = 3
 file = "app/Core/Update/Services/UpdateService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Services\logs` (also tried as `logs` in a broader scope).'
-count = 10
+count = 12
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
@@ -35072,12 +35204,6 @@ count = 2
 
 [[issues]]
 file = "app/Core/Update/Services/UpdateService.php"
-code = "possibly-invalid-argument"
-message = "Possible argument type mismatch for argument #1 of `ltrim`: expected `string`, but possibly received `array<array-key, string>|string`."
-count = 1
-
-[[issues]]
-file = "app/Core/Update/Services/UpdateService.php"
 code = "possibly-null-argument"
 message = 'Argument #2 of method `flute\core\update\updaters\themeupdater::__construct` is possibly `null`, but parameter type `array<array-key, mixed>` does not accept it.'
 count = 1
@@ -35087,6 +35213,18 @@ file = "app/Core/Update/Services/UpdateService.php"
 code = "possibly-null-operand"
 message = "Possibly null middle operand used in string concatenation (type `null|string`)."
 count = 1
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "redundant-logical-operation"
+message = "Redundant `&&` operation: left operand is evaluated and right operand is always truthy."
+count = 1
+
+[[issues]]
+file = "app/Core/Update/Services/UpdateService.php"
+code = "redundant-null-coalesce"
+message = "Redundant null coalesce: left-hand side can never be `null` or undefined."
+count = 2
 
 [[issues]]
 file = "app/Core/Update/Updaters/AbstractUpdater.php"
@@ -35152,7 +35290,7 @@ count = 2
 file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 5
+count = 6
 
 [[issues]]
 file = "app/Core/Update/Updaters/CmsUpdater.php"
@@ -35164,7 +35302,7 @@ count = 1
 file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 8
+count = 7
 
 [[issues]]
 file = "app/Core/Update/Updaters/CmsUpdater.php"
@@ -35186,12 +35324,6 @@ count = 1
 
 [[issues]]
 file = "app/Core/Update/Updaters/CmsUpdater.php"
-code = "mixed-operand"
-message = "Right operand in `&&` operation has `mixed` type."
-count = 1
-
-[[issues]]
-file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `flute\core\update\updaters\cmsupdater::getbasepath`. Saw type `mixed`.'
 count = 1
@@ -35206,18 +35338,6 @@ count = 1
 file = "app/Core/Update/Updaters/CmsUpdater.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\Update\Updaters\app` (also tried as `app` in a broader scope).'
-count = 3
-
-[[issues]]
-file = "app/Core/Update/Updaters/CmsUpdater.php"
-code = "non-existent-function"
-message = 'Could not find definition for function `Flute\Core\Update\Updaters\cache_warmup_mark` (also tried as `cache_warmup_mark` in a broader scope).'
-count = 1
-
-[[issues]]
-file = "app/Core/Update/Updaters/CmsUpdater.php"
-code = "non-existent-function"
-message = 'Could not find definition for function `Flute\Core\Update\Updaters\cache` (also tried as `cache` in a broader scope).'
 count = 1
 
 [[issues]]

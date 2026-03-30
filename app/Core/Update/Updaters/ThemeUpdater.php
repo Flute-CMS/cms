@@ -104,8 +104,9 @@ class ThemeUpdater extends AbstractUpdater
             return true;
         } catch (Throwable $e) {
             logs()->error('Error during theme update: ' . $e->getMessage());
-            // Удаляем временные файлы
             $this->removeDirectory($extractDir);
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'update.theme']);
 
             return false;
         }
