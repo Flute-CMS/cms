@@ -115,21 +115,26 @@ class InstallerController extends BaseController
         if (!empty($fluteKey) && !in_array($fluteKey, $savedKeys, true)) {
             try {
                 $api = new \Flute\Core\Services\FluteApiClient(timeout: 10, connectTimeout: 5);
-                $apiResponse = $api->post('/api/auth/accesskey', [
-                    'json' => ['key' => $fluteKey],
+                $apiResponse = $api->get('/api/updates', [
+                    'query' => ['accessKey' => $fluteKey],
+                    'headers' => ['User-Agent' => 'Flute-CMS/' . \Flute\Core\App::VERSION],
                 ]);
-                $body = json_decode($apiResponse->getBody()->getContents(), true);
-                if ($apiResponse->getStatusCode() === 200 && isset($body['valid']) && $body['valid'] === true) {
+                $statusCode = $apiResponse->getStatusCode();
+                if ($statusCode === 200) {
                     $app = config('app');
                     $app['flute_key'] = $fluteKey;
                     config()->set('app', $app);
                     config()->save();
                     $keyValid = true;
+                } elseif ($statusCode === 401) {
+                    $keyError = __('install.welcome.key_error');
                 } else {
-                    $keyError = $body['message'] ?? __('install.welcome.key_error');
+                    $body = json_decode($apiResponse->getBody()->getContents(), true);
+                    $keyError = ( is_array($body) ? $body['error'] ?? null : null ) ?? __('install.welcome.key_error');
                 }
             } catch (Throwable $e) {
-                $keyError = __('install.welcome.key_error');
+                \logs()->error('License key validation failed: ' . $e->getMessage());
+                $keyError = \__('install.welcome.key_error');
             }
 
             if ($keyError) {
@@ -950,10 +955,10 @@ class InstallerController extends BaseController
                         $b['name'] ?? $b['slug'] ?? '',
                     ));
                 } else {
-                    $modulesError = __('install.modules.fetch_error');
+                    $modulesError = \__('install.modules.fetch_error');
                 }
             } catch (Throwable $e) {
-                $modulesError = __('install.modules.fetch_error');
+                $modulesError = \__('install.modules.fetch_error');
             }
         }
 
@@ -1200,6 +1205,6 @@ class InstallerController extends BaseController
      */
     protected function getPreferredLanguage(): string
     {
-        return translation()->getPreferredLanguage();
+        return \translation()->getPreferredLanguage();
     }
 }
