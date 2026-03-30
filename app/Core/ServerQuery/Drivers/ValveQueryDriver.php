@@ -116,10 +116,8 @@ class ValveQueryDriver implements QueryDriverInterface
                     static fn($p) => (
                         !empty(trim($p['name']))
                         && isset($p['time'])
-                        && ( $p['time'] ?? 0 )
-                        >= 0
-                        && ( $p['time'] ?? 0 )
-                        < 86400
+                        && (int) $p['time'] >= 0
+                        && (int) $p['time'] < 86400
                     ),
                 );
                 $filtered = array_values($filtered);
@@ -221,10 +219,8 @@ class ValveQueryDriver implements QueryDriverInterface
                 static fn($p) => (
                     !empty(trim($p['name']))
                     && isset($p['time'])
-                    && ( $p['time'] ?? 0 )
-                    >= 0
-                    && ( $p['time'] ?? 0 )
-                    < 86400
+                    && (int) $p['time'] >= 0
+                    && (int) $p['time'] < 86400
                 ),
             ));
 
@@ -904,8 +900,8 @@ class ValveQueryDriver implements QueryDriverInterface
         if ($data === false || $data === '') {
             $peer = stream_socket_get_name($socket, true) ?: 'unknown';
             $meta = stream_get_meta_data($socket);
-            $timedOut = $meta['timed_out'] ?? false;
-            $eof = $meta['eof'] ?? false;
+            $timedOut = $meta['timed_out'];
+            $eof = $meta['eof'];
             logs()->debug("ValveQuery: fread empty for {$peer} (timed_out={$timedOut}, eof={$eof})");
 
             return '';
