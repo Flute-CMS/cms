@@ -47,6 +47,8 @@ class MiddlewareRunner
             return $middleware($request, fn($request) => $this->process($request));
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             throw $e;
+        } catch (\Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException $e) { // @mago-expect non-existent-catch-type, no-valid-catch-type-found
+            throw $e;
         } catch (\Throwable $e) {
             if (function_exists('is_debug') && is_debug()) {
                 throw $e;

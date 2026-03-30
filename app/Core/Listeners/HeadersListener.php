@@ -77,19 +77,46 @@ class HeadersListener
                 session()->remove('just_logged_in_at');
             }
         } elseif (is_performance()) {
-            if (user()->isLoggedIn()) {
-                $response->setCache([
-                    'private' => true,
-                    'max_age' => 300,
-                ]);
-                $response->headers->addCacheControlDirective('stale-while-revalidate', '600');
+            $contentType = (string) $response->headers->get('Content-Type', '');
+            $isHtmlResponse = str_contains($contentType, 'text/html') || !$response->headers->has('Content-Type');
+
+            if ($isHtmlResponse) {
+                // HTML pages must not be browser-cached with public max-age because
+                // CDNs/proxies often ignore Vary on non-standard headers (HX-Request,
+                // HX-Boosted).  A cached full-page response served to an htmx partial
+                // request causes the layout shell (header, footer) to be duplicated.
+                // Server-side page cache (App::tryServePageCache) already provides the
+                // fast-path for anonymous full-page GETs, so the browser only needs a
+                // short must-revalidate window.
+                if (user()->isLoggedIn()) {
+                    $response->setCache([
+                        'private' => true,
+                        'no_cache' => true,
+                        'must_revalidate' => true,
+                    ]);
+                } else {
+                    $response->setCache([
+                        'private' => true,
+                        'no_cache' => true,
+                        'must_revalidate' => true,
+                    ]);
+                    $response->headers->addCacheControlDirective('s-maxage', '0');
+                }
             } else {
-                $response->setCache([
-                    'public' => true,
-                    'max_age' => 900,
-                    's_maxage' => 1800,
-                ]);
-                $response->headers->addCacheControlDirective('stale-while-revalidate', '86400');
+                if (user()->isLoggedIn()) {
+                    $response->setCache([
+                        'private' => true,
+                        'max_age' => 300,
+                    ]);
+                    $response->headers->addCacheControlDirective('stale-while-revalidate', '600');
+                } else {
+                    $response->setCache([
+                        'public' => true,
+                        'max_age' => 900,
+                        's_maxage' => 1800,
+                    ]);
+                    $response->headers->addCacheControlDirective('stale-while-revalidate', '86400');
+                }
             }
         } else {
             if (!$response->headers->has('Cache-Control') || $response->headers->get('Cache-Control') === 'no-cache') {

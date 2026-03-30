@@ -686,10 +686,19 @@ final class App
         $response = new Response($cached['body'], $cached['status'] ?? 200);
 
         foreach ($cached['headers'] ?? [] as $name => $values) {
+            if ($name === 'cache-control') {
+                continue;
+            }
             $response->headers->set($name, $values);
         }
 
+        $response->setCache([
+            'private' => true,
+            'no_cache' => true,
+            'must_revalidate' => true,
+        ]);
         $response->headers->set('X-Page-Cache', 'HIT');
+        $response->setVary(['HX-Request', 'HX-Boosted'], false);
 
         return $response;
     }
@@ -714,7 +723,7 @@ final class App
 
         $headers = [];
         foreach ($response->headers->all() as $name => $values) {
-            if (in_array($name, ['set-cookie', 'x-debug-token', 'x-debug-token-link'], true)) {
+            if (in_array($name, ['set-cookie', 'x-debug-token', 'x-debug-token-link', 'cache-control'], true)) {
                 continue;
             }
             $headers[$name] = $values;

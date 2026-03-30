@@ -63,6 +63,8 @@ class DatabaseConnection
 
     protected bool $schemaNeedsUpdate = false;
 
+    private bool $syncTablesFailed = false;
+
     private static bool $schemaRefreshQueued = false;
 
     /** @var array<string,bool> */
@@ -319,7 +321,6 @@ class DatabaseConnection
                 if (is_file($staleFile)) {
                     logs('database')->warning('Falling back to stale ORM schema');
                     @copy($staleFile, self::SCHEMA_FILE);
-                    $this->writeSchemaMeta($this->entitiesDirs);
                     $this->loadCachedSchemaIntoOrm();
                     \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
 
@@ -336,7 +337,10 @@ class DatabaseConnection
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
             self::ensureGroupWritable(self::SCHEMA_FILE);
-            $this->writeSchemaMeta($this->entitiesDirs, count($schemaArray));
+            if (!$this->syncTablesFailed) {
+                $this->writeSchemaMeta($this->entitiesDirs, count($schemaArray));
+            }
+            $this->syncTablesFailed = false;
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
 
@@ -388,6 +392,7 @@ class DatabaseConnection
             return ( new Compiler() )->compile($registry, $schemaGenerators);
         } catch (SyncException $e) {
             $this->logSyncError($e);
+            $this->syncTablesFailed = true;
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,

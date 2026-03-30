@@ -95,8 +95,8 @@ class CrashReportService
                 'exception_class' => 'FatalError',
                 'message' => self::scrubString((string) ( $error['message'] ?? 'Unknown fatal error' )),
                 'code' => $error['type'] ?? 0,
-                'file' => self::relativePath((string) ( $error['file'] ?? '' )),
-                'line' => (int) ( $error['line'] ?? 0 ),
+                'file' => self::relativePath($fatalFile),
+                'line' => $fatalLine,
                 'trace' => [],
                 'php_version' => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION,
                 'cms_version' => self::getCmsVersion(),
@@ -107,7 +107,14 @@ class CrashReportService
                 'fingerprint' => $fingerprint,
                 'timestamp' => date('c'),
                 'source' => 'fatal',
+                'environment' => self::collectEnvironment(),
+                'request' => self::collectSafeRequestInfo(),
             ];
+
+            $snippet = self::extractCodeSnippet($fatalFile, $fatalLine);
+            if ($snippet !== null) {
+                $payload['code_snippet'] = $snippet;
+            }
 
             self::sendDirect([$payload], $config);
         } catch (\Throwable) {
@@ -240,7 +247,7 @@ class CrashReportService
 
     private static function buildPayload(\Throwable $e, array $context, string $fingerprint): array
     {
-        return [
+        $payload = [
             'exception_class' => get_class($e),
             'message' => self::scrubString($e->getMessage()),
             'code' => $e->getCode(),
@@ -256,7 +263,21 @@ class CrashReportService
             'fingerprint' => $fingerprint,
             'timestamp' => date('c'),
             'source' => (string) ( $context['source'] ?? 'unknown' ),
+            'environment' => self::collectEnvironment(),
+            'request' => self::collectSafeRequestInfo(),
         ];
+
+        $previous = self::buildPreviousChain($e);
+        if (!empty($previous)) {
+            $payload['previous'] = $previous;
+        }
+
+        $snippet = self::extractCodeSnippet($e->getFile(), $e->getLine());
+        if ($snippet !== null) {
+            $payload['code_snippet'] = $snippet;
+        }
+
+        return $payload;
     }
 
     private static function buildTrace(\Throwable $e): array
@@ -270,15 +291,327 @@ class CrashReportService
                 continue;
             }
             $frame = $trace[$i];
-            $frames[] = [
+
+            $entry = [
                 'file' => self::relativePath((string) ( $frame['file'] ?? '' )),
                 'line' => (int) ( $frame['line'] ?? 0 ),
                 'class' => isset($frame['class']) && is_string($frame['class']) ? $frame['class'] : null,
                 'function' => isset($frame['function']) && is_string($frame['function']) ? $frame['function'] : null,
+                'type' => isset($frame['type']) && is_string($frame['type']) ? $frame['type'] : null,
+                'call' => self::formatCall($frame),
             ];
+
+            if (isset($frame['args']) && is_array($frame['args'])) {
+                $entry['args'] = self::summarizeArgs($frame['args']);
+            }
+
+            $frames[] = $entry;
         }
 
         return $frames;
+    }
+
+    private static function formatCall(array $frame): string
+    {
+        $class = isset($frame['class']) && is_string($frame['class']) ? $frame['class'] : '';
+        $function = isset($frame['function']) && is_string($frame['function']) ? $frame['function'] : '???';
+        $type = isset($frame['type']) && is_string($frame['type']) ? $frame['type'] : '';
+
+        if ($class !== '') {
+            return $class . $type . $function . '()';
+        }
+
+        return $function . '()';
+    }
+
+    private static function summarizeArgs(array $args, int $depth = 0): array
+    {
+        if ($depth > 2) {
+            return ['...'];
+        }
+
+        $result = [];
+        $maxArgs = 8;
+
+        foreach (array_slice($args, 0, $maxArgs) as $arg) {
+            $result[] = self::describeValue($arg, $depth);
+        }
+
+        if (count($args) > $maxArgs) {
+            $result[] = '... +' . ( count($args) - $maxArgs ) . ' more';
+        }
+
+        return $result;
+    }
+
+    private static function describeValue(mixed $value, int $depth = 0): string
+    {
+        if ($value === null) {
+            return 'null';
+        }
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+        if (is_string($value)) {
+            $scrubbed = self::scrubString($value);
+            if (strlen($scrubbed) > 120) {
+                return 'string(' . strlen($value) . ') "' . substr($scrubbed, 0, 120) . '..."';
+            }
+
+            return 'string(' . strlen($value) . ') "' . $scrubbed . '"';
+        }
+        if (is_array($value)) {
+            $count = count($value);
+            if ($count === 0) {
+                return 'array(0)';
+            }
+            if ($depth < 2) {
+                $isAssoc = !array_is_list($value);
+                $preview = [];
+                $shown = 0;
+                foreach ($value as $k => $v) {
+                    if ($shown >= 3) {
+                        break;
+                    }
+                    $desc = self::describeValue($v, $depth + 1);
+                    $preview[] = $isAssoc ? self::scrubString((string) $k) . ': ' . $desc : $desc;
+                    $shown++;
+                }
+                $suffix = $count > 3 ? ', ... +' . ( $count - 3 ) . ' more' : '';
+
+                return 'array(' . $count . ') [' . implode(', ', $preview) . $suffix . ']';
+            }
+
+            return 'array(' . $count . ')';
+        }
+        if (is_object($value)) {
+            $class = get_class($value);
+            if ($value instanceof \Closure) {
+                return self::describeClosureDetailed($value);
+            }
+            if ($value instanceof \Throwable) {
+                return $class . '("' . self::scrubString(mb_strimwidth($value->getMessage(), 0, 80, '...')) . '")';
+            }
+            if (method_exists($value, '__toString')) {
+                $str = self::scrubString(mb_strimwidth((string) $value, 0, 80, '...'));
+
+                return $class . ' "' . $str . '"';
+            }
+
+            return $class;
+        }
+        if (is_resource($value)) {
+            return 'resource(' . get_resource_type($value) . ')';
+        }
+
+        return gettype($value);
+    }
+
+    private static function describeClosureDetailed(\Closure $closure): string
+    {
+        try {
+            $ref = new \ReflectionFunction($closure);
+            $file = $ref->getFileName();
+            $line = $ref->getStartLine();
+            $filePart = $file !== false ? self::relativePath($file) . ':' . $line : 'unknown';
+
+            $params = [];
+            foreach ($ref->getParameters() as $param) {
+                $type = $param->getType();
+                $paramStr = $type !== null ? (string) $type . ' $' . $param->getName() : '$' . $param->getName();
+                $params[] = $paramStr;
+            }
+
+            $paramList = implode(', ', $params);
+            $returnType = $ref->getReturnType();
+            $returnStr = $returnType !== null ? ': ' . (string) $returnType : '';
+
+            $bindClass = '';
+            $scope = $ref->getClosureScopeClass();
+            if ($scope !== null) {
+                $bindClass = ' bound to ' . $scope->getName();
+            }
+
+            return 'Closure(' . $paramList . ')' . $returnStr . ' at ' . $filePart . $bindClass;
+        } catch (\Throwable) {
+            return 'Closure';
+        }
+    }
+
+    private static function buildPreviousChain(\Throwable $e, int $depth = 0): array
+    {
+        $chain = [];
+        $prev = $e->getPrevious();
+        $maxDepth = 3;
+
+        while ($prev !== null && $depth < $maxDepth) {
+            $entry = [
+                'exception_class' => get_class($prev),
+                'message' => self::scrubString($prev->getMessage()),
+                'code' => $prev->getCode(),
+                'file' => self::relativePath($prev->getFile()),
+                'line' => $prev->getLine(),
+                'trace' => self::buildTrace($prev),
+            ];
+
+            $snippet = self::extractCodeSnippet($prev->getFile(), $prev->getLine());
+            if ($snippet !== null) {
+                $entry['code_snippet'] = $snippet;
+            }
+
+            $chain[] = $entry;
+            $prev = $prev->getPrevious();
+            $depth++;
+        }
+
+        return $chain;
+    }
+
+    private static function extractCodeSnippet(string $file, int $line, int $contextLines = 3): ?array
+    {
+        if ($file === '' || $line <= 0 || !is_file($file) || !is_readable($file)) {
+            return null;
+        }
+
+        try {
+            $lines = @file($file, FILE_IGNORE_NEW_LINES);
+            if ($lines === false) {
+                return null;
+            }
+
+            $start = max(0, $line - $contextLines - 1);
+            $end = min(count($lines) - 1, $line + $contextLines - 1);
+
+            $snippet = [];
+            for ($i = $start; $i <= $end; $i++) {
+                $snippet[] = [
+                    'line' => $i + 1,
+                    'code' => self::scrubString($lines[$i]),
+                    'highlight' => ( $i + 1 ) === $line,
+                ];
+            }
+
+            return [
+                'file' => self::relativePath($file),
+                'error_line' => $line,
+                'lines' => $snippet,
+            ];
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private static function collectEnvironment(): array
+    {
+        $env = [
+            'os' => PHP_OS_FAMILY,
+            'sapi' => PHP_SAPI,
+            'php_version_full' => PHP_VERSION,
+            'memory_usage' => memory_get_usage(true),
+            'memory_peak' => memory_get_peak_usage(true),
+            'memory_limit' => self::parseMemoryLimit(),
+            'timezone' => date_default_timezone_get(),
+        ];
+
+        $server = $_SERVER['SERVER_SOFTWARE'] ?? null;
+        if (is_string($server) && $server !== '') {
+            $env['server_software'] = $server;
+        }
+
+        try {
+            $extensions = get_loaded_extensions();
+            sort($extensions);
+            $env['php_extensions'] = $extensions;
+        } catch (\Throwable) {
+        }
+
+        $dbDriver = self::detectDbDriver();
+        if ($dbDriver !== null) {
+            $env['db_driver'] = $dbDriver;
+        }
+
+        return $env;
+    }
+
+    private static function parseMemoryLimit(): int
+    {
+        $limit = ini_get('memory_limit');
+        if ($limit === false || $limit === '' || $limit === '-1') {
+            return -1;
+        }
+
+        $value = (int) $limit;
+        $unit = strtolower(substr(trim($limit), -1));
+
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => $value,
+        };
+    }
+
+    private static function detectDbDriver(): ?string
+    {
+        try {
+            $app = App::getInstance();
+            if (!$app->has(ConfigurationService::class)) {
+                return null;
+            }
+
+            /** @var ConfigurationService $cfg */
+            $cfg = $app->get(ConfigurationService::class);
+
+            $driver = $cfg->get('database.driver');
+            if (is_string($driver) && $driver !== '') {
+                return $driver;
+            }
+
+            $connection = $cfg->get('database.default');
+            if (is_string($connection) && $connection !== '') {
+                $connDriver = $cfg->get("database.connections.$connection.driver");
+                if (is_string($connDriver) && $connDriver !== '') {
+                    return $connDriver;
+                }
+            }
+        } catch (\Throwable) {
+        }
+
+        return null;
+    }
+
+    private static function collectSafeRequestInfo(): array
+    {
+        $info = [];
+
+        $safeHeaders = [
+            'HTTP_CONTENT_TYPE' => 'content_type',
+            'HTTP_ACCEPT' => 'accept',
+            'HTTP_X_REQUESTED_WITH' => 'x_requested_with',
+            'HTTP_ACCEPT_LANGUAGE' => 'accept_language',
+            'CONTENT_TYPE' => 'content_type',
+        ];
+
+        foreach ($safeHeaders as $serverKey => $name) {
+            $val = $_SERVER[$serverKey] ?? null;
+            if (is_string($val) && $val !== '' && !isset($info[$name])) {
+                $info[$name] = $val;
+            }
+        }
+
+        $info['is_ajax'] =
+            isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+        $info['is_cli'] = PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg';
+
+        $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+        $info['scheme'] = $scheme;
+
+        return $info;
     }
 
     private static function getModulesList(): array
