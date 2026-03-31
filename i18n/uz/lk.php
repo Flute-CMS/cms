@@ -45,7 +45,7 @@ return [
     'you_will_receive' => 'Siz olasiz',
     'agree_terms' => 'Men roziman',
     'terms_of_offer' => 'taklif shartlari',
-    'top_up_button' => ':amount :currency_view toʻldirish',
+    'top_up_button' => 'Toʻlovga oʻtish',
     'redirect' => 'Toʻlov sahifasiga yoʻnaltirilmoqda...',
     'payment_form_title' => 'Oʻyin Balansini Toʻldirish',
     'payment_form_subtitle' => 'Qulay toʻlov usuli va miqdorni tanlang',

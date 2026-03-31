@@ -2,12 +2,12 @@
 
 namespace Flute\Admin\Packages\Modules\Controllers;
 
-use Exception;
 use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Throwable;
 use ZipArchive;
 
 class ModulesController extends BaseController

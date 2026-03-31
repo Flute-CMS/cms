@@ -45,7 +45,7 @@ return [
     'you_will_receive' => 'Obdržíte',
     'agree_terms' => 'Souhlasím s',
     'terms_of_offer' => 'podmínkami nabídky',
-    'top_up_button' => 'Dobít :amount :currency_view',
+    'top_up_button' => 'Přejít k platbě',
     'redirect' => 'Přesměrování na platební stránku...',
     'payment_form_title' => 'Dobití herního zůstatku',
     'payment_form_subtitle' => 'Vyberte preferovanou platební metodu a částku',

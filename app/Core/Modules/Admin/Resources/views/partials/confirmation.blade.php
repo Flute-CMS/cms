@@ -6,8 +6,8 @@
         <x-icon path="ph.regular.warning-circle" class="icon-warning" style="display: none;" />
     </div>
 
-    <p id="confirmation-dialog-message" class="text-center">
-    </p>
+    <div id="confirmation-dialog-message" class="text-center">
+    </div>
 
     <x-slot:footer>
         <div class="d-flex justify-content-end align-items-center gap-3 w-100">

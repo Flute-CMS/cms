@@ -45,7 +45,7 @@ return [
     'you_will_receive' => '受け取る数量',
     'agree_terms' => '同意',
     'terms_of_offer' => '利用規約',
-    'top_up_button' => 'トップ :amount :currency_view',
+    'top_up_button' => 'お支払いへ進む',
     'redirect' => '支払いページにリダイレクトしています...',
     'payment_form_title' => 'ゲームバランストップアップ',
     'payment_form_subtitle' => 'ご希望のお支払い方法と金額を選択してください',

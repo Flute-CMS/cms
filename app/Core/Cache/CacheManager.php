@@ -86,6 +86,12 @@ class CacheManager
 
     private function readEpoch(): int
     {
+        if (isset($GLOBALS['flute_cache_epoch']) && is_int($GLOBALS['flute_cache_epoch'])) {
+            self::$epochCache = $GLOBALS['flute_cache_epoch'];
+
+            return self::$epochCache;
+        }
+
         if (self::$epochCache !== null) {
             return self::$epochCache;
         }

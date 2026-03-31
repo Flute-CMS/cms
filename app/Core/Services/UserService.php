@@ -3,7 +3,6 @@
 namespace Flute\Core\Services;
 
 use DateTimeImmutable;
-use Flute\Core\Database\Entities\BalanceHistory;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Exceptions\BalanceNotEnoughException;
@@ -360,6 +359,68 @@ class UserService
         }
 
         // Dispatch user changed event
+        events()->dispatch(new UserChangedEvent($balanceUser), UserChangedEvent::NAME);
+    }
+
+    /**
+     * Refunds a specified amount to the user's balance.
+     *
+     * Unlike topup(), this does NOT send a "Balance topped up" notification
+     * and records the operation as a refund in balance history.
+     *
+     * @param float $sum Amount to refund.
+     * @param User|null $user User to refund balance to. If null, the current user is used.
+     * @param string|null $source Module/service that initiated the refund (e.g., "shop").
+     * @param string|null $description Human-readable description for balance history.
+     * @param BalanceHistoryMeta|null $meta Typed metadata for balance history.
+     */
+    public function refund(
+        float $sum,
+        ?User $user = null,
+        ?string $source = null,
+        ?string $description = null,
+        ?BalanceHistoryMeta $meta = null,
+    ): void {
+        if ($sum <= 0) {
+            throw new InvalidArgumentException('The sum must be a positive number.');
+        }
+
+        $balanceUser = $user ?? $this->getCurrentUser();
+
+        if (!$balanceUser) {
+            throw new UserNotFoundException();
+        }
+
+        $database = db();
+        $database->begin();
+        try {
+            $balanceUser = User::query()
+                ->forUpdate()
+                ->where(['id' => $balanceUser->id])
+                ->fetchOne();
+
+            $balanceUser->balance += $sum;
+            transaction($balanceUser)->run();
+            $database->commit();
+        } catch (\Throwable $e) {
+            $database->rollback();
+            throw $e;
+        }
+
+        try {
+            app(BalanceHistoryService::class)->refund(
+                $balanceUser,
+                $sum,
+                $balanceUser->balance,
+                $source ?? 'refund',
+                $description,
+                $meta,
+            );
+        } catch (\Throwable $e) {
+            logs()->error('Balance history record failed: ' . $e->getMessage());
+        }
+
+        // Dispatch user changed event (no notification for refunds)
         events()->dispatch(new UserChangedEvent($balanceUser), UserChangedEvent::NAME);
     }
 

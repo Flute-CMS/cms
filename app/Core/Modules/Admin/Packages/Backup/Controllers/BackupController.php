@@ -2,12 +2,12 @@
 
 namespace Flute\Admin\Packages\Backup\Controllers;
 
-use Exception;
 use Flute\Admin\Packages\Backup\Services\BackupService;
 use Flute\Core\Support\BaseController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Throwable;
 
 class BackupController extends BaseController
 {

@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Social\Screens;
 
-use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
@@ -31,7 +30,7 @@ class EditSocialScreen extends Screen
 
     public bool $isEditMode = false;
 
-    protected $id = null;
+    public ?int $id = null;
 
     protected array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token', 'proxy'];
 
@@ -112,7 +111,7 @@ class EditSocialScreen extends Screen
 
     public function mount(): void
     {
-        $this->id = (int) request()->attributes->get('id');
+        $this->id = (int) ( request()->attributes->get('id') ?: request()->input('id') ?: $this->id );
 
         // Read driverKey from request (sent by Yoyo select on change)
         $requestDriverKey = request()->input('driverKey');
@@ -460,7 +459,7 @@ class EditSocialScreen extends Screen
             ]),
             'Vkontakte' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:1',
-                'settings__secret' => 'required|string|max-str-len:255',
+                'settings__secret' => 'sometimes|string|max-str-len:255',
             ]),
             'Yandex' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:2',

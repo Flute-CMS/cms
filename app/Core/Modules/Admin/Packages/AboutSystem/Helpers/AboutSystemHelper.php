@@ -787,4 +787,36 @@ class AboutSystemHelper
 
         return $val;
     }
+
+    /**
+     * Normalize a filesystem path for comparison (realpath when possible; slashes unified).
+     * Avoids false mismatches between e.g. /project/bootstrap/../app/Modules and /project/app/Modules.
+     */
+    public static function normalizeFilesystemPathForComparison(string $path): string
+    {
+        $path = rtrim(str_replace('\\', '/', $path), '/');
+        $resolved = @realpath($path);
+        if ($resolved !== false) {
+            return rtrim(str_replace('\\', '/', $resolved), '/');
+        }
+
+        return $path;
+    }
+
+    /**
+     * Whether an ionCube encoded_paths entry covers the app modules directory.
+     */
+    public static function ioncubeEncodedPathMatchesModulesDir(string $encodedPathEntry, string $modulesFullPath): bool
+    {
+        $enc = self::normalizeFilesystemPathForComparison($encodedPathEntry);
+        $mod = self::normalizeFilesystemPathForComparison($modulesFullPath);
+        if ($enc === '' || $mod === '') {
+            return false;
+        }
+        if ($enc === $mod) {
+            return true;
+        }
+
+        return str_starts_with($mod, $enc . '/');
+    }
 }

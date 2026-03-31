@@ -273,7 +273,7 @@ class NotificationBroadcastScreen extends Screen
                     return [];
                 }
 
-                $validRoleIds = array_map(fn($r) => $r->id, $roles);
+                $validRoleIds = array_map(static fn($r) => $r->id, $roles);
                 $users = User::query()->where('roles.id', 'IN', new Parameter($validRoleIds))->fetchAll();
 
                 // Deduplicate users (a user may have multiple matching roles)

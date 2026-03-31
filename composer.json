@@ -93,9 +93,11 @@
 		"psr-4": {
 			"Flute\\": "app/",
 			"Flute\\Admin\\": "app/Core/Modules/Admin/",
+			"Hybridauth\\HttpClient\\": "app/Core/Modules/Auth/Hybrid/HttpClient/",
 			"Hybridauth\\Provider\\": "app/Core/Modules/Auth/Hybrid/"
 		},
 		"exclude-from-classmap": [
+			"vendor/hybridauth/hybridauth/src/HttpClient/Curl.php",
 			"vendor/hybridauth/hybridauth/src/Provider/Discord.php",
 			"vendor/hybridauth/hybridauth/src/Provider/Telegram.php"
 		]
@@ -129,7 +131,14 @@
 		"analyse": "vendor/bin/mago analyze",
 		"format": "vendor/bin/mago format",
 		"format-check": "vendor/bin/mago format --check",
-		"fix": "vendor/bin/mago format",
+		"fix": [
+			"vendor/bin/mago lint --fix --format-after-fix",
+			"vendor/bin/mago format"
+		],
+		"test-fix": [
+			"vendor/bin/mago lint --fix --format-after-fix",
+			"vendor/bin/mago format"
+		],
 		"optimize": [
 			"php flute cache:clear"
 		]
@@ -145,6 +154,11 @@
 		},
 		"platform": {
 			"php": "8.2.999"
+		},
+		"audit": {
+			"ignore": {
+				"CVE-2026-4587": "hybridauth package version still flagged; Curl client overridden in app/Core/Modules/Auth/Hybrid/HttpClient/Curl.php until upstream release"
+			}
 		}
 	},
 

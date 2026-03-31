@@ -125,10 +125,14 @@ class PageManager
         foreach ($widgets as $widget) {
             try {
                 $widgetName = $widget->getWidget();
+                $widgetInstance = $this->widgetManager->getWidget($widgetName);
+
+                if ($widgetInstance === null) {
+                    continue;
+                }
+
                 $startTime = microtime(true);
-                $content .= $this->widgetManager
-                    ->getWidget($widgetName)
-                    ->render(json_decode($widget->getSettings(), true));
+                $content .= $widgetInstance->render(json_decode($widget->getSettings(), true));
                 WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
             } catch (Throwable $e) {
                 $this->logger->error('Widget render error: ' . $e->getMessage(), [
@@ -180,7 +184,7 @@ class PageManager
                     'widgetName' => 'Content',
                     'settings' => [],
                     'gridstack' => $contentPosition,
-                    'content' => $this->widgetManager->getWidget('Content')->render([]),
+                    'content' => $this->widgetManager->getWidget('Content')?->render([]) ?? '',
                     'isSystem' => true,
                 ];
             }
@@ -241,10 +245,14 @@ class PageManager
             }
 
             $widgetName = $widgetDb->getWidget();
+            $widgetInstance = $this->widgetManager->getWidget($widgetName);
+
+            if ($widgetInstance === null) {
+                return null;
+            }
+
             $startTime = microtime(true);
-            $content = $this->widgetManager
-                ->getWidget($widgetName)
-                ->render(json_decode($widgetDb->getSettings(), true));
+            $content = $widgetInstance->render(json_decode($widgetDb->getSettings(), true));
             WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
             return $content !== '' ? $content : null;
@@ -299,7 +307,7 @@ class PageManager
         try {
             $cached = cache()->callback(
                 self::GLOBAL_LAYOUT_CACHE_KEY,
-                fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
+                static fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
                 is_performance() ? self::GLOBAL_LAYOUT_CACHE_TIME : 30,
             );
 
@@ -519,10 +527,10 @@ class PageManager
             $block->gridstack = isset($item['gridstack'])
                 ? Json::encode([
                     'h' => $item['gridstack']['h'] ?? '',
-                    'w' => $item['gridstack']['w'] ?? $widget->getDefaultWidth(),
+                    'w' => $item['gridstack']['w'] ?? ( $widget ? $widget->getDefaultWidth() : 12 ),
                     'x' => $item['gridstack']['x'] ?? '',
                     'y' => $item['gridstack']['y'] ?? '',
-                    'minW' => $item['gridstack']['minW'] ?? $widget->getMinWidth(),
+                    'minW' => $item['gridstack']['minW'] ?? ( $widget ? $widget->getMinWidth() : 4 ),
                 ])
                 : '{}';
 
@@ -841,6 +849,11 @@ class PageManager
     protected function renderWidgetCached(string $widgetName, array $settings): ?string
     {
         $widget = $this->widgetManager->getWidget($widgetName);
+
+        if ($widget === null) {
+            return null;
+        }
+
         $cacheTime = method_exists($widget, 'getCacheTime') ? $widget->getCacheTime() : 0;
 
         if ($cacheTime > 0) {
@@ -848,7 +861,7 @@ class PageManager
 
             return cache()->callback(
                 $cacheKey,
-                function () use ($widget, $widgetName, $settings) {
+                static function () use ($widget, $widgetName, $settings) {
                     $startTime = microtime(true);
                     $html = $widget->render($settings);
                     WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);

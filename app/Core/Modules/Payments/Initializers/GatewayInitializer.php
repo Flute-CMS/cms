@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Initializers;
 
-use Exception;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
 use Flute\Core\Modules\Payments\Events\RegisterPaymentFactoriesEvent;
 use Flute\Core\Modules\Payments\Factories\GatewayFactory;
@@ -10,6 +9,7 @@ use Flute\Core\Modules\Payments\Processors\PaymentProcessor;
 use Flute\Core\Modules\Payments\Services\PaymentPromo;
 use Omnipay\Common\Helper;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Throwable;
 
 class GatewayInitializer
 {

@@ -2,11 +2,11 @@
 
 namespace Flute\Core\Console\Command;
 
-use Exception;
 use Flute\Core\Services\LoggerService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 class LogsCleanupCommand extends Command
 {

@@ -113,15 +113,16 @@ class ValveQueryDriver implements QueryDriverInterface
             if ($players !== null && !empty($players)) {
                 $filtered = array_filter(
                     $players,
-                    static fn($p) => !empty(trim($p['name'])) && isset($p['time']) && $p['time'] < 20000,
+                    static fn($p) => (
+                        !empty(trim($p['name']))
+                        && isset($p['time'])
+                        && (int) $p['time'] >= 0
+                        && (int) $p['time'] < 86400
+                    ),
                 );
                 $filtered = array_values($filtered);
 
                 $result->playersData = $filtered;
-
-                if (!empty($filtered)) {
-                    $result->players = count($filtered);
-                }
             }
         } finally {
             fclose($socket2);
@@ -215,14 +216,15 @@ class ValveQueryDriver implements QueryDriverInterface
 
             $filtered = array_values(array_filter(
                 $players,
-                static fn($p) => !empty(trim($p['name'])) && isset($p['time']) && $p['time'] < 20000,
+                static fn($p) => (
+                    !empty(trim($p['name']))
+                    && isset($p['time'])
+                    && (int) $p['time'] >= 0
+                    && (int) $p['time'] < 86400
+                ),
             ));
 
             $results[$id]->playersData = $filtered;
-
-            if (!empty($filtered)) {
-                $results[$id]->players = count($filtered);
-            }
         }
 
         // === FALLBACK: Steam Web API for servers that didn't respond via UDP ===
@@ -898,8 +900,8 @@ class ValveQueryDriver implements QueryDriverInterface
         if ($data === false || $data === '') {
             $peer = stream_socket_get_name($socket, true) ?: 'unknown';
             $meta = stream_get_meta_data($socket);
-            $timedOut = $meta['timed_out'] ?? false;
-            $eof = $meta['eof'] ?? false;
+            $timedOut = $meta['timed_out'];
+            $eof = $meta['eof'];
             logs()->debug("ValveQuery: fread empty for {$peer} (timed_out={$timedOut}, eof={$eof})");
 
             return '';

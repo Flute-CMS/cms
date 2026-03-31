@@ -16,16 +16,14 @@ use Flute\Core\Console\Command\RunCronCommand;
 define('FLUTE_START', microtime(true));
 define('BASE_PATH', __DIR__.DIRECTORY_SEPARATOR);
 
-/**
- * Get the application instance
- * 
- * @var App $app
- */
+require_once BASE_PATH . 'bootstrap/fatal-error-handler.php';
+flute_register_fatal_handler();
+
+/** @var App $app */
 $app = require_once BASE_PATH.'bootstrap/app.php';
 
 $console = $app->getConsole();
 
-// We getting from the container (because arguments.)
 $console->add($app->get(TemplateCacheClearCommand::class));
 $console->add($app->get(LogsClearCommand::class));
 $console->add($app->get(LogsCleanupCommand::class));
@@ -37,7 +35,4 @@ $console->add($app->get(ListRoutesCommand::class));
 $console->add($app->get(RouteDetailCommand::class));
 $console->add($app->get(RunCronCommand::class));
 
-/**
- * Run the application
- */
 $app->run();

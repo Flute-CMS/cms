@@ -92,7 +92,7 @@ class AdminServersService
         }
 
         // Sort numerically by filename
-        usort($files, function ($a, $b) {
+        usort($files, static function ($a, $b) {
             return (int) basename($a) - (int) basename($b);
         });
 
@@ -174,12 +174,12 @@ class AdminServersService
 
         // Extract to temp, then copy only image files
         $tempDir = path('storage/app/temp_ranks_' . bin2hex(random_bytes(8)));
-        mkdir($tempDir, 0755, true);
+        mkdir($tempDir, 0o755, true);
         $uploader->safeExtractZip($zipFullPath, $tempDir);
 
         $destDir = path('public/assets/img/ranks/' . $packName);
         if (!is_dir($destDir)) {
-            mkdir($destDir, 0755, true);
+            mkdir($destDir, 0o755, true);
         }
 
         foreach ($imageFiles as $entry) {

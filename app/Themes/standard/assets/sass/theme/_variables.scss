@@ -6,9 +6,9 @@
     --card-opacity: 0.8;
     --glow-intensity: 0;
     
-    --shadow-small: inset 0 1px 2px #ffffff30, 0 1px 2px #00000030, 0 2px 4px #00000015;
-    --shadow-medium: inset 0 1px 2px #ffffff50, 0 1px 2px #00000030, 0 2px 4px #00000015;
-    --shadow-large: inset 0 1px 2px #ffffff70, 0 1px 2px #00000030, 0 2px 4px #00000015;
+    --shadow-small: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-large: 0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 :root[data-theme=light] {

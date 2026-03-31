@@ -63,6 +63,8 @@ class DatabaseConnection
 
     protected bool $schemaNeedsUpdate = false;
 
+    private bool $syncTablesFailed = false;
+
     private static bool $schemaRefreshQueued = false;
 
     /** @var array<string,bool> */
@@ -319,7 +321,6 @@ class DatabaseConnection
                 if (is_file($staleFile)) {
                     logs('database')->warning('Falling back to stale ORM schema');
                     @copy($staleFile, self::SCHEMA_FILE);
-                    $this->writeSchemaMeta($this->entitiesDirs);
                     $this->loadCachedSchemaIntoOrm();
                     \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
 
@@ -336,7 +337,10 @@ class DatabaseConnection
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
             self::ensureGroupWritable(self::SCHEMA_FILE);
-            $this->writeSchemaMeta($this->entitiesDirs);
+            if (!$this->syncTablesFailed) {
+                $this->writeSchemaMeta($this->entitiesDirs, count($schemaArray));
+            }
+            $this->syncTablesFailed = false;
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
 
@@ -388,6 +392,7 @@ class DatabaseConnection
             return ( new Compiler() )->compile($registry, $schemaGenerators);
         } catch (SyncException $e) {
             $this->logSyncError($e);
+            $this->syncTablesFailed = true;
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
@@ -735,6 +740,10 @@ class DatabaseConnection
      */
     protected function getEntitiesFromDirectory(string $directory): array
     {
+        if (!is_dir($directory)) {
+            return [];
+        }
+
         $finder = finder();
         $finder->files()->in($directory)->name('*.php');
 
@@ -872,6 +881,18 @@ class DatabaseConnection
 
         $valid = hash_equals($expectedFingerprint, $current);
 
+        if ($valid && isset($meta['entity_count'])) {
+            $schemaArray = @include self::SCHEMA_FILE;
+            if (is_array($schemaArray)) {
+                $schemaEntityCount = count($schemaArray);
+                $expectedEntityCount = (int) $meta['entity_count'];
+
+                if ($expectedEntityCount > 0 && $schemaEntityCount < ( $expectedEntityCount * 0.8 )) {
+                    return false;
+                }
+            }
+        }
+
         if ($valid) {
             $dir = dirname($cachedFpFile);
             if (!is_dir($dir)) {
@@ -949,7 +970,24 @@ class DatabaseConnection
     {
         $dirs = array_merge([self::ENTITIES_DIR], $this->entitiesDirs);
 
-        foreach ($this->getInstalledModuleKeys() as $moduleKey) {
+        $moduleKeys = $this->getInstalledModuleKeys();
+
+        $modulesRoot = path('app/Modules');
+        if (is_dir($modulesRoot)) {
+            $scanned = @scandir($modulesRoot);
+            if (is_array($scanned)) {
+                foreach ($scanned as $dir) {
+                    if ($dir === '.' || $dir === '..' || $dir === '.disabled') {
+                        continue;
+                    }
+                    if (!in_array($dir, $moduleKeys, true)) {
+                        $moduleKeys[] = $dir;
+                    }
+                }
+            }
+        }
+
+        foreach ($moduleKeys as $moduleKey) {
             $candidates = [
                 path("app/Modules/{$moduleKey}/database/Entities"),
                 path("app/Modules/{$moduleKey}/Database/Entities"),
@@ -1060,7 +1098,7 @@ class DatabaseConnection
     /**
      * @param array<int,string> $dirs
      */
-    private function writeSchemaMeta(array $dirs): void
+    private function writeSchemaMeta(array $dirs, ?int $entityCount = null): void
     {
         $dirs = $this->normalizeDirs($dirs);
 
@@ -1068,6 +1106,7 @@ class DatabaseConnection
             'fingerprint' => $this->computeEntitiesFingerprint($dirs),
             'dirs' => $dirs,
             'written_at' => time(),
+            'entity_count' => $entityCount ?? $this->countEntityFiles($dirs),
         ];
 
         $tmp = self::SCHEMA_META_FILE . '.tmp';
@@ -1075,6 +1114,31 @@ class DatabaseConnection
         @file_put_contents($tmp, $content, LOCK_EX);
         self::ensureGroupWritable($tmp);
         @rename($tmp, self::SCHEMA_META_FILE);
+    }
+
+    private function countEntityFiles(array $dirs): int
+    {
+        $count = 0;
+
+        foreach ($dirs as $dir) {
+            $resolved = is_string($dir) && $dir !== '' ? realpath($dir) : false;
+            if ($resolved === false || !is_dir($resolved)) {
+                continue;
+            }
+
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+                $resolved,
+                FilesystemIterator::SKIP_DOTS,
+            ));
+
+            foreach ($iterator as $fileInfo) {
+                if ($fileInfo->isFile() && $fileInfo->getExtension() === 'php') {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
     }
 
     /**

@@ -70,6 +70,9 @@
         @enderror
     </div>
 @else
+    @if ($type === 'file' && $filePond)
+        <input type="hidden" name="{{ $name }}_clear" value="0" data-filepond-clear="{{ $name }}" />
+    @endif
     <div class="input-wrapper">
         <div id="input-{{ $inputId }}" @class([
             'input__field-container',

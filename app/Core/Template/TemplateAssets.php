@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Template;
 
-use Exception;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Theme\ThemeManager;
 use MatthiasMullie\Minify;
@@ -593,8 +592,16 @@ class TemplateAssets
             return;
         }
 
-        // Wait for the lock holder (compile/write) to finish.
-        flock($handle, LOCK_SH);
+        $waited = 0;
+        while (!flock($handle, LOCK_SH | LOCK_NB)) {
+            if ($waited >= 10) {
+                fclose($handle);
+
+                return;
+            }
+            usleep(100_000); // 100ms
+            $waited += 0.1;
+        }
         flock($handle, LOCK_UN);
         fclose($handle);
     }
@@ -843,11 +850,10 @@ class TemplateAssets
             }
         }
 
+        $sortedScssFiles = $this->additionalScssFiles[$this->context];
+        sort($sortedScssFiles);
         $cacheKey = sha1(
-            $scssPath
-            . implode(',', $this->additionalScssFiles[$this->context])
-            . implode(',', $this->additionalPartials)
-            . $this->context,
+            $scssPath . implode(',', $sortedScssFiles) . implode(',', $this->additionalPartials) . $this->context,
         );
 
         $cssCacheDir = $this->getCacheDir('css');

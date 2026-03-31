@@ -142,15 +142,19 @@ class SystemReportController extends BaseController
 
             $encodedPaths = ini_get('ioncube.loader.encoded_paths');
             $modulesPath = path('app/Modules');
+            $suggestedEncodedPath = AboutSystemHelper::normalizeFilesystemPathForComparison($modulesPath);
+            if ($suggestedEncodedPath === '') {
+                $suggestedEncodedPath = $modulesPath;
+            }
 
             if ($encodedPaths) {
-                $lines[] = 'encoded_paths: ' . $encodedPaths;
+                $lines[] = 'encoded_paths: ***SET***';
 
                 $paths = array_filter(array_map('trim', explode(PATH_SEPARATOR, $encodedPaths)));
                 $modulesConfigured = false;
 
                 foreach ($paths as $p) {
-                    if (str_starts_with($modulesPath, $p) || str_starts_with($p, $modulesPath)) {
+                    if (AboutSystemHelper::ioncubeEncodedPathMatchesModulesDir($p, $modulesPath)) {
                         $modulesConfigured = true;
 
                         break;
@@ -162,14 +166,14 @@ class SystemReportController extends BaseController
                 } else {
                     $lines[] = '*** WARNING: Modules path NOT in encoded_paths! ***';
                     $lines[] = '*** This causes ionCube to scan ALL files on EVERY request! ***';
-                    $lines[] = '*** Add this to php.ini: ioncube.loader.encoded_paths="' . $modulesPath . '" ***';
+                    $lines[] = '*** Add Modules path to php.ini ioncube.loader.encoded_paths ***';
                 }
             } else {
                 $lines[] = 'encoded_paths: NOT SET';
                 $lines[] = '*** WARNING: encoded_paths is not configured! ***';
                 $lines[] = '*** ionCube will scan ALL PHP files on EVERY request! ***';
                 $lines[] = '*** This SIGNIFICANTLY degrades performance! ***';
-                $lines[] = '*** Add to php.ini: ioncube.loader.encoded_paths="' . $modulesPath . '" ***';
+                $lines[] = '*** Add Modules path to php.ini ioncube.loader.encoded_paths ***';
             }
         }
 
@@ -194,7 +198,7 @@ class SystemReportController extends BaseController
             $this->formatKeyValue('Debug Mode', config('app.debug', false) ? 'Enabled' : 'Disabled'),
             $this->formatKeyValue('Environment', config('app.env', 'production')),
             $this->formatKeyValue('Performance Mode', is_performance() ? 'Enabled' : 'Disabled'),
-            $this->formatKeyValue('Base URL', config('app.url', 'N/A')),
+            $this->formatKeyValue('Base URL', '***'),
             $this->formatKeyValue('Timezone', config('app.timezone', date_default_timezone_get())),
             $this->formatKeyValue('Locale', config('app.locale', 'en')),
             '',
@@ -287,10 +291,10 @@ class SystemReportController extends BaseController
                 'Server Protocol',
                 $serverInfo['server_protocol'] ?? $_SERVER['SERVER_PROTOCOL'] ?? 'N/A',
             ),
-            $this->formatKeyValue('Server Name', $serverInfo['server_name'] ?? $_SERVER['SERVER_NAME'] ?? 'N/A'),
+            $this->formatKeyValue('Server Name', '***'),
             $this->formatKeyValue('Server Port', $serverInfo['server_port'] ?? $_SERVER['SERVER_PORT'] ?? 'N/A'),
-            $this->formatKeyValue('Document Root', $serverInfo['document_root'] ?? $_SERVER['DOCUMENT_ROOT'] ?? 'N/A'),
-            $this->formatKeyValue('Server IP', $_SERVER['SERVER_ADDR'] ?? $_SERVER['LOCAL_ADDR'] ?? 'N/A'),
+            $this->formatKeyValue('Document Root', '***'),
+            $this->formatKeyValue('Server IP', '***'),
             '',
             $this->formatKeyValue('Disk Total', $serverInfo['disk_total_space'] ?? 'N/A'),
             $this->formatKeyValue('Disk Free', $serverInfo['disk_free_space'] ?? 'N/A'),
@@ -397,7 +401,7 @@ class SystemReportController extends BaseController
                 $lines[] = sprintf('Current request total boot time: %.3fs', $totalBootTime);
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading modules: ' . $e->getMessage();
+            $lines[] = 'Error loading modules: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -533,7 +537,7 @@ class SystemReportController extends BaseController
                 }
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading statistics: ' . $e->getMessage();
+            $lines[] = 'Error loading statistics: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -664,7 +668,7 @@ class SystemReportController extends BaseController
                 }
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading statistics: ' . $e->getMessage();
+            $lines[] = 'Error loading statistics: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -897,7 +901,7 @@ class SystemReportController extends BaseController
                 $lines[] = 'Not enough data (need at least 5 samples per route)';
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading route statistics: ' . $e->getMessage();
+            $lines[] = 'Error loading route statistics: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -987,7 +991,7 @@ class SystemReportController extends BaseController
                     $stat['max_time'] * 1000,
                 );
 
-                $queryDisplay = $stat['query'];
+                $queryDisplay = $this->sanitizeSqlQuery((string) $stat['query']);
                 $lines[] = '    ' . $queryDisplay;
                 $lines[] = '';
             }
@@ -1022,7 +1026,7 @@ class SystemReportController extends BaseController
                 );
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading query statistics: ' . $e->getMessage();
+            $lines[] = 'Error loading query statistics: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1134,7 +1138,7 @@ class SystemReportController extends BaseController
                 );
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading widget statistics: ' . $e->getMessage();
+            $lines[] = 'Error loading widget statistics: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1234,7 +1238,7 @@ class SystemReportController extends BaseController
             $lines[] = '';
             $lines[] = sprintf('Total avg view render time: %.1fms', $totalTime * 1000);
         } catch (Throwable $e) {
-            $lines[] = 'Error loading view statistics: ' . $e->getMessage();
+            $lines[] = 'Error loading view statistics: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1309,7 +1313,7 @@ class SystemReportController extends BaseController
                 }
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading themes: ' . $e->getMessage();
+            $lines[] = 'Error loading themes: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1344,8 +1348,8 @@ class SystemReportController extends BaseController
                 $dbName = $connInfo->database ?? $dbName;
             }
 
-            $lines[] = $this->formatKeyValue('Host', (string) $host);
-            $lines[] = $this->formatKeyValue('Database', (string) $dbName);
+            $lines[] = $this->formatKeyValue('Host', '***');
+            $lines[] = $this->formatKeyValue('Database', '***');
 
             $dbal = app(DatabaseManager::class)->getDbal();
             $database = $dbal->database();
@@ -1354,7 +1358,7 @@ class SystemReportController extends BaseController
                 $lines[] = $this->formatKeyValue('Tables Count', (string) count($tables));
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading database info: ' . $e->getMessage();
+            $lines[] = 'Error loading database info: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1375,12 +1379,12 @@ class SystemReportController extends BaseController
             if ($driver === 'file') {
                 $cachePath = storage_path('app/cache');
                 if (is_dir($cachePath)) {
-                    $lines[] = $this->formatKeyValue('Cache Path', $cachePath);
+                    $lines[] = $this->formatKeyValue('Cache Path', 'storage/app/cache');
                     $lines[] = $this->formatKeyValue('Cache Writable', is_writable($cachePath) ? 'Yes' : 'No');
                 }
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading cache info: ' . $e->getMessage();
+            $lines[] = 'Error loading cache info: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1417,7 +1421,7 @@ class SystemReportController extends BaseController
                 $lines[] = 'composer.lock not found';
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error reading composer.lock: ' . $e->getMessage();
+            $lines[] = 'Error reading composer.lock: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1439,7 +1443,6 @@ class SystemReportController extends BaseController
             'app/Modules' => path('app/Modules'),
             'app/Themes' => path('app/Themes'),
             'config' => path('config'),
-            'config-dev' => path('config-dev'),
         ];
 
         foreach ($directories as $name => $dirPath) {
@@ -1515,7 +1518,7 @@ class SystemReportController extends BaseController
 
                 $lines[] = $this->formatKeyValue($key, (string) $value);
             } catch (Throwable $e) {
-                $lines[] = $this->formatKeyValue($key, 'ERROR: ' . $e->getMessage());
+                $lines[] = $this->formatKeyValue($key, 'ERROR: ' . $this->sanitizeErrorMessage($e->getMessage()));
             }
         }
 
@@ -1530,7 +1533,7 @@ class SystemReportController extends BaseController
 
         try {
             $lines[] = $this->formatKeyValue('Session Handler', ini_get('session.save_handler'));
-            $lines[] = $this->formatKeyValue('Session Path', ini_get('session.save_path') ?: 'default');
+            $lines[] = $this->formatKeyValue('Session Path', '***');
             $lines[] = $this->formatKeyValue('Session Name', ini_get('session.name'));
             $lines[] = $this->formatKeyValue('Session Lifetime', ini_get('session.gc_maxlifetime') . 's');
             $lines[] = $this->formatKeyValue('Cookie Lifetime', ini_get('session.cookie_lifetime') . 's');
@@ -1538,13 +1541,8 @@ class SystemReportController extends BaseController
             $lines[] = $this->formatKeyValue('Cookie HttpOnly', ini_get('session.cookie_httponly') ? 'Yes' : 'No');
             $lines[] = $this->formatKeyValue('Cookie SameSite', ini_get('session.cookie_samesite') ?: 'Not set');
             $lines[] = $this->formatKeyValue('Use Strict Mode', ini_get('session.use_strict_mode') ? 'Yes' : 'No');
-
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                $lines[] = '';
-                $lines[] = $this->formatKeyValue('Current Session ID', substr(session_id(), 0, 8) . '...');
-            }
         } catch (Throwable $e) {
-            $lines[] = 'Error getting session info: ' . $e->getMessage();
+            $lines[] = 'Error getting session info: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1561,10 +1559,10 @@ class SystemReportController extends BaseController
 
             $lines[] = $this->formatKeyValue('Method', $request->getMethod());
             $lines[] = $this->formatKeyValue('URI', $request->getRequestUri());
-            $lines[] = $this->formatKeyValue('Host', $request->getHost());
+            $lines[] = $this->formatKeyValue('Host', '***');
             $lines[] = $this->formatKeyValue('Scheme', $request->getScheme());
             $lines[] = $this->formatKeyValue('Is Secure', $request->isSecure() ? 'Yes' : 'No');
-            $lines[] = $this->formatKeyValue('Client IP', $request->getClientIp() ?? 'N/A');
+            $lines[] = $this->formatKeyValue('Client IP', '***');
             $lines[] = $this->formatKeyValue('User Agent', substr($request->headers->get('User-Agent', 'N/A'), 0, 80));
 
             $lines[] = '';
@@ -1579,6 +1577,7 @@ class SystemReportController extends BaseController
 
             $lines[] = '';
             $lines[] = 'Server Variables (selected):';
+            $sensitiveServerVars = ['REMOTE_ADDR', 'REMOTE_PORT'];
             $serverVars = [
                 'REQUEST_TIME',
                 'REQUEST_TIME_FLOAT',
@@ -1590,11 +1589,12 @@ class SystemReportController extends BaseController
             ];
             foreach ($serverVars as $var) {
                 if (isset($_SERVER[$var])) {
-                    $lines[] = sprintf('  %-25s: %s', $var, $_SERVER[$var]);
+                    $val = in_array($var, $sensitiveServerVars, true) ? '***' : $_SERVER[$var];
+                    $lines[] = sprintf('  %-25s: %s', $var, $val);
                 }
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error getting request info: ' . $e->getMessage();
+            $lines[] = 'Error getting request info: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1639,7 +1639,7 @@ class SystemReportController extends BaseController
                 }
             }
         } catch (Throwable $e) {
-            $lines[] = 'Error loading logs: ' . $e->getMessage();
+            $lines[] = 'Error loading logs: ' . $this->sanitizeErrorMessage($e->getMessage());
         }
 
         return implode("\n", $lines);
@@ -1673,7 +1673,38 @@ class SystemReportController extends BaseController
 
     protected function isSensitiveKey(string $key): bool
     {
-        $sensitivePatterns = ['key', 'secret', 'password', 'token', 'api', 'steam_api'];
+        $sensitivePatterns = [
+            'key',
+            'secret',
+            'password',
+            'token',
+            'api',
+            'steam_api',
+            'cookie',
+            'authorization',
+            'auth',
+            'session',
+            'csrf',
+        ];
+
+        $sensitiveExact = [
+            'app.url',
+            'app.name',
+            'mail.host',
+            'mail.port',
+            'host',
+            'x-forwarded-for',
+            'x-real-ip',
+            'referer',
+            'x-forwarded-host',
+            'x-forwarded-proto',
+        ];
+
+        $lowerKey = strtolower($key);
+
+        if (in_array($lowerKey, $sensitiveExact, true)) {
+            return true;
+        }
 
         foreach ($sensitivePatterns as $pattern) {
             if (stripos($key, $pattern) !== false) {
@@ -1684,14 +1715,52 @@ class SystemReportController extends BaseController
         return false;
     }
 
+    protected function sanitizeErrorMessage(string $message): string
+    {
+        $basePath = str_replace('\\', '/', rtrim((string) BASE_PATH, '/\\'));
+        $message = str_replace([$basePath, str_replace('/', '\\', $basePath)], '[PROJECT_ROOT]', $message);
+
+        $message = (string) preg_replace('#(?:/[a-zA-Z][a-zA-Z0-9._-]*/){3,}#', '[***]/', $message);
+        $message = (string) preg_replace('#(?:[A-Z]:\\\\(?:[^\\\\]+\\\\){2,})#i', '[***]\\', $message);
+        $message = (string) preg_replace('/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/', '*.*.*.*', $message);
+
+        return $message;
+    }
+
+    protected function sanitizeSqlQuery(string $query): string
+    {
+        $query = (string) preg_replace("/'.+?'/", "'***'", $query);
+        $query = (string) preg_replace('/"[^"]+?"/', '"***"', $query);
+        $query = (string) preg_replace('/\b\d+\b/', '?', $query);
+
+        return $query;
+    }
+
     protected function sanitizeLogContent(string $content): string
     {
-        $content = preg_replace('/password["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'password=***', $content);
-        $content = preg_replace('/token["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'token=***', $content);
-        $content = preg_replace('/(\?|&)accessKey=([^&\s\n]+)/i', '$1accessKey=***', $content);
-        $content = preg_replace('/api[_-]?key["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'api_key=***', $content);
-        $content = preg_replace('/secret["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'secret=***', $content);
-        $content = preg_replace('/Authorization:\s*Bearer\s+[^\s\n]+/i', 'Authorization: Bearer ***', $content);
+        $content = (string) preg_replace('/password["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'password=***', $content);
+        $content = (string) preg_replace('/token["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'token=***', $content);
+        $content = (string) preg_replace('/(\?|&)accessKey=([^&\s\n]+)/i', '$1accessKey=***', $content);
+        $content = (string) preg_replace('/api[_-]?key["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'api_key=***', $content);
+        $content = (string) preg_replace('/secret["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'secret=***', $content);
+        $content = (string) preg_replace(
+            '/Authorization:\s*Bearer\s+[^\s\n]+/i',
+            'Authorization: Bearer ***',
+            $content,
+        );
+
+        $content = (string) preg_replace('/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/', '*.*.*.*', $content);
+        $content = (string) preg_replace('/cookie["\']?\s*[:=]\s*["\']?[^"\'\s,}\n]+/i', 'cookie=***', $content);
+
+        $basePath = str_replace('\\', '/', rtrim((string) BASE_PATH, '/\\'));
+        $content = str_replace([$basePath, str_replace('/', '\\', $basePath)], '[PROJECT_ROOT]', $content);
+
+        $content = (string) preg_replace(
+            '#(?:/[a-zA-Z][a-zA-Z0-9._-]*/){3,}[a-zA-Z0-9._-]+\.php#',
+            '[***].php',
+            $content,
+        );
+        $content = (string) preg_replace('#(?:[A-Z]:\\\\(?:[^\\\\]+\\\\){2,})[^\\\\]+\.php#i', '[***].php', $content);
 
         return $content;
     }

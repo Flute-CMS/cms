@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Installer\Migrations;
 
-use Exception;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\SystemHealth\Migrations\CheckPermissionsMigration;

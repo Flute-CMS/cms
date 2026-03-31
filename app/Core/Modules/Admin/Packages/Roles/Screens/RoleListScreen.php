@@ -210,7 +210,7 @@ class RoleListScreen extends Screen
         $roleId = $parameters->get('role');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority >= user()->getHighestPriority()) {
+        if (!$role || !$this->canManageRole($role)) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
@@ -276,7 +276,7 @@ class RoleListScreen extends Screen
         $roleId = $this->modalParams->get('role');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority >= user()->getHighestPriority()) {
+        if (!$role || !$this->canManageRole($role)) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
@@ -334,7 +334,7 @@ class RoleListScreen extends Screen
         $roleId = request()->input('id');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority >= user()->getHighestPriority()) {
+        if (!$role || !$this->canManageRole($role)) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
@@ -359,9 +359,21 @@ class RoleListScreen extends Screen
             ->fetchAll();
     }
 
+    /**
+     * Whether the current user may change or remove this role (priority rules + admin.boss bypass).
+     */
+    private function canManageRole(Role $role): bool
+    {
+        if (user()->can('admin.boss')) {
+            return true;
+        }
+
+        return $role->priority < user()->getHighestPriority();
+    }
+
     private function reorderRoles(array $roles)
     {
-        $roleIds = array_map(fn($r) => (int) $r['id'], array_reverse($roles));
+        $roleIds = array_map(static fn($r) => (int) $r['id'], array_reverse($roles));
         $allRoles = Role::query()->where('id', 'IN', new Parameter($roleIds))->fetchAll();
         $rolesById = [];
         foreach ($allRoles as $role) {
@@ -372,7 +384,7 @@ class RoleListScreen extends Screen
             $roleId = (int) $roleData['id'];
             $role = $rolesById[$roleId] ?? null;
 
-            if (!$role || $role->priority >= user()->getHighestPriority()) {
+            if (!$role || !$this->canManageRole($role)) {
                 continue;
             }
 

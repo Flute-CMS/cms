@@ -2,13 +2,13 @@
 
 namespace Flute\Core\Modules\Auth\Controllers;
 
-use Exception;
 use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Modules\Auth\Events\SocialLoggedInEvent;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Throwable;
 
 class SocialAuthController extends BaseController
 {

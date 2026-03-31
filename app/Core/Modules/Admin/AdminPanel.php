@@ -2,10 +2,10 @@
 
 namespace Flute\Admin;
 
-use Exception;
 use Flute\Admin\Contracts\AdminPackageInterface;
 use Flute\Core\Router\Router;
 use Flute\Core\Traits\MacroableTrait;
+use Throwable;
 
 /**
  * Class AdminPanel

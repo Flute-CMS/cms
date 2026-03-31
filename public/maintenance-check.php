@@ -155,12 +155,12 @@ if (is_file($vendorAutoload) && !flute_is_locked($lockPath)) {
 
 $payload = flute_payload($storageFlag);
 $age = flute_age($payload, $storageFlag, $publicFlag);
-$hardTimeout = 600; // 10 minutes
+$hardTimeout = 300; // 5 minutes
 
 $isStale = $age >= $hardTimeout;
 
-// PID liveness check (after 30s grace period)
-if (!$isStale && $age >= 30 && !empty($payload['pid'])) {
+// PID liveness check (after 15s grace period)
+if (!$isStale && $age >= 15 && !empty($payload['pid'])) {
     $pid = (int) $payload['pid'];
     if ($pid > 0 && !flute_process_alive($pid)) {
         $isStale = true;

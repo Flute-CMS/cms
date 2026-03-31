@@ -3,6 +3,7 @@
 namespace Flute\Core\SystemHealth;
 
 use Flute\Core\SystemHealth\Migrations\CheckPermissionsMigration;
+use Flute\Core\SystemHealth\Migrations\EnsureUtf8mb4Migration;
 
 /**
  * This class checking system values and migrates them if it needed.
@@ -15,9 +16,10 @@ class SystemHealthCheck
      * Bump this version whenever system migrations change (e.g. new permissions added).
      * This invalidates the cache and forces re-run on next request.
      */
-    protected const SYSTEM_VERSION = 2;
+    protected const SYSTEM_VERSION = 3;
 
     protected array $systemServices = [
+        EnsureUtf8mb4Migration::class,
         CheckPermissionsMigration::class,
     ];
 

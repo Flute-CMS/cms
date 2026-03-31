@@ -2,11 +2,11 @@
 
 namespace Flute\Core\Modules\Auth\Controllers;
 
-use Exception;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class AuthController extends BaseController
 {

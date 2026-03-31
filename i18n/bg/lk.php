@@ -45,7 +45,7 @@ return [
     'you_will_receive' => 'Ще получите',
     'agree_terms' => 'Съгласен съм с',
     'terms_of_offer' => 'условията на офертата',
-    'top_up_button' => 'Заредете :amount :currency_view',
+    'top_up_button' => 'Към плащане',
     'redirect' => 'Пренасочване към страницата за плащане...',
     'payment_form_title' => 'Зареждане на игрови баланс',
     'payment_form_subtitle' => 'Изберете предпочитан метод на плащане и сума',

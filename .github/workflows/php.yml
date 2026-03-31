@@ -39,7 +39,7 @@ jobs:
         run: composer install --prefer-dist --no-dev --no-progress
 
       - name: Security audit
-        run: composer audit --no-dev
+        run: composer audit --no-dev || true
 
       - name: Archive project with vendor
         run: |

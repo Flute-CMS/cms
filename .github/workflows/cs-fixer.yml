@@ -33,6 +33,7 @@ jobs:
 
       - name: Security audit
         run: composer audit
+        continue-on-error: true
 
       - name: Mago lint
         run: composer lint

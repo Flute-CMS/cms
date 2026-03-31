@@ -45,8 +45,12 @@ class RouterServiceProvider extends AbstractServiceProvider
                 ),
             ),
 
+            \Symfony\Contracts\Cache\CacheInterface::class => \DI\factory(
+                static fn(Container $c) => $c->get(\Flute\Core\Cache\Contracts\CacheInterface::class)->getAdapter(),
+            ),
+
             RateLimiterFactory::class => \DI\factory(static function (Container $c) {
-                $storage = new CacheStorage($c->get(\Flute\Core\Cache\Contracts\CacheInterface::class)->getAdapter());
+                $storage = new CacheStorage($c->get(\Symfony\Contracts\Cache\CacheInterface::class));
 
                 $cfg = config('rate_limit', [
                     'policy' => 'fixed_window',

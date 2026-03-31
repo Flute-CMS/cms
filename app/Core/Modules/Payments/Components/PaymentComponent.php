@@ -2,13 +2,13 @@
 
 namespace Flute\Core\Modules\Payments\Components;
 
-use Exception;
 use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Exceptions\PaymentPromoException;
 use Flute\Core\Modules\Payments\Exceptions\PaymentValidationException;
 use Flute\Core\Support\FluteComponent;
 use Nette\Schema\ValidationException;
+use Throwable;
 
 class PaymentComponent extends FluteComponent
 {

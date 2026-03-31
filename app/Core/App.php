@@ -15,7 +15,6 @@ use DI\NotFoundException;
 use Exception;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Contracts\ServiceProviderInterface;
-use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\ModulesManager\Contracts\ModuleServiceProviderInterface;
 use Flute\Core\Profiling\GlobalProfiler;
@@ -49,7 +48,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '1.0.1';
+    public const VERSION = '1.0.3';
 
     /**
      * Set the base path of the application
@@ -243,6 +242,8 @@ final class App
             if (function_exists('logs')) {
                 logs()->error($e);
             }
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'provider.register']);
         }
 
         return $this;
@@ -278,6 +279,8 @@ final class App
                 if (function_exists('logs')) {
                     logs()->error($e);
                 }
+
+                \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'provider.boot']);
             }
         }
 
@@ -522,11 +525,6 @@ final class App
         ]);
 
         if (!( php_sapi_name() === 'cli' || defined('STDIN') )) {
-            if (function_exists('is_performance') && is_performance()) {
-                $containerBuilder->enableCompilation(
-                    BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
-                );
-            }
             $containerBuilder->writeProxiesToFile(
                 true,
                 BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'proxies',
@@ -548,7 +546,7 @@ final class App
             foreach ($listeners as $listener) {
                 try {
                     $instance = new $listener();
-                    $dispatcher->addListener($event, function () use ($instance, $listener) {
+                    $dispatcher->addListener($event, static function () use ($instance, $listener) {
                         try {
                             return $instance->handle(...func_get_args());
                         } catch (\Throwable $e) {
@@ -561,6 +559,8 @@ final class App
                                     'exception' => $e,
                                 ]);
                             }
+
+                            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'event.listener']);
 
                             return null;
                         }
@@ -597,6 +597,10 @@ final class App
     protected function compressResponse(Response $response, FluteRequest $request): void
     {
         if (headers_sent() || $response->headers->has('Content-Encoding')) {
+            return;
+        }
+
+        if (is_debug() && !$request->htmx()->isHtmxRequest()) {
             return;
         }
 
@@ -686,10 +690,19 @@ final class App
         $response = new Response($cached['body'], $cached['status'] ?? 200);
 
         foreach ($cached['headers'] ?? [] as $name => $values) {
+            if ($name === 'cache-control') {
+                continue;
+            }
             $response->headers->set($name, $values);
         }
 
+        $response->setCache([
+            'private' => true,
+            'no_cache' => true,
+            'must_revalidate' => true,
+        ]);
         $response->headers->set('X-Page-Cache', 'HIT');
+        $response->setVary(['HX-Request', 'HX-Boosted'], false);
 
         return $response;
     }
@@ -714,7 +727,7 @@ final class App
 
         $headers = [];
         foreach ($response->headers->all() as $name => $values) {
-            if (in_array($name, ['set-cookie', 'x-debug-token', 'x-debug-token-link'], true)) {
+            if (in_array($name, ['set-cookie', 'x-debug-token', 'x-debug-token-link', 'cache-control'], true)) {
                 continue;
             }
             $headers[$name] = $values;

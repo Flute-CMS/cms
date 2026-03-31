@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Dashboard\Screens;
 
+use Flute\Admin\Packages\AboutSystem\Helpers\AboutSystemHelper;
 use Flute\Admin\Packages\Dashboard\Services\AttentionService;
 use Flute\Admin\Packages\Dashboard\Services\DashboardService;
 use Flute\Admin\Packages\Dashboard\Services\SetupChecklistService;
@@ -152,11 +153,8 @@ class DashboardScreen extends Screen
 
         $paths = array_filter(array_map('trim', explode(PATH_SEPARATOR, $encodedPaths)));
 
-        $normalizedTarget = rtrim(str_replace('\\', '/', $modulesFullPath), '/');
-
         foreach ($paths as $path) {
-            $normalized = rtrim(str_replace('\\', '/', $path), '/');
-            if ($normalized === $normalizedTarget) {
+            if (AboutSystemHelper::ioncubeEncodedPathMatchesModulesDir($path, $modulesFullPath)) {
                 return true;
             }
         }

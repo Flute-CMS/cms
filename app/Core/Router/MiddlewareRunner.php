@@ -45,6 +45,10 @@ class MiddlewareRunner
 
         try {
             return $middleware($request, fn($request) => $this->process($request));
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException $e) { // @mago-expect non-existent-catch-type, no-valid-catch-type-found
+            throw $e;
         } catch (\Throwable $e) {
             if (function_exists('is_debug') && is_debug()) {
                 throw $e;
@@ -53,6 +57,8 @@ class MiddlewareRunner
             if (function_exists('logs')) {
                 logs()->error('Middleware failed: ' . $e->getMessage(), ['exception' => $e]);
             }
+
+            \Flute\Core\Services\CrashReportService::capture($e, ['source' => 'middleware']);
 
             return response()->error(500, __('def.internal_server_error'));
         }

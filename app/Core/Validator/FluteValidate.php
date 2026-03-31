@@ -4,10 +4,10 @@ namespace Flute\Core\Validator;
 
 use Countable;
 use DateTime;
-use Exception;
 use Flute\Core\Validator\Support\ValidatorStr;
 use InvalidArgumentException;
 use MadeSimple\Arrays\ArrDots;
+use Throwable;
 
 class FluteValidate
 {
@@ -347,7 +347,7 @@ class FluteValidate
                 if (in_array($mimeType, $allowedMimeTypes) && in_array($extension, $allowedExtensions)) {
                     $isValidImage = true;
                 }
-            } elseif (is_string($value)) {
+            } elseif (is_string($value) && is_file($value)) {
                 $imageInfo = @getimagesize($value);
 
                 if ($imageInfo !== false) {
@@ -368,6 +368,11 @@ class FluteValidate
                     if (in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
                         $isValidImage = true;
                     }
+                }
+            } elseif (is_string($value)) {
+                $extension = strtolower(pathinfo(parse_url($value, PHP_URL_PATH) ?: $value, PATHINFO_EXTENSION));
+                if (in_array($extension, $allowedExtensions)) {
+                    $isValidImage = true;
                 }
             }
 

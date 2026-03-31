@@ -2,9 +2,9 @@
 
 namespace Flute\Core\Template\Controllers;
 
-use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Template\Template;
+use Throwable;
 
 class YoyoController extends BaseController
 {

@@ -371,6 +371,18 @@ class ThemeManager
             }
 
             if (!array_key_exists($themeName, $themesInDB)) {
+                $existing = Theme::query()
+                    ->load('settings')
+                    ->where(['key' => $themeName])
+                    ->fetchOne();
+
+                if ($existing !== null) {
+                    $themesInDB[$themeName] = $existing;
+                    $this->forgetThemeListCaches();
+                }
+            }
+
+            if (!array_key_exists($themeName, $themesInDB)) {
                 // Create a new Theme entity
                 $newTheme = new Theme();
                 $newTheme->name = $themeData['name'] ?? $themeName;
@@ -395,9 +407,25 @@ class ThemeManager
                     }
                 }
 
-                transaction($newTheme)->run();
-
-                $themesInDB[$themeName] = $newTheme;
+                try {
+                    transaction($newTheme)->run();
+                    $themesInDB[$themeName] = $newTheme;
+                } catch (Throwable $e) {
+                    if ($this->isDuplicateKeyException($e)) {
+                        $this->forgetThemeListCaches();
+                        $recovered = Theme::query()
+                            ->load('settings')
+                            ->where(['key' => $themeName])
+                            ->fetchOne();
+                        if ($recovered !== null) {
+                            $themesInDB[$themeName] = $recovered;
+                        } else {
+                            throw $e;
+                        }
+                    } else {
+                        throw $e;
+                    }
+                }
             }
 
             $themeInDB = $themesInDB[$themeName];
@@ -486,5 +514,27 @@ class ThemeManager
         }
 
         return $result;
+    }
+
+    /**
+     * Drop cached theme lists so the next read matches the database (fixes stale db_rows vs. real rows).
+     */
+    protected function forgetThemeListCaches(): void
+    {
+        cache()->delete('flute.themes.db_rows');
+        cache()->delete('flute.themes.all');
+        $this->allThemes = [];
+    }
+
+    protected function isDuplicateKeyException(Throwable $e): bool
+    {
+        for ($current = $e; $current !== null; $current = $current->getPrevious()) {
+            $msg = $current->getMessage();
+            if (str_contains($msg, '1062') || str_contains($msg, 'Duplicate entry')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

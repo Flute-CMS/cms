@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\MainSettings\Screens;
 
-use Exception;
 use Flute\Admin\Packages\MainSettings\Layouts\DatabaseSettingsLayout;
 use Flute\Admin\Packages\MainSettings\Services\MainSettingsPackageService;
 use Flute\Admin\Platform\Actions\Button;
@@ -302,6 +301,8 @@ class MainSettingsPackageScreen extends Screen
         $debugBefore = (bool) config('app.debug');
         $devBefore = (bool) config('app.development_mode');
         $performanceBefore = (bool) config('app.is_performance');
+        $localeBefore = (string) config('lang.locale');
+        $availableBefore = (array) config('lang.available');
 
         try {
             $save = $this->configService->saveSettings($currentTab, request()->input());
@@ -313,10 +314,15 @@ class MainSettingsPackageScreen extends Screen
                 $devAfter = (bool) config('app.development_mode');
                 $performanceAfter = (bool) config('app.is_performance');
 
+                $localeChanged = $localeBefore !== (string) config('lang.locale');
+                $availableChanged = $availableBefore !== (array) config('lang.available');
+
                 if (
                     $debugBefore !== $debugAfter
                     || $devBefore !== $devAfter
                     || $performanceBefore !== $performanceAfter
+                    || $localeChanged
+                    || $availableChanged
                 ) {
                     $this->clearCache();
                 } else {

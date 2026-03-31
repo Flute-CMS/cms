@@ -3,7 +3,6 @@
 namespace Flute\Admin\Packages\User\Screens;
 
 use DateTimeZone;
-use Exception;
 use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
@@ -64,16 +63,20 @@ class UserEditScreen extends Screen
     {
         $this->usersService = app(AdminUsersService::class);
 
-        $this->userId = (int) request()->input('id');
+        $this->userId = (int) ( request()->input('id') ?: $this->userId );
 
         if (!$this->userId) {
             $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
-            $this->redirectTo('/admin/users', 300);
+            $this->boostRedirect('/admin/users');
 
             return;
         }
 
         $this->initUser();
+
+        if (!$this->user) {
+            return;
+        }
 
         breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
             __('admin-users.title.users'),
@@ -86,6 +89,10 @@ class UserEditScreen extends Screen
      */
     public function commandBar(): array
     {
+        if (!$this->user) {
+            return [];
+        }
+
         $buttons = [
             Button::make(__('admin-users.buttons.to_profile'))
                 ->type(Color::OUTLINE_PRIMARY)
@@ -95,7 +102,7 @@ class UserEditScreen extends Screen
             Button::make(__('admin-users.buttons.cancel'))->type(Color::OUTLINE_PRIMARY)->redirect('/admin/users'),
         ];
 
-        if (user()->can($this->user)) {
+        if ($this->canEditDisplayedUser()) {
             $buttons[] = Button::make(__('admin-users.buttons.save'))
                 ->type(Color::PRIMARY)
                 ->icon('ph.bold.floppy-disk-bold')
@@ -110,6 +117,10 @@ class UserEditScreen extends Screen
      */
     public function layout(): array
     {
+        if (!$this->user) {
+            return [];
+        }
+
         return [
             LayoutFactory::tabs([
                 Tab::make(__('admin-users.tabs.main'))
@@ -154,7 +165,7 @@ class UserEditScreen extends Screen
      */
     public function saveUser()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -163,31 +174,46 @@ class UserEditScreen extends Screen
         $data = request()->input();
         $files = request()->files;
 
+        // FilePond sets {name}_clear=1 when user removes the file
+        $removeAvatar = ( $data['avatar_clear'] ?? '0' ) === '1';
+        $removeBanner = ( $data['banner_clear'] ?? '0' ) === '1';
+
+        // Don't validate avatar/banner URL strings
+        unset($data['avatar'], $data['banner'], $data['avatar_clear'], $data['banner_clear']);
+
         if (isset($data['roles']) && !user()->can('admin.roles')) {
             $this->flashMessage(__('admin-users.messages.no_permission_roles'), 'error');
 
             return;
         }
 
-        $validation = $this->validate([
+        $rules = [
             'name' => ['required', 'string', 'max-str-len:255'],
             'login' => ['nullable', 'string', 'max-str-len:255', 'unique:users,login,' . $this->userId],
             'uri' => ['nullable', 'string', 'max-str-len:255', 'unique:users,uri,' . $this->userId],
             'email' => ['nullable', 'email', 'max-str-len:255', 'unique:users,email,' . $this->userId],
-            'avatar' => ['nullable', 'image', 'max-file-size:10'],
-            'banner' => ['nullable', 'image', 'max-file-size:10'],
             'balance' => ['required', 'numeric', 'min:0'],
             'roles' => ['nullable', 'array'],
             'verified' => ['sometimes', 'boolean'],
             'hidden' => ['sometimes', 'boolean'],
-        ], $data);
+        ];
+
+        if ($files->has('avatar') && $files->get('avatar')->isValid()) {
+            $rules['avatar'] = ['nullable', 'image', 'max-file-size:10'];
+        }
+
+        if ($files->has('banner') && $files->get('banner')->isValid()) {
+            $rules['banner'] = ['nullable', 'image', 'max-file-size:10'];
+        }
+
+        $validation = $this->validate($rules, $data);
 
         if (!$validation) {
             return;
         }
 
         try {
-            $this->usersService->saveUser($this->user, $data, $files);
+            $this->usersService->saveUser($this->user, $data, $files, $removeAvatar, $removeBanner);
             $this->flashMessage(__('admin-users.messages.save_success'), 'success');
             $this->initUser();
         } catch (Throwable $e) {
@@ -200,7 +226,7 @@ class UserEditScreen extends Screen
      */
     public function verifyUserEmail()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -217,7 +243,7 @@ class UserEditScreen extends Screen
      */
     public function sendVerificationEmail()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -248,7 +274,7 @@ class UserEditScreen extends Screen
      */
     public function applyPendingEmail()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -271,7 +297,7 @@ class UserEditScreen extends Screen
      */
     public function cancelPendingEmail()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -288,7 +314,7 @@ class UserEditScreen extends Screen
      */
     public function blockUser()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -308,7 +334,7 @@ class UserEditScreen extends Screen
      */
     public function unblockUser()
     {
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
@@ -596,7 +622,7 @@ class UserEditScreen extends Screen
             return;
         }
 
-        if (!user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
 
             return;
@@ -670,7 +696,7 @@ class UserEditScreen extends Screen
 
         if (!$this->user) {
             $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
-            $this->redirectTo('/admin/users', 300);
+            $this->boostRedirect('/admin/users');
 
             return;
         }
@@ -689,11 +715,20 @@ class UserEditScreen extends Screen
     }
 
     /**
+     * Whether the current admin may edit the user on this screen.
+     * Avoids passing null into UserService::can() when state is not hydrated (e.g. live requests).
+     */
+    protected function canEditDisplayedUser(): bool
+    {
+        return $this->user instanceof User && user()->can($this->user);
+    }
+
+    /**
      * Main tab layout.
      */
     private function mainTabLayout()
     {
-        $canEditUser = user()->can($this->user);
+        $canEditUser = $this->canEditDisplayedUser();
         $isCurrentUser = user()->getCurrentUser()?->id === $this->user?->id;
         $canManageRoles = user()->can('admin.roles');
         $canResetPassword = user()->can('admin.users');
@@ -1190,7 +1225,7 @@ class UserEditScreen extends Screen
 
     protected function hasEmailActions(): bool
     {
-        if (!$this->user || !user()->can($this->user)) {
+        if (!$this->canEditDisplayedUser()) {
             return false;
         }
 

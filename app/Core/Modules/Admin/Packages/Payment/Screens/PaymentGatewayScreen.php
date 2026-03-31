@@ -3,7 +3,6 @@
 namespace Flute\Admin\Packages\Payment\Screens;
 
 use Carbon\Carbon;
-use Exception;
 use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
@@ -15,6 +14,7 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
+use Throwable;
 
 class PaymentGatewayScreen extends Screen
 {

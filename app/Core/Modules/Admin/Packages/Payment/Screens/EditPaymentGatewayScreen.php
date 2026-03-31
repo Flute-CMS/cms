@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Payment\Screens;
 
-use Exception;
 use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\ButtonGroup;
@@ -17,6 +16,7 @@ use Flute\Core\Modules\Payments\Factories\PaymentDriverFactory;
 use Flute\Core\Support\FileUploader;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Throwable;
 
 class EditPaymentGatewayScreen extends Screen
 {
@@ -32,7 +32,7 @@ class EditPaymentGatewayScreen extends Screen
 
     public bool $isEditMode = false;
 
-    protected $id = null;
+    public ?int $id = null;
 
     protected ?array $availableDrivers = null;
 
@@ -45,7 +45,7 @@ class EditPaymentGatewayScreen extends Screen
         $this->paymentService = app(PaymentService::class);
         $this->driverFactory = app(PaymentDriverFactory::class);
 
-        $this->id = (int) request()->input('id');
+        $this->id = (int) ( request()->input('id') ?: $this->id );
 
         // Read driverKey from request (sent by Yoyo select on change)
         $requestDriverKey = request()->input('driverKey');

@@ -85,6 +85,7 @@ use Flute\Core\ServiceProviders\EventsServiceProvider;
 use Flute\Core\ServiceProviders\FileSystemServiceProvider;
 use Flute\Core\ServiceProviders\FlashServiceProvider;
 use Flute\Core\ServiceProviders\FooterServiceProvider;
+use Flute\Core\ServiceProviders\GameServerServiceProvider;
 use Flute\Core\ServiceProviders\LoggerServiceProvider;
 use Flute\Core\ServiceProviders\ModulesServiceProvider;
 use Flute\Core\ServiceProviders\NavbarServiceProvider;
@@ -158,6 +159,7 @@ $app->serviceProvider(FileSystemServiceProvider::class)
     ->serviceProvider(ThrottlerServiceProvider::class)
     ->serviceProvider(PaymentServiceProvider::class)
     ->serviceProvider(SteamServiceProvider::class)
+    ->serviceProvider(GameServerServiceProvider::class)
     ->serviceProvider(UpdateServiceProvider::class)
     ->serviceProvider(ModulesServiceProvider::class)
     ->serviceProvider(ProfileServiceProvider::class)
@@ -183,7 +185,11 @@ $app->bootServiceProviders();
 /**
  * Register shutdown function to stop profiling
  */
-register_shutdown_function(function() {
+if (!defined('FLUTE_DEBUG')) {
+    define('FLUTE_DEBUG', function_exists('is_debug') && is_debug());
+}
+
+register_shutdown_function(function () {
     GlobalProfiler::stop();
 });
 

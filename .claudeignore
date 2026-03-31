@@ -1,0 +1,61 @@
+# Dependencies
+vendor/
+node_modules/
+
+# Config overrides (secrets)
+config-dev/
+
+# Storage (runtime data)
+storage/logs/
+storage/app/cache/
+storage/app/views/
+storage/app/translations/
+storage/app/cache_stale/
+storage/app/orm_schema.php
+storage/app/orm_schema.php.stale
+storage/app/orm_schema.meta.php*
+storage/app/*.lock
+
+# Public cached assets
+public/assets/img/cache/
+public/assets/css/cache/
+public/assets/js/cache/
+public/assets/img/cache_stale/
+public/assets/css/cache_stale/
+public/assets/js/cache_stale/
+
+# Docker data
+docker/logs/
+
+# IDE
+.vscode/
+.idea/
+.specstory/
+.kiro/
+.dev/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Binary/large files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.min.js
+*.min.css
+*.map
+
+# Lock files
+composer.lock
+
+# Misc
+colors.json
+mago-baseline.toml

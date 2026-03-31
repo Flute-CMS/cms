@@ -24,13 +24,13 @@ class EditRedirectScreen extends Screen
 
     public bool $isEditMode = false;
 
-    protected $id = null;
+    public ?int $id = null;
 
     public function mount(): void
     {
         $this->loadJS('app/Core/Modules/Admin/Packages/Redirects/Resources/assets/js/conditions-editor.js');
 
-        $this->id = (int) request()->input('id');
+        $this->id = (int) ( request()->input('id') ?: $this->id );
 
         if ($this->id) {
             $this->redirectEntity = Redirect::query()

@@ -5,6 +5,7 @@ namespace Flute\Admin\Packages\Logs\Services;
 use Exception;
 use FilesystemIterator;
 use Flute\Core\Services\LoggerService;
+use Throwable;
 
 class LogViewerService
 {

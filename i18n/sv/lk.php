@@ -45,7 +45,7 @@ return [
     'you_will_receive' => 'Du kommer att få',
     'agree_terms' => 'Jag godkänner',
     'terms_of_offer' => 'Villkor för erbjudande',
-    'top_up_button' => 'Fyll på :amount :currency_view',
+    'top_up_button' => 'Gå till betalning',
     'redirect' => 'Omdirigerar till betalningssidan...',
     'payment_form_title' => 'Spelets balans överst',
     'payment_form_subtitle' => 'Välj önskad betalningsmetod och belopp',

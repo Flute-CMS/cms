@@ -2,6 +2,8 @@
 
 namespace Flute\Core\ModulesManager;
 
+use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
+
 /**
  * Класс ModuleFinder отвечает за поиск всех модулей и их JSON файлов.
  */
@@ -49,12 +51,16 @@ class ModuleFinder
 
             // Fallback: handle rare cases where archive/unpack adds an extra wrapper directory.
             // Keep it shallow to avoid expensive recursive scans on every subdirectory.
-            $jsonFinder = finder();
-            $jsonFinder->files()->name('module.json')->in($moduleDir)->depth('== 1');
+            try {
+                $jsonFinder = finder();
+                $jsonFinder->files()->name('module.json')->in($moduleDir)->depth('== 1');
 
-            $iterator = $jsonFinder->getIterator();
-            if ($iterator->valid()) {
-                $allModules[$item] = $iterator->current()->getRealPath();
+                $iterator = $jsonFinder->getIterator();
+                if ($iterator->valid()) {
+                    $allModules[$item] = $iterator->current()->getRealPath();
+                }
+            } catch (DirectoryNotFoundException) {
+                continue;
             }
         }
 
@@ -66,6 +72,15 @@ class ModuleFinder
      */
     public static function getModuleJson(string $jsonPath): string
     {
-        return file_get_contents($jsonPath);
+        if (!is_file($jsonPath)) {
+            throw new \RuntimeException("module.json not found: {$jsonPath}");
+        }
+
+        $contents = file_get_contents($jsonPath);
+        if ($contents === false) {
+            throw new \RuntimeException("Unable to read module.json: {$jsonPath}");
+        }
+
+        return $contents;
     }
 }

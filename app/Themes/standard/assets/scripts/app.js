@@ -181,6 +181,18 @@ class FluteApp {
     }
 
     setupHtmxEvents() {
+        if (typeof document.startViewTransition !== 'function') {
+            document.querySelectorAll('[hx-swap*="transition:true"]').forEach(el => {
+                el.setAttribute('hx-swap', el.getAttribute('hx-swap').replace(/\s*transition:true/g, ''));
+            });
+            htmx.on('htmx:afterProcessNode', (evt) => {
+                const el = evt.detail.elt;
+                if (el && el.getAttribute && (el.getAttribute('hx-swap') || '').includes('transition:true')) {
+                    el.setAttribute('hx-swap', el.getAttribute('hx-swap').replace(/\s*transition:true/g, ''));
+                }
+            });
+        }
+
         window.addEventListener("htmx:sendError", (evt) => {
             const lang = document.querySelector("html").getAttribute("lang");
             const message =
@@ -230,26 +242,25 @@ class FluteApp {
             }
         });
 
-        // Handle navbar on page change
-        htmx.on("htmx:afterSwap", (event) => {
-            if (event.detail.target.tagName.toLowerCase() === "main") {
+        const NAV_ACTIVE_SELECTORS = [
+            ".navbar-dropdown__items > a.navbar-dropdown__item",
+            ".sidebar-nav__items > a.sidebar-nav__item",
+            ".sidebar-nav__submenu a.sidebar-nav__subitem",
+        ];
 
-                const navbarItems = document.querySelectorAll(
-                    ".navbar__items-item"
-                );
-                navbarItems.forEach((item) => item.classList.remove("active"));
-
-                const currentPath = event.detail.pathInfo.requestPath || "/";
+        function updateNavActive(currentPath) {
+            NAV_ACTIVE_SELECTORS.forEach((selector) => {
+                const items = document.querySelectorAll(selector);
+                items.forEach((item) => item.classList.remove("active"));
 
                 let bestMatch = null;
                 let bestMatchLength = -1;
 
-                navbarItems.forEach((item) => {
+                items.forEach((item) => {
                     const href = item.getAttribute("href");
                     if (!href) return;
 
-                    const itemPath = new URL(href, window.location.origin)
-                        .pathname;
+                    const itemPath = new URL(href, window.location.origin).pathname;
 
                     if (itemPath === "/" && currentPath !== "/") {
                         return;
@@ -267,6 +278,13 @@ class FluteApp {
                 if (bestMatch) {
                     bestMatch.classList.add("active");
                 }
+            });
+        }
+
+        // Handle navbar on page change
+        htmx.on("htmx:afterSwap", (event) => {
+            if (event.detail.target.tagName.toLowerCase() === "main") {
+                updateNavActive(event.detail.pathInfo.requestPath || "/");
             }
         });
 
@@ -275,39 +293,7 @@ class FluteApp {
                 top: 0,
                 behavior: "instant",
             });
-
-            const navbarItems = document.querySelectorAll(
-                ".navbar__items-item"
-            );
-            navbarItems.forEach((item) => item.classList.remove("active"));
-
-            const currentPath = new URL(window.location.href).pathname || "/";
-
-            let bestMatch = null;
-            let bestMatchLength = -1;
-
-            navbarItems.forEach((item) => {
-                const href = item.getAttribute("href");
-                if (!href) return;
-
-                const itemPath = new URL(href, window.location.origin).pathname;
-
-                if (itemPath === "/" && currentPath !== "/") {
-                    return;
-                }
-
-                if (
-                    currentPath.startsWith(itemPath) &&
-                    itemPath.length > bestMatchLength
-                ) {
-                    bestMatch = item;
-                    bestMatchLength = itemPath.length;
-                }
-            });
-
-            if (bestMatch) {
-                bestMatch.classList.add("active");
-            }
+            updateNavActive(new URL(window.location.href).pathname || "/");
         });
 
         window.addEventListener("htmx:configRequest", (evt) => {
@@ -1461,6 +1447,9 @@ class ModalManager {
     }
 }
 
+const TOOLTIP_HIDE_DELAY_SIMPLE_MS = 200;
+const TOOLTIP_HIDE_DELAY_INTERACTIVE_MS = 380;
+
 /**
  * Tooltip management
  */
@@ -1471,6 +1460,8 @@ class TooltipManager {
         this.activeElement = null;
         this.observer = null;
         this.lastTooltipContent = "";
+        this.hideTimeout = null;
+        this.isInteractive = false;
         this.initTooltipEvents();
         this.initMutationObserver();
     }
@@ -1478,12 +1469,29 @@ class TooltipManager {
     initTooltipEvents() {
         document.body.addEventListener("mouseover", (event) => {
             const target = event.target.closest("[data-tooltip]");
-            if (target) this.showTooltip(target);
+            if (target) {
+                clearTimeout(this.hideTimeout);
+                this.showTooltip(target);
+            }
         });
 
         document.body.addEventListener("mouseout", (event) => {
             const target = event.target.closest("[data-tooltip]");
-            if (target) this.hideTooltip(target);
+            if (!target) return;
+
+            const related = event.relatedTarget;
+            if (related instanceof Node) {
+                if (target.contains(related)) return;
+                if (this.tooltipEl && this.tooltipEl.contains(related)) return;
+            }
+
+            clearTimeout(this.hideTimeout);
+            const delay = this.isInteractive
+                ? TOOLTIP_HIDE_DELAY_INTERACTIVE_MS
+                : TOOLTIP_HIDE_DELAY_SIMPLE_MS;
+            this.hideTimeout = setTimeout(() => {
+                this.hideTooltip(target);
+            }, delay);
         });
 
         window.addEventListener("beforeunload", () => {
@@ -1752,12 +1760,35 @@ class TooltipManager {
             this.tooltipEl = document.createElement("div");
             this.tooltipEl.className = "tooltip";
             document.body.appendChild(this.tooltipEl);
+
+            this.tooltipEl.addEventListener("mouseenter", () => {
+                clearTimeout(this.hideTimeout);
+            });
+
+            this.tooltipEl.addEventListener("mouseleave", (event) => {
+                if (!this.isInteractive || !this.activeElement) return;
+                const related = event.relatedTarget;
+                if (related instanceof Node) {
+                    if (this.activeElement.contains(related)) return;
+                    if (this.tooltipEl.contains(related)) return;
+                }
+                clearTimeout(this.hideTimeout);
+                this.hideTimeout = setTimeout(() => {
+                    if (this.activeElement) {
+                        this.hideTooltip(this.activeElement);
+                    }
+                }, TOOLTIP_HIDE_DELAY_INTERACTIVE_MS);
+            });
         }
+
+        this.isInteractive = isHtmlContent;
 
         if (isHtmlContent) {
             this.tooltipEl.innerHTML = content;
+            this.tooltipEl.style.pointerEvents = "auto";
         } else {
             this.tooltipEl.textContent = content;
+            this.tooltipEl.style.pointerEvents = "none";
         }
         this.tooltipEl.classList.add("show");
         this.activeElement = element;
@@ -1806,9 +1837,14 @@ class TooltipManager {
     }
 
     hideTooltip(element) {
+        clearTimeout(this.hideTimeout);
+
         if (this.tooltipEl) {
             this.tooltipEl.classList.remove("show");
+            this.tooltipEl.style.pointerEvents = "none";
         }
+
+        this.isInteractive = false;
 
         if (this.activeElement === element) {
             this.activeElement = null;
@@ -1825,9 +1861,14 @@ class TooltipManager {
     }
 
     hideAllTooltips() {
+        clearTimeout(this.hideTimeout);
+
         if (this.tooltipEl) {
             this.tooltipEl.classList.remove("show");
+            this.tooltipEl.style.pointerEvents = "none";
         }
+
+        this.isInteractive = false;
 
         if (this.activeElement) {
             this.hideTooltip(this.activeElement);
@@ -2639,8 +2680,10 @@ class ConfirmationManager {
                     ?.getAttribute("content") ?? '',
             };
 
-            const componentName = yoyoComponent.getAttribute("yoyo:name");
-            requestData["component"] = `${componentName}/${action}`;
+            if (!requestData["component"]) {
+                const componentName = yoyoComponent.getAttribute("yoyo:name");
+                requestData["component"] = `${componentName}/${action}`;
+            }
 
             if (requestData["actionArgs"]) {
                 requestData["actionArgs"] = JSON.stringify(

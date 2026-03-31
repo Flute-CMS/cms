@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Update\Screens;
 
-use Exception;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Core\App;
@@ -48,16 +47,25 @@ class UpdateScreen extends Screen
      */
     public function layout(): array
     {
+        $activeChannel = $this->updateService->getChannel();
+        $otherChannel = $activeChannel === 'stable' ? 'early' : 'stable';
+
         $updates = $this->updateService->getAvailableUpdates();
+        $otherUpdates = $this->updateService->getAllVersionsForChannel($otherChannel);
 
         return [
             LayoutFactory::view('admin-update::components.javascript'),
 
             LayoutFactory::view('admin-update::layouts.update-center', [
                 'current_version' => App::VERSION,
+                'active_channel' => $activeChannel,
                 'update' => $updates['cms'] ?? null,
                 'modules' => $updates['modules'] ?? [],
                 'themes' => $updates['themes'] ?? [],
+                'other_channel' => $otherChannel,
+                'other_update' => $otherUpdates['cms'] ?? null,
+                'other_modules' => $otherUpdates['modules'] ?? [],
+                'other_themes' => $otherUpdates['themes'] ?? [],
             ]),
         ];
     }
@@ -106,8 +114,6 @@ class UpdateScreen extends Screen
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
-
-        $maintenanceEnabled = $this->enableUpdateMaintenance();
 
         try {
             $data = request()->all();
@@ -167,8 +173,6 @@ class UpdateScreen extends Screen
             }
             logs()->error('Update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
-        } finally {
-            $this->disableUpdateMaintenance($maintenanceEnabled ?? false);
         }
     }
 
@@ -183,8 +187,6 @@ class UpdateScreen extends Screen
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
-
-        $maintenanceEnabled = $this->enableUpdateMaintenance();
 
         try {
             $this->flashMessage(__('admin-update.update_all_preparing'));
@@ -297,8 +299,59 @@ class UpdateScreen extends Screen
             }
             logs()->error('Bulk update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
-        } finally {
-            $this->disableUpdateMaintenance($maintenanceEnabled ?? false);
+        }
+    }
+
+    /**
+     * Install a specific CMS version from the catalog (upgrade or rollback)
+     */
+    public function handleInstallVersion(): void
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
+
+        try {
+            $data = request()->all();
+            $version = $data['version'] ?? null;
+
+            if (empty($version)) {
+                throw new InvalidArgumentException(__('admin-update.no_version_selected'));
+            }
+
+            $this->flashMessage(__('admin-update.update_downloading'));
+            $packageFile = $this->updateService->downloadVersionFromCatalog($version);
+
+            if (empty($packageFile) || !file_exists($packageFile)) {
+                throw new RuntimeException(__('admin-update.update_failed'));
+            }
+
+            $this->flashMessage(__('admin-update.update_extracting'));
+
+            $success = ( new CmsUpdater() )->update(['package_file' => $packageFile]);
+
+            if ($success) {
+                $this->updateService->clearCache();
+                app(ModuleManager::class)->clearCache();
+
+                if (file_exists($packageFile)) {
+                    @unlink($packageFile);
+                }
+
+                $this->flashMessage(__('admin-update.version_installed', ['version' => $version]));
+                $this->triggerSidebarRefresh();
+            } else {
+                throw new RuntimeException(__('admin-update.update_failed'));
+            }
+        } catch (Throwable $e) {
+            if (is_debug()) {
+                throw $e;
+            }
+            logs()->error('Version install error: ' . $e->getMessage());
+            $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
         }
     }
 
@@ -335,63 +388,5 @@ class UpdateScreen extends Screen
     protected function triggerSidebarRefresh(): void
     {
         $this->dispatchBrowserEvent('sidebar-refresh');
-    }
-
-    private function enableUpdateMaintenance(): bool
-    {
-        $basePath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/';
-        $storageFlag = $basePath . 'storage/app/.maintenance-composer';
-        $publicFlag = $basePath . 'public/.maintenance-composer';
-
-        $existed = is_file($storageFlag) || is_file($publicFlag);
-        if ($existed) {
-            return false;
-        }
-
-        @mkdir(dirname($storageFlag), 0o775, true);
-        @mkdir(dirname($publicFlag), 0o775, true);
-
-        $payload = [
-            'title' => 'Maintenance',
-            'message' => 'Update in progress, please try again shortly.',
-            'started_at' => date(DATE_ATOM),
-            'pid' => getmypid(),
-            'force' => false,
-            'source' => 'flute-admin-update',
-        ];
-
-        @file_put_contents($storageFlag, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        @file_put_contents($publicFlag, '1');
-
-        return true;
-    }
-
-    private function disableUpdateMaintenance(bool $enabledByThisCall): void
-    {
-        if (!$enabledByThisCall) {
-            return;
-        }
-
-        $basePath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/';
-        $storageFlag = $basePath . 'storage/app/.maintenance-composer';
-        $publicFlag = $basePath . 'public/.maintenance-composer';
-
-        $payload = [];
-        if (is_file($storageFlag)) {
-            $raw = @file_get_contents($storageFlag);
-            if (is_string($raw) && $raw !== '') {
-                $decoded = json_decode($raw, true);
-                if (is_array($decoded)) {
-                    $payload = $decoded;
-                }
-            }
-        }
-
-        if (!empty($payload['force'])) {
-            return;
-        }
-
-        @unlink($storageFlag);
-        @unlink($publicFlag);
     }
 }

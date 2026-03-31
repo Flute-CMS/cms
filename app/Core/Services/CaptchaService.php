@@ -2,7 +2,7 @@
 
 namespace Flute\Core\Services;
 
-use Exception;
+use Throwable;
 
 class CaptchaService
 {

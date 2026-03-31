@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Server\Screens;
 
-use Exception;
 use Flute\Admin\Packages\MainSettings\Services\MainSettingsPackageService;
 use Flute\Admin\Packages\Server\Services\AdminServersService;
 use Flute\Admin\Platform\Actions\Button;
@@ -23,6 +22,7 @@ use Flute\Core\Rcon\RconService;
 use Flute\Core\ServerQuery\ServerQueryService;
 use Illuminate\Support\Str;
 use PDO;
+use Throwable;
 
 class ServerEditScreen extends Screen
 {
@@ -66,7 +66,7 @@ class ServerEditScreen extends Screen
     public function mount(): void
     {
         $this->serversService = app(AdminServersService::class);
-        $this->serverId = (int) request()->input('id');
+        $this->serverId = (int) ( request()->input('id') ?: $this->serverId );
 
         if ($this->serverId) {
             $this->initServer();

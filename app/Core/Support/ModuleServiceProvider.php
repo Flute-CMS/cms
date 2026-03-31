@@ -340,6 +340,15 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
+        $moduleRoot = $this->getModulePath();
+        if (!is_dir($moduleRoot)) {
+            logs('modules')->warning(
+                "Module {$this->getModuleName()} is registered but its directory is missing; skipping attribute routes.",
+            );
+
+            return;
+        }
+
         $httpControllersPath = $this->getModulePath('Http/Controllers');
         $controllersPath = $this->getModulePath('Controllers');
 
@@ -390,10 +399,14 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                 );
 
                 foreach ($submodules as $submodule) {
-                    $controllersPath = $submodulesPath . '/' . $submodule['controllers_relative_path'];
+                    $subControllersPath = $submodulesPath . '/' . $submodule['controllers_relative_path'];
+                    if (!is_dir($subControllersPath)) {
+                        continue;
+                    }
+
                     $submoduleNamespace =
                         "Flute\\Modules\\{$this->getModuleName()}\\Submodules\\" . $submodule['name'] . "\\Controllers";
-                    router()->registerAttributeRoutes([$controllersPath], $submoduleNamespace);
+                    router()->registerAttributeRoutes([$subControllersPath], $submoduleNamespace);
                 }
             }
 
@@ -622,9 +635,20 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     protected function getModuleManifest(): array
     {
-        if (is_debug()) {
-            $base = $this->getModulePath();
+        $base = $this->getModulePath();
+        if (!is_dir($base)) {
+            return [
+                'hasEntities' => false,
+                'hasConfigs' => false,
+                'hasTranslations' => false,
+                'hasViewPages' => false,
+                'hasControllers' => false,
+                'hasComponents' => false,
+                'hasWidgets' => false,
+            ];
+        }
 
+        if (is_debug()) {
             return [
                 'hasEntities' => is_dir($base . '/database/Entities'),
                 'hasConfigs' => is_dir($base . '/Resources/config'),
@@ -641,9 +665,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
         $manifest = cache()->callback(
             $cacheKey,
-            function () {
-                $base = $this->getModulePath();
-
+            static function () use ($base) {
                 return [
                     'hasEntities' => is_dir($base . '/database/Entities'),
                     'hasConfigs' => is_dir($base . '/Resources/config'),

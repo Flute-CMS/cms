@@ -39,6 +39,7 @@ class LoggerService
 
         $logger->pushProcessor(new IntrospectionProcessor());
         $logger->pushProcessor(new WebProcessor());
+        $logger->pushProcessor(self::crashReportProcessor());
 
         $handler = new RotatingFileHandler($logFile, self::MAX_FILES, $logLevel, true, 0o666, true);
 
@@ -114,6 +115,64 @@ class LoggerService
         $name = strtolower(trim($name));
 
         return $name !== '' ? $name : 'flute';
+    }
+
+    private static function crashReportProcessor(): callable
+    {
+        $isMonolog3 = class_exists(\Monolog\LogRecord::class);
+
+        return static function ($record) use ($isMonolog3) {
+            if ($isMonolog3) {
+                /** @var \Monolog\LogRecord $record */
+                $level = $record->level->value;
+                $context = $record->context;
+                $channel = $record->channel;
+                $message = $record->message;
+                $extra = $record->extra;
+            } else {
+                /** @var array{level: int, context: array<string, mixed>, channel: string, message: string, extra: array<string, mixed>} $record */
+                $level = $record['level'];
+                $context = $record['context'];
+                $channel = $record['channel'];
+                $message = $record['message'];
+                $extra = $record['extra'];
+            }
+
+            /** @var int $level */
+            /** @var string $channel */
+            /** @var string $message */
+            /** @var array<string, mixed> $context */
+            /** @var array<string, mixed> $extra */
+
+            $errorThreshold = $isMonolog3 ? \Monolog\Level::Error->value : 400;
+
+            if ($level < $errorThreshold) {
+                return $record;
+            }
+
+            if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
+                CrashReportService::capture($context['exception'], [
+                    'source' => 'log.' . $channel,
+                ]);
+
+                return $record;
+            }
+
+            $text = trim($message);
+
+            CrashReportService::capture(
+                new \ErrorException(
+                    $text,
+                    0,
+                    E_ERROR,
+                    (string) ( $extra['file'] ?? __FILE__ ),
+                    (int) ( $extra['line'] ?? 0 ),
+                ),
+                ['source' => 'log.' . $channel],
+            );
+
+            return $record;
+        };
     }
 
     protected function createDynamicLogger(string $name): void

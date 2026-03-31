@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Packages\Pages\Screens;
 
-use Exception;
 use Flute\Admin\Packages\Pages\Services\AdminPagesService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
@@ -42,7 +41,7 @@ class PageEditScreen extends Screen
      */
     public function mount(): void
     {
-        $this->pageId = (int) request()->input('id');
+        $this->pageId = (int) ( request()->input('id') ?: $this->pageId );
 
         if ($this->pageId) {
             $this->initPage();

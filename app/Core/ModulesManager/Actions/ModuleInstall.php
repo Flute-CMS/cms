@@ -14,6 +14,7 @@ use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Support\AbstractModuleInstaller;
 use Flute\Core\Theme\ThemeManager;
 use RuntimeException;
+use Throwable;
 
 class ModuleInstall implements ModuleActionInterface
 {
