@@ -2680,8 +2680,10 @@ class ConfirmationManager {
                     ?.getAttribute("content") ?? '',
             };
 
-            const componentName = yoyoComponent.getAttribute("yoyo:name");
-            requestData["component"] = `${componentName}/${action}`;
+            if (!requestData["component"]) {
+                const componentName = yoyoComponent.getAttribute("yoyo:name");
+                requestData["component"] = `${componentName}/${action}`;
+            }
 
             if (requestData["actionArgs"]) {
                 requestData["actionArgs"] = JSON.stringify(

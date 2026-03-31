@@ -376,7 +376,7 @@ count = 1
 file = "app/Core/App.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Core\is_debug` (also tried as `is_debug` in a broader scope).'
-count = 4
+count = 6
 
 [[issues]]
 file = "app/Core/App.php"
@@ -4238,12 +4238,6 @@ count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "invalid-return-statement"
-message = 'Invalid return type for function `flute\admin\packages\aboutsystem\controllers\systemreportcontroller::sanitizelogcontent`: expected `string`, but found `array<array-key, string>|null|string`.'
-count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "less-specific-argument"
 message = "Argument type mismatch for argument #1 of `strlen`: expected `string`, but provided type `array-key` is less specific."
 count = 1
@@ -4492,13 +4486,13 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #2 of `Flute\Admin\Packages\AboutSystem\Controllers\SystemReportController::formatkeyvalue`: expected `string`, but found `mixed`.'
-count = 9
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #2 of `Flute\Admin\Packages\AboutSystem\Controllers\SystemReportController::formatkeyvalue`: expected `string`, but found `nonnull`.'
-count = 20
+count = 17
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4684,7 +4678,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 56
+count = 55
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4702,7 +4696,7 @@ count = 6
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-method-access"
 message = "Attempting to access a method on a non-object type (`mixed`)."
-count = 14
+count = 12
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4725,12 +4719,6 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-operand"
-message = "Invalid middle operand: type `mixed` cannot be reliably used in string concatenation."
-count = 2
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "mixed-operand"
 message = "Invalid middle operand: type `nonnull` cannot be reliably used in string concatenation."
 count = 2
 
@@ -4738,7 +4726,7 @@ count = 2
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "mixed-operand"
 message = "Invalid right operand: type `mixed` cannot be reliably used in string concatenation."
-count = 4
+count = 3
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4820,6 +4808,12 @@ count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
+code = "non-existent-constant"
+message = 'Undefined constant: `Flute\Admin\Packages\AboutSystem\Controllers\BASE_PATH`.'
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\AboutSystem\Controllers\app` (also tried as `app` in a broader scope).'
 count = 3
@@ -4828,7 +4822,7 @@ count = 3
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\AboutSystem\Controllers\config` (also tried as `config` in a broader scope).'
-count = 8
+count = 7
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4846,7 +4840,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\AboutSystem\Controllers\path` (also tried as `path` in a broader scope).'
-count = 8
+count = 7
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4859,12 +4853,6 @@ file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportCont
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\AboutSystem\Controllers\storage_path` (also tried as `storage_path` in a broader scope).'
 count = 7
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "nullable-return-statement"
-message = 'Function `flute\admin\packages\aboutsystem\controllers\systemreportcontroller::sanitizelogcontent` is declared to return `string` but possibly returns a nullable value (inferred as `array<array-key, string>|null|string`).'
-count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4882,7 +4870,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
 code = "possibly-false-argument"
 message = "Argument #1 of function `substr` is possibly `false`, but parameter type `string` does not accept it."
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -4925,12 +4913,6 @@ file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportCont
 code = "possibly-invalid-argument"
 message = "Possible argument type mismatch for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but possibly received `bool|float|non-empty-list<string>|positive-int|string`."
 count = 1
-
-[[issues]]
-file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
-code = "possibly-null-argument"
-message = "Argument #3 of function `preg_replace` is possibly `null`, but parameter type `array<array-key, string>|string` does not accept it."
-count = 5
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/AboutSystem/Controllers/SystemReportController.php"
@@ -9808,7 +9790,7 @@ count = 10
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "invalid-method-access"
 message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\HttpFoundation\FileBag)`).'
-count = 8
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9820,7 +9802,7 @@ count = 10
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "invalid-property-access"
 message = 'Attempting to access a property on a non-object type (`unknown-ref(Flute\Core\Database\Entities\User)`).'
-count = 19
+count = 20
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9832,7 +9814,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `Flute\Core\Support\FileUploader::uploadimage`: expected `unknown-ref(Symfony\Component\HttpFoundation\File\UploadedFile)`, but found `mixed`.'
-count = 2
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9850,7 +9832,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `exception::__construct`: expected `string`, but found `mixed`."
-count = 7
+count = 6
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9872,9 +9854,15 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `explode`: expected `string`, but found `truthy-mixed`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 18
+count = 19
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9922,7 +9910,7 @@ count = 1
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "mixed-operand"
 message = "Right operand in `&&` operation has `mixed` type."
-count = 1
+count = 2
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -9994,7 +9982,7 @@ count = 2
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "non-existent-function"
 message = 'Could not find definition for function `Flute\Admin\Packages\User\Services\__` (also tried as `__` in a broader scope).'
-count = 8
+count = 7
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
@@ -10097,6 +10085,12 @@ file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
 code = "null-iterator"
 message = "Iterating over `null` in `foreach`."
 count = 4
+
+[[issues]]
+file = "app/Core/Modules/Admin/Packages/User/Services/AdminUsersService.php"
+code = "string-member-selector"
+message = "This member selector uses a non-literal string type (`string`); its specific value cannot be statically determined."
+count = 1
 
 [[issues]]
 file = "app/Core/Modules/Admin/Packages/User/UserPackage.php"
