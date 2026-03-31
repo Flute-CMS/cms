@@ -459,7 +459,7 @@ class EditSocialScreen extends Screen
             ]),
             'Vkontakte' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:1',
-                'settings__secret' => 'required|string|max-str-len:255',
+                'settings__secret' => 'sometimes|string|max-str-len:255',
             ]),
             'Yandex' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:2',

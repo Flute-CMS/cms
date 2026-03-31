@@ -49,6 +49,9 @@ function initializeFilePondElement(element) {
     if (!wrapper || _filePondInstances.has(wrapper)) return;
     const fieldName = element.name;
 
+        let pondReady = false;
+        let hadFileOnce = false;
+
         let filePondOptions = {
             storeAsFile: true,
             credits: false,
@@ -67,8 +70,15 @@ function initializeFilePondElement(element) {
             },
             onupdatefiles: (files) => {
                 if (fieldName && !wrapper._pondDestroying) {
+                    if (files.length > 0) hadFileOnce = true;
                     const clearInput = (wrapper.parentElement || wrapper).querySelector(`input[data-filepond-clear="${fieldName}"]`);
-                    if (clearInput) clearInput.value = files.length === 0 ? '1' : '0';
+                    if (clearInput) {
+                        if (files.length === 0 && pondReady && hadFileOnce && !wrapper._cropBusy) {
+                            clearInput.value = '1';
+                        } else if (files.length > 0) {
+                            clearInput.value = '0';
+                        }
+                    }
                 }
             }
         };
@@ -180,6 +190,20 @@ function initializeFilePondElement(element) {
     const pond = FilePond.create(wrapper, filePondOptions);
     _filePondInstances.set(wrapper, pond);
 
+    if (defaultFile) {
+        var readyTimer = setTimeout(function () { pondReady = true; }, 3000);
+        var origInitOnAdd = pond.onaddfile;
+        pond.onaddfile = function (err, item) {
+            if (origInitOnAdd) origInitOnAdd.apply(this, arguments);
+            if (!pondReady) {
+                clearTimeout(readyTimer);
+                pondReady = true;
+            }
+        };
+    } else {
+        pondReady = true;
+    }
+
     if (hasCrop && cropCfg && typeof window.ImageCropper !== 'undefined') {
         var busy = false;
         var origOnAdd = pond.onaddfile;
@@ -192,14 +216,16 @@ function initializeFilePondElement(element) {
             if (item.file._cropped) return;
 
             busy = true;
+            wrapper._cropBusy = true;
             window.ImageCropper.open(item.file, cropCfg)
                 .then(function (cropped) {
                     pond.removeFile(item.id, { revert: false });
-                    pond.addFile(cropped).then(function () { busy = false; }).catch(function () { busy = false; });
+                    pond.addFile(cropped).then(function () { busy = false; wrapper._cropBusy = false; }).catch(function () { busy = false; wrapper._cropBusy = false; });
                 })
                 .catch(function () {
                     pond.removeFile(item.id, { revert: false });
                     busy = false;
+                    wrapper._cropBusy = false;
                 });
         };
 

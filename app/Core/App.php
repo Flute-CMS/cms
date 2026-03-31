@@ -48,7 +48,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '1.0.2';
+    public const VERSION = '1.0.3';
 
     /**
      * Set the base path of the application
@@ -597,6 +597,10 @@ final class App
     protected function compressResponse(Response $response, FluteRequest $request): void
     {
         if (headers_sent() || $response->headers->has('Content-Encoding')) {
+            return;
+        }
+
+        if (is_debug() && !$request->htmx()->isHtmxRequest()) {
             return;
         }
 

@@ -5,9 +5,7 @@ namespace Flute\Core\Services;
 use Exception;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\RotatingFileHandler;
-use Monolog\Level;
 use Monolog\Logger;
-use Monolog\LogRecord;
 use Monolog\Processor\IntrospectionProcessor;
 use Monolog\Processor\WebProcessor;
 
@@ -119,35 +117,58 @@ class LoggerService
         return $name !== '' ? $name : 'flute';
     }
 
-    /**
-     * @return callable(LogRecord): LogRecord
-     */
     private static function crashReportProcessor(): callable
     {
-        return static function (LogRecord $record): LogRecord {
-            if ($record->level->value < Level::Error->value) {
+        $isMonolog3 = class_exists(\Monolog\LogRecord::class);
+
+        return static function ($record) use ($isMonolog3) {
+            if ($isMonolog3) {
+                /** @var \Monolog\LogRecord $record */
+                $level = $record->level->value;
+                $context = $record->context;
+                $channel = $record->channel;
+                $message = $record->message;
+                $extra = $record->extra;
+            } else {
+                /** @var array{level: int, context: array<string, mixed>, channel: string, message: string, extra: array<string, mixed>} $record */
+                $level = $record['level'];
+                $context = $record['context'];
+                $channel = $record['channel'];
+                $message = $record['message'];
+                $extra = $record['extra'];
+            }
+
+            /** @var int $level */
+            /** @var string $channel */
+            /** @var string $message */
+            /** @var array<string, mixed> $context */
+            /** @var array<string, mixed> $extra */
+
+            $errorThreshold = $isMonolog3 ? \Monolog\Level::Error->value : 400;
+
+            if ($level < $errorThreshold) {
                 return $record;
             }
 
-            if (isset($record->context['exception']) && $record->context['exception'] instanceof \Throwable) {
-                CrashReportService::capture($record->context['exception'], [
-                    'source' => 'log.' . $record->channel,
+            if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
+                CrashReportService::capture($context['exception'], [
+                    'source' => 'log.' . $channel,
                 ]);
 
                 return $record;
             }
 
-            $text = trim($record->message);
+            $text = trim($message);
 
             CrashReportService::capture(
                 new \ErrorException(
                     $text,
                     0,
                     E_ERROR,
-                    $record->extra['file'] ?? __FILE__,
-                    (int) ( $record->extra['line'] ?? 0 ),
+                    (string) ( $extra['file'] ?? __FILE__ ),
+                    (int) ( $extra['line'] ?? 0 ),
                 ),
-                ['source' => 'log.' . $record->channel],
+                ['source' => 'log.' . $channel],
             );
 
             return $record;

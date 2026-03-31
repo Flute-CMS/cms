@@ -44,13 +44,14 @@ class AdminUsersService
     ): void {
         $this->handleRoles($user, $data['roles'] ?? []);
 
-        $this->handleFiles($user, $files);
+        $avatarUploaded = $this->handleFile($user, $files, 'avatar', $user->avatar);
+        $bannerUploaded = $this->handleFile($user, $files, 'banner', $user->banner);
 
-        if ($removeAvatar) {
+        if ($removeAvatar && !$avatarUploaded) {
             $user->avatar = config('profile.default_avatar');
         }
 
-        if ($removeBanner) {
+        if ($removeBanner && !$bannerUploaded) {
             $user->banner = null;
         }
 
@@ -262,40 +263,50 @@ class AdminUsersService
     }
 
     /**
-     * Обработка загруженных файлов.
+     * Process a single file upload field (avatar or banner).
+     * Returns true if a new file was actually uploaded.
      */
-    private function handleFiles(User $user, \Symfony\Component\HttpFoundation\FileBag $files): void
-    {
+    private function handleFile(
+        User $user,
+        \Symfony\Component\HttpFoundation\FileBag $files,
+        string $field,
+        ?string $currentPath,
+    ): bool {
+        if (!$files->has($field)) {
+            return false;
+        }
+
+        $file = $files->get($field);
+
+        if (!$this->isValidNewUpload($file, $currentPath)) {
+            return false;
+        }
+
         /** @var FileUploader $uploader */
         $uploader = app(FileUploader::class);
 
-        if ($files->has('avatar') && $this->isValidNewUpload($files->get('avatar'))) {
-            try {
-                $avatar = $uploader->uploadImage($files->get('avatar'), 10);
-                if ($avatar) {
-                    $user->avatar = $avatar;
-                }
-            } catch (Throwable $e) {
-                throw new Exception(__('admin-users.messages.avatar_upload_error', ['message' => $e->getMessage()]));
+        try {
+            $uploaded = $uploader->uploadImage($file, 10);
+            if ($uploaded) {
+                $user->{$field} = $uploaded;
+
+                return true;
             }
+        } catch (Throwable $e) {
+            throw new Exception(__("admin-users.messages.{$field}_upload_error", ['message' => $e->getMessage()]));
         }
 
-        if ($files->has('banner') && $this->isValidNewUpload($files->get('banner'))) {
-            try {
-                $banner = $uploader->uploadImage($files->get('banner'), 10);
-                if ($banner) {
-                    $user->banner = $banner;
-                }
-            } catch (Throwable $e) {
-                throw new Exception(__('admin-users.messages.banner_upload_error', ['message' => $e->getMessage()]));
-            }
-        }
+        return false;
     }
 
     /**
-     * Проверяет, является ли файл валидной новой загрузкой (не пустой и не URL-based).
+     * Checks whether the file is a genuinely new upload (not a re-fetched default).
+     *
+     * FilePond with storeAsFile re-sends existing images as blobs fetched from
+     * their current URL. We detect these by comparing the uploaded filename
+     * against the basename of the currently stored path.
      */
-    private function isValidNewUpload($file): bool
+    private function isValidNewUpload($file, ?string $currentPath = null): bool
     {
         if (!$file || !$file->isValid()) {
             return false;
@@ -330,6 +341,14 @@ class AdminUsersService
                 ) {
                     return false;
                 }
+            }
+        }
+
+        if ($currentPath && $originalName) {
+            $currentBasename = basename($currentPath);
+            $nameWithoutQuery = explode('?', $originalName)[0];
+            if ($nameWithoutQuery === $currentBasename) {
+                return false;
             }
         }
 

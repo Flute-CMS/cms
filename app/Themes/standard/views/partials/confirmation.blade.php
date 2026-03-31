@@ -23,8 +23,8 @@
                 <span class="icon-warning" style="display: none;">{!! $iconFinder->loadFile('ph.regular.warning-circle') !!}</span>
             </div>
 
-            <p id="confirmation-dialog-message" class="text-center">
-            </p>
+            <div id="confirmation-dialog-message" class="text-center">
+            </div>
         </div>
 
         <footer class="modal__footer">

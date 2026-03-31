@@ -242,26 +242,25 @@ class FluteApp {
             }
         });
 
-        // Handle navbar on page change
-        htmx.on("htmx:afterSwap", (event) => {
-            if (event.detail.target.tagName.toLowerCase() === "main") {
+        const NAV_ACTIVE_SELECTORS = [
+            ".navbar-dropdown__items > a.navbar-dropdown__item",
+            ".sidebar-nav__items > a.sidebar-nav__item",
+            ".sidebar-nav__submenu a.sidebar-nav__subitem",
+        ];
 
-                const navbarItems = document.querySelectorAll(
-                    ".navbar__items-item"
-                );
-                navbarItems.forEach((item) => item.classList.remove("active"));
-
-                const currentPath = event.detail.pathInfo.requestPath || "/";
+        function updateNavActive(currentPath) {
+            NAV_ACTIVE_SELECTORS.forEach((selector) => {
+                const items = document.querySelectorAll(selector);
+                items.forEach((item) => item.classList.remove("active"));
 
                 let bestMatch = null;
                 let bestMatchLength = -1;
 
-                navbarItems.forEach((item) => {
+                items.forEach((item) => {
                     const href = item.getAttribute("href");
                     if (!href) return;
 
-                    const itemPath = new URL(href, window.location.origin)
-                        .pathname;
+                    const itemPath = new URL(href, window.location.origin).pathname;
 
                     if (itemPath === "/" && currentPath !== "/") {
                         return;
@@ -279,6 +278,13 @@ class FluteApp {
                 if (bestMatch) {
                     bestMatch.classList.add("active");
                 }
+            });
+        }
+
+        // Handle navbar on page change
+        htmx.on("htmx:afterSwap", (event) => {
+            if (event.detail.target.tagName.toLowerCase() === "main") {
+                updateNavActive(event.detail.pathInfo.requestPath || "/");
             }
         });
 
@@ -287,39 +293,7 @@ class FluteApp {
                 top: 0,
                 behavior: "instant",
             });
-
-            const navbarItems = document.querySelectorAll(
-                ".navbar__items-item"
-            );
-            navbarItems.forEach((item) => item.classList.remove("active"));
-
-            const currentPath = new URL(window.location.href).pathname || "/";
-
-            let bestMatch = null;
-            let bestMatchLength = -1;
-
-            navbarItems.forEach((item) => {
-                const href = item.getAttribute("href");
-                if (!href) return;
-
-                const itemPath = new URL(href, window.location.origin).pathname;
-
-                if (itemPath === "/" && currentPath !== "/") {
-                    return;
-                }
-
-                if (
-                    currentPath.startsWith(itemPath) &&
-                    itemPath.length > bestMatchLength
-                ) {
-                    bestMatch = item;
-                    bestMatchLength = itemPath.length;
-                }
-            });
-
-            if (bestMatch) {
-                bestMatch.classList.add("active");
-            }
+            updateNavActive(new URL(window.location.href).pathname || "/");
         });
 
         window.addEventListener("htmx:configRequest", (evt) => {

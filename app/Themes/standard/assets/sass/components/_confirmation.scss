@@ -1,52 +1,108 @@
-.confirmation-dialog {
+#confirmation-dialog {
+    z-index: 9998;
 
-    &__icon {
-        @extend .flex-center;
+    .modal__container {
+        max-width: 400px;
+        padding: 0;
+    }
 
-        >svg {
-            @extend .flex-center;
+    .modal__header {
+        padding: var(--space-md) var(--space-md) 0;
+        border: none;
 
-            border-radius: 50%;
-            background-color: var(--transp-1);
-            color: var(--primary);
-            width: 50px;
-            height: 50px;
-            padding: var(--space-sm);
+        .modal__title {
+            font-size: var(--p);
+            font-weight: 600;
+        }
+    }
 
-            &.icon-error {
-                color: var(--error);
-                background-color: var(--error-light);
-            }
+    .modal__footer {
+        padding: var(--space-sm) var(--space-md) var(--space-md);
+        border: none;
 
-            &.icon-success {
-                color: var(--success);
-                background-color: var(--success-light);
-            }
-
-            &.icon-warning {
-                color: var(--warning);
-                background-color: var(--warning-light);
-            }
-
-            &.icon-info {
-                color: var(--info);
-                background-color: var(--info-light);
-            }
+        .btn {
+            border-radius: var(--border05);
+            font-size: var(--p-small);
+            font-weight: 600;
+            min-height: 42px;
         }
     }
 }
 
-#confirmation-dialog {
-    z-index: 9998;
-}
-
 #confirmation-dialog-content {
-    margin: var(--space-lg) 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-lg) var(--space-lg);
+    text-align: center;
 }
 
 #confirmation-dialog-message {
-    max-width: 450px;
-    line-height: 1.7;
-    font-size: var(--p);
-    color: var(--text-200);
+    max-width: 340px;
+    line-height: 1.5;
+    font-size: var(--p-small);
+    color: var(--text-300);
+    margin: 0;
+    white-space: pre-line;
+}
+
+.confirmation-dialog {
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        > span {
+            display: none;
+
+            &.active {
+                display: flex;
+            }
+
+            > svg {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                width: 52px;
+                height: 52px;
+                padding: var(--space-sm);
+            }
+        }
+
+        > svg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            width: 52px;
+            height: 52px;
+            padding: var(--space-sm);
+        }
+
+        .icon-error svg,
+        svg.icon-error {
+            color: var(--error);
+            background: var(--error-light);
+        }
+
+        .icon-success svg,
+        svg.icon-success {
+            color: var(--success);
+            background: var(--success-light);
+        }
+
+        .icon-warning svg,
+        svg.icon-warning {
+            color: var(--warning);
+            background: var(--warning-light);
+        }
+
+        .icon-info svg,
+        svg.icon-info {
+            color: var(--info);
+            background: var(--info-light);
+        }
+    }
 }

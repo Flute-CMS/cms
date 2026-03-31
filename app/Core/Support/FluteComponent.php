@@ -142,7 +142,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         $action = $this->request->get('component') ?? '';
         $action = explode('/', $action)[1] ?? '';
 
-        $this->emit('confirm', [
+        $this->emitSelf('confirm', [
             'actionKey' => $actionKey,
             'message' => $message,
             'title' => $title,
