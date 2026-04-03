@@ -517,9 +517,9 @@ class PaymentProcessor
      * @param array $input   Input data from the request.
      *
      * @throws PaymentException
-     * @return mixed Response from the gateway.
+     * @return ResponseInterface Response from the gateway.
      */
-    protected function completePayment($gateway, $input)
+    protected function completePayment($gateway, $input): ResponseInterface
     {
         if (method_exists($gateway, 'acceptNotification')) {
             return $gateway->acceptNotification()->send();
@@ -568,11 +568,11 @@ class PaymentProcessor
     /**
      * Processes a successful payment.
      *
-     * @param mixed $response Response from the gateway.
+     * @param ResponseInterface $response Response from the gateway.
      *
      * @throws PaymentException
      */
-    protected function processSuccessfulPayment($response): void
+    protected function processSuccessfulPayment(ResponseInterface $response): void
     {
         $transactionId = trim((string) $response->getTransactionId());
 
@@ -644,7 +644,7 @@ class PaymentProcessor
 
             $normalized = str_replace(',', '.', trim((string) $data[$key]));
 
-            if (preg_match('/^\d+(?:\.\d+)?$/', $normalized)) {
+            if (is_numeric($normalized)) {
                 return (float) $normalized;
             }
         }
