@@ -37,8 +37,8 @@ class DatabaseConnection extends ActiveRecord
     #[Column(type: "text", nullable: true)]
     public ?string $additional;
 
-    #[BelongsTo(target: Server::class, nullable: false, cascade: true)]
-    public Server $server;
+    #[BelongsTo(target: Server::class, nullable: true, cascade: true)]
+    public ?Server $server = null;
 
     #[Column(type: "datetime")]
     public DateTimeImmutable $createdAt;

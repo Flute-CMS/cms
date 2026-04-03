@@ -133,8 +133,6 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
     }
 }
 
-// ── Non-fixed header when sidebar nav is active ──
-// Sidebar itself always stays fixed; only the top header becomes non-fixed
 html[data-nav-style="sidebar"][data-nav-fixed="false"] {
     .flute_header {
         position: relative;
@@ -143,30 +141,47 @@ html[data-nav-style="sidebar"][data-nav-fixed="false"] {
 }
 
 @media (max-width: 768px) {
-    html[data-nav-style="sidebar"] {
-        .sidebar-nav {
-            width: 100%;
-            max-width: 300px;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            transform: translateX(-100%);
-            z-index: 200;
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: none;
+    .sidebar-nav {
+        display: flex;
+        width: 100%;
+        max-width: 300px;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translateX(-100%);
+        z-index: 200;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
 
-            &.is-mobile-open {
-                transform: translateX(0);
-                box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
-            }
-
-            &.is-collapsed {
-                width: 100%;
-                max-width: 300px;
-            }
+        &.is-mobile-open {
+            transform: translateX(0);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
         }
 
+        &.is-collapsed {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+
+    .navbar__mobile-toggle {
+        display: flex;
+    }
+
+    .sidebar-nav__overlay {
+        display: block;
+    }
+
+    .sidebar-nav__mobile-close {
+        display: flex;
+    }
+
+    .sidebar-nav__toggle {
+        display: none;
+    }
+
+    html[data-nav-style="sidebar"] {
         body {
             padding-left: 0 !important;
         }
@@ -180,28 +195,9 @@ html[data-nav-style="sidebar"][data-nav-fixed="false"] {
             margin-left: 0 !important;
         }
 
-        .navbar__mobile-toggle {
-            display: flex;
-        }
-
         .breadcrumb--navbar {
             display: none !important;
         }
-
-        .sidebar-nav__overlay {
-            display: block;
-        }
-
-        .sidebar-nav__mobile-close {
-            display: flex;
-        }
-
-        .sidebar-nav__toggle {
-            display: none;
-        }
-        
-        // Удалено переопределение display: grid !important для submenu, так как оно мешает анимации
-        // и не требуется, так как display: grid установлен в _items.scss
     }
 
     html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
@@ -342,22 +338,23 @@ html[data-nav-style="sidebar"][data-nav-fixed="false"] {
     display: none;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border-radius: var(--border05);
-    background: var(--transp-05);
-    border: 1px solid var(--transp-05);
+    background: transparent;
+    border: none;
     color: var(--text-400);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: color 0.15s ease;
 
-    &:hover {
-        background: var(--transp-1);
+    &:hover,
+    &:active {
         color: var(--text);
     }
 
     svg {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
     }
 }

@@ -337,9 +337,7 @@ class DatabaseConnection
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
             self::ensureGroupWritable(self::SCHEMA_FILE);
-            if (!$this->syncTablesFailed) {
-                $this->writeSchemaMeta($this->entitiesDirs, count($schemaArray));
-            }
+            $this->writeSchemaMeta($this->entitiesDirs, count($schemaArray), $this->syncTablesFailed);
             $this->syncTablesFailed = false;
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
@@ -852,6 +850,14 @@ class DatabaseConnection
             return false;
         }
 
+        if (!empty($meta['sync_failed'])) {
+            $writtenAt = (int) ( $meta['written_at'] ?? 0 );
+            $retryInterval = is_debug() ? 120 : 300;
+            if (( time() - $writtenAt ) >= $retryInterval) {
+                return false;
+            }
+        }
+
         $cachedFpFile =
             BASE_PATH
             . 'storage'
@@ -1098,7 +1104,7 @@ class DatabaseConnection
     /**
      * @param array<int,string> $dirs
      */
-    private function writeSchemaMeta(array $dirs, ?int $entityCount = null): void
+    private function writeSchemaMeta(array $dirs, ?int $entityCount = null, bool $syncFailed = false): void
     {
         $dirs = $this->normalizeDirs($dirs);
 
@@ -1107,6 +1113,7 @@ class DatabaseConnection
             'dirs' => $dirs,
             'written_at' => time(),
             'entity_count' => $entityCount ?? $this->countEntityFiles($dirs),
+            'sync_failed' => $syncFailed,
         ];
 
         $tmp = self::SCHEMA_META_FILE . '.tmp';

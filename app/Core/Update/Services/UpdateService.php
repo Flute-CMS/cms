@@ -45,6 +45,9 @@ class UpdateService
      */
     protected Parser $markdownParser;
 
+    private ?array $freshUpdatesCache = null;
+    private ?float $freshUpdatesFetchedAt = null;
+
     /**
      * UpdateService constructor.
      */
@@ -293,7 +296,7 @@ class UpdateService
         }
 
         try {
-            $updates = $this->getAvailableUpdates();
+            $updates = $this->getFreshUpdatesForDownload();
 
             $downloadUrl = null;
             $latestVersion = null;
@@ -337,22 +340,26 @@ class UpdateService
                 $fullUrl = rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim($path, '/');
             }
 
-            $requestQuery = [];
-            if ($hasJwtToken) {
-                $requestQuery['token'] = $queryParams['token'];
-            } else {
-                $requestQuery['accessKey'] = config('app.flute_key');
-                $requestQuery['versionId'] = $version ?? $latestVersion;
-            }
-
-            $response = $api->getClient()->request('GET', $fullUrl, [
+            $guzzleOptions = [
                 'headers' => [
                     'User-Agent' => 'Flute-CMS/' . App::VERSION,
                 ],
                 'sink' => $fileName,
                 'http_errors' => false,
-                'query' => $isAbsoluteUrl ? [] : $requestQuery,
-            ]);
+            ];
+
+            if (!$isAbsoluteUrl) {
+                $requestQuery = [];
+                if ($hasJwtToken) {
+                    $requestQuery['token'] = $queryParams['token'];
+                } else {
+                    $requestQuery['accessKey'] = config('app.flute_key');
+                    $requestQuery['versionId'] = $version ?? $latestVersion;
+                }
+                $guzzleOptions['query'] = $requestQuery;
+            }
+
+            $response = $api->getClient()->request('GET', $fullUrl, $guzzleOptions);
 
             $statusCode = $response->getStatusCode();
             if ($statusCode >= 400) {
@@ -440,16 +447,6 @@ class UpdateService
                 $fullUrl = rtrim($api->getActiveBaseUrl(), '/') . '/' . ltrim($path, '/');
             }
 
-            $requestQuery = [];
-            if ($hasJwtToken) {
-                $requestQuery['token'] = $urlQuery['token'];
-            } else {
-                $requestQuery = array_merge($urlQuery, [
-                    'version' => $version,
-                    'accessKey' => $apiKey,
-                ]);
-            }
-
             $tempDir = storage_path('app/temp/updates');
             if (!is_dir($tempDir)) {
                 mkdir($tempDir, 0o755, true);
@@ -458,14 +455,28 @@ class UpdateService
             $safeVersion = preg_replace('/[^a-zA-Z0-9._\-]/', '_', $version);
             $fileName = $tempDir . '/cms-' . $safeVersion . '.zip';
 
-            $response = $api->getClient()->request('GET', $fullUrl, [
+            $guzzleOptions = [
                 'headers' => [
                     'User-Agent' => 'Flute-CMS/' . App::VERSION,
                 ],
                 'sink' => $fileName,
                 'http_errors' => false,
-                'query' => $isAbsoluteUrl ? [] : $requestQuery,
-            ]);
+            ];
+
+            if (!$isAbsoluteUrl) {
+                $requestQuery = [];
+                if ($hasJwtToken) {
+                    $requestQuery['token'] = $urlQuery['token'];
+                } else {
+                    $requestQuery = array_merge($urlQuery, [
+                        'version' => $version,
+                        'accessKey' => $apiKey,
+                    ]);
+                }
+                $guzzleOptions['query'] = $requestQuery;
+            }
+
+            $response = $api->getClient()->request('GET', $fullUrl, $guzzleOptions);
 
             $statusCode = $response->getStatusCode();
             if ($statusCode >= 400) {
@@ -509,6 +520,29 @@ class UpdateService
         $parts[count($parts) - 1]++;
 
         return implode('.', $parts);
+    }
+
+    /**
+     * Return fresh API data with in-memory cache (4 min) so that
+     * download_url JWT tokens (TTL 5 min) stay valid across a batch
+     * of downloadUpdate() calls.
+     */
+    private function getFreshUpdatesForDownload(): array
+    {
+        $now = microtime(true);
+
+        if (
+            $this->freshUpdatesCache !== null
+            && $this->freshUpdatesFetchedAt !== null
+            && ( $now - $this->freshUpdatesFetchedAt ) < 240
+        ) {
+            return $this->freshUpdatesCache;
+        }
+
+        $this->freshUpdatesCache = $this->fetchUpdatesFromApi();
+        $this->freshUpdatesFetchedAt = $now;
+
+        return $this->freshUpdatesCache;
     }
 
     /**

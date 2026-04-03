@@ -472,7 +472,7 @@ class PaymentProcessor
      */
     protected function generateTransactionId(): string
     {
-        return bin2hex(random_bytes(16));
+        return (string) random_int(100_000_000_000, 999_999_999_999);
     }
 
     /**
@@ -596,6 +596,11 @@ class PaymentProcessor
             }
         }
 
+        if ($paidAmount === null) {
+            $responseData = method_exists($response, 'getData') ? (array) $response->getData() : [];
+            $paidAmount = $this->resolveAmountFromGatewayData($responseData);
+        }
+
         $this->setInvoiceAsPaid($transactionId, $paidAmount);
     }
 
@@ -611,6 +616,40 @@ class PaymentProcessor
         $this->dispatcher->dispatch(new PaymentFailedEvent($response), PaymentFailedEvent::NAME);
 
         throw new PaymentException($response->getMessage());
+    }
+
+    /**
+     * Fallback: extract paid amount from gateway response data (already validated
+     * by the gateway, e.g. signature-checked) when getAmount() is not implemented.
+     */
+    private function resolveAmountFromGatewayData(array $data): ?float
+    {
+        $keys = [
+            'sum',
+            'amount',
+            'payment_amount',
+            'paymentAmount',
+            'Amount',
+            'Sum',
+            'AMOUNT',
+            'SUM',
+            'total',
+            'Total',
+        ];
+
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $data) || !is_scalar($data[$key])) {
+                continue;
+            }
+
+            $normalized = str_replace(',', '.', trim((string) $data[$key]));
+
+            if (preg_match('/^\d+(?:\.\d+)?$/', $normalized)) {
+                return (float) $normalized;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -32,10 +32,10 @@ class NavbarItem extends ActiveRecord
     #[Column(type: "primary")]
     public int $id;
 
-    #[Column(type: "string")]
+    #[Column(type: "text")]
     public string $title;
 
-    #[Column(type: "string", nullable: true)]
+    #[Column(type: "text", nullable: true)]
     public ?string $description = null;
 
     #[Column(type: "string", nullable: true)]

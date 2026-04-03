@@ -14,13 +14,12 @@
                 <div class="col-md-12">
                     <div class="navbar__content">
                         <div class="navbar__left">
-                            @if ($_isSidebarMode)
-                                {{-- Mobile toggle for sidebar --}}
-                                <button type="button" class="navbar__mobile-toggle" id="mobile-sidebar-toggle"
-                                    aria-label="{{ __('def.menu') }}">
-                                    <x-icon path="ph.regular.list" />
-                                </button>
+                            <button type="button" class="navbar__mobile-toggle" id="mobile-sidebar-toggle"
+                                aria-label="{{ __('def.menu') }}">
+                                <x-icon path="ph.regular.list" />
+                            </button>
 
+                            @if ($_isSidebarMode)
                                 {{-- Breadcrumb in navbar for sidebar mode --}}
                                 <nav class="breadcrumb breadcrumb--navbar" id="navbar-breadcrumb" aria-label="Breadcrumb navigation"
                                     hx-swap-oob="true" hx-boost="true" hx-target="#main"
