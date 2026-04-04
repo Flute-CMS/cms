@@ -156,6 +156,11 @@ class RoleListScreen extends Screen
             $data['permissions'] = [];
         }
 
+        $data['permissions'] = array_values(array_filter(
+            $data['permissions'],
+            static fn($v) => $v !== '' && $v !== null,
+        ));
+
         // if (empty($data['permissions'])) {
         //     $this->flashMessage(__('admin-roles.messages.no_permissions'), 'error');
         //     return;
@@ -285,6 +290,11 @@ class RoleListScreen extends Screen
         if (!isset($data['permissions']) || !is_array($data['permissions'])) {
             $data['permissions'] = [];
         }
+
+        $data['permissions'] = array_values(array_filter(
+            $data['permissions'],
+            static fn($v) => $v !== '' && $v !== null,
+        ));
 
         $validation = $this->validate([
             'name' => ['required', 'string', 'max-str-len:255', 'unique:roles,name,' . $role->id],

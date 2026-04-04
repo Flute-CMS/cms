@@ -239,13 +239,14 @@ class PageEditScreen extends Screen
             // Обработка разрешений
             if ($this->pageId) {
                 $this->page->permissions = [];
-                $permissionIds = $data['permissions'] ?? [];
-                if (is_array($permissionIds)) {
-                    foreach ($permissionIds as $permissionId) {
-                        $permission = Permission::findByPK((int) $permissionId);
-                        if ($permission) {
-                            $this->page->addPermission($permission);
-                        }
+                $permissionIds = array_values(array_filter(
+                    array_map('intval', (array) ( $data['permissions'] ?? [] )),
+                    static fn($id) => $id > 0,
+                ));
+                foreach ($permissionIds as $permissionId) {
+                    $permission = Permission::findByPK($permissionId);
+                    if ($permission) {
+                        $this->page->addPermission($permission);
                     }
                 }
                 $this->page->save();

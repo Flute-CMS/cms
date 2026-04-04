@@ -14,4 +14,9 @@ return [
     'finance' => 'Финансы',
     'system' => 'Информация',
     'notifications' => 'Уведомления',
+
+    'modules_nav' => 'Модули',
+    'back' => 'Назад',
+    'mode_nested' => 'Группировать модули',
+    'mode_flat' => 'Показать все',
 ];

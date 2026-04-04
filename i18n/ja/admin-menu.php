@@ -13,4 +13,9 @@ return [
     'content' => 'コンテンツ',
     'finance' => '財務',
     'system' => '情報',
+
+    'modules_nav' => 'モジュール',
+    'back' => '戻る',
+    'mode_nested' => 'モジュールをグループ化',
+    'mode_flat' => 'すべて表示',
 ];

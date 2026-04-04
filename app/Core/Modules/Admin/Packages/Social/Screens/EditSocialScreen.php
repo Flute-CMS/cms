@@ -255,6 +255,10 @@ class EditSocialScreen extends Screen
 
         unset($data['id']);
 
+        if (isset($data['driverKey']) && is_array($data['driverKey'])) {
+            $data['driverKey'] = $data['driverKey'][0] ?? null;
+        }
+
         $rules = [
             'icon' => 'required|string|max-str-len:255',
             'allow_to_register' => 'sometimes|boolean',

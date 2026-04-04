@@ -21,6 +21,8 @@ class AdminPackageFactory
 
     protected ?array $menuItemsCache = null;
 
+    protected ?array $moduleMenuItemsCache = null;
+
     protected bool $packagesLoaded = false;
 
     public function __construct(
@@ -36,6 +38,7 @@ class AdminPackageFactory
     public function clearMenuCache(): void
     {
         $this->menuItemsCache = null;
+        $this->moduleMenuItemsCache = null;
     }
 
     public function registerPackage(AdminPackageInterface $package): void
@@ -287,10 +290,11 @@ class AdminPackageFactory
             ];
         }
 
-        // Module items
+        // Module items stored separately for two-level sidebar
+        $this->moduleMenuItemsCache = [];
         foreach ($moduleItems as $moduleName => $items) {
             if (!empty($items)) {
-                $result[] = [
+                $this->moduleMenuItemsCache[] = [
                     'title' => $moduleName,
                     'items' => $items,
                     'is_module' => true,
@@ -302,6 +306,43 @@ class AdminPackageFactory
         $this->menuItemsCache = array_values(array_filter($result, static fn($s) => !empty($s['items'])));
 
         return $this->menuItemsCache;
+    }
+
+    public function getModuleMenuItems(): array
+    {
+        if ($this->moduleMenuItemsCache === null) {
+            $this->getAllMenuItems();
+        }
+
+        return $this->moduleMenuItemsCache ?? [];
+    }
+
+    public function getModuleUrlPrefixes(): array
+    {
+        $prefixes = [];
+
+        foreach ($this->getModuleMenuItems() as $section) {
+            foreach ($section['items'] as $item) {
+                $url = $item['url'] ?? '';
+                if ($url && $url !== '#') {
+                    $parsed = parse_url($url, PHP_URL_PATH);
+                    if ($parsed) {
+                        $prefixes[] = $parsed;
+                    }
+                }
+                foreach ($item['children'] ?? [] as $child) {
+                    $childUrl = $child['url'] ?? '';
+                    if ($childUrl && $childUrl !== '#') {
+                        $parsed = parse_url($childUrl, PHP_URL_PATH);
+                        if ($parsed) {
+                            $prefixes[] = $parsed;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $prefixes;
     }
 
     public function getDefaultMenuConfig(): array

@@ -32,7 +32,8 @@ class NotificationBroadcastScreen extends Screen
         $this->name = __('admin-notifications.broadcast.title');
         $this->description = __('admin-notifications.broadcast.description');
 
-        $this->target = request()->input('target', $this->target);
+        $target = request()->input('target', $this->target);
+        $this->target = is_array($target) ? $target[0] ?? 'all' : $target;
 
         breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-notifications.broadcast.title'));
     }
@@ -137,6 +138,9 @@ class NotificationBroadcastScreen extends Screen
     public function send(): void
     {
         $target = request()->input('target', 'all');
+        if (is_array($target)) {
+            $target = $target[0] ?? 'all';
+        }
         $title = request()->input('title');
         $content = request()->input('content');
         $icon = request()->input('icon') ?: 'ph.bold.bell-bold';
@@ -262,12 +266,12 @@ class NotificationBroadcastScreen extends Screen
     {
         switch ($target) {
             case 'roles':
-                $roleIds = request()->input('roles', []);
-                if (empty($roleIds)) {
+                $roleIds = (array) request()->input('roles', []);
+                $intRoleIds = array_values(array_filter(array_map('intval', $roleIds), static fn($id) => $id > 0));
+                if (empty($intRoleIds)) {
                     return [];
                 }
 
-                $intRoleIds = array_map('intval', $roleIds);
                 $roles = Role::query()->where('id', 'IN', new Parameter($intRoleIds))->fetchAll();
                 if (empty($roles)) {
                     return [];
@@ -289,12 +293,11 @@ class NotificationBroadcastScreen extends Screen
                 return $unique;
 
             case 'users':
-                $userIds = request()->input('users', []);
-                if (empty($userIds)) {
+                $userIds = (array) request()->input('users', []);
+                $intUserIds = array_values(array_filter(array_map('intval', $userIds), static fn($id) => $id > 0));
+                if (empty($intUserIds)) {
                     return [];
                 }
-
-                $intUserIds = array_map('intval', $userIds);
 
                 return User::query()->where('id', 'IN', new Parameter($intUserIds))->fetchAll();
 

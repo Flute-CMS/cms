@@ -14,4 +14,9 @@ return [
     'finance' => 'Finance',
     'system' => 'Information',
     'notifications' => 'Notifications',
+
+    'modules_nav' => 'Modules',
+    'back' => 'Back',
+    'mode_nested' => 'Group modules',
+    'mode_flat' => 'Show all',
 ];

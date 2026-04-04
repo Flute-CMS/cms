@@ -3297,6 +3297,297 @@ class NavbarMorphDropdown {
     }
 }
 
+class NavbarPriorityPlus {
+    constructor() {
+        this.overflowEl = null;
+        this.ro = null;
+        this.init();
+        document.addEventListener('htmx:afterSettle', () => this.reinit());
+    }
+
+    init() {
+        this.navbar = document.querySelector('[data-navbar-morph]');
+        if (!this.navbar) return;
+
+        this.itemsContainer = this.navbar.querySelector('.navbar-dropdown__items');
+        this.actionsEl = document.querySelector('.navbar__actions');
+        if (!this.itemsContainer || !this.actionsEl) return;
+
+        this.items = Array.from(
+            this.itemsContainer.querySelectorAll(':scope > .navbar-dropdown__item')
+        );
+        if (!this.items.length) return;
+
+        if (window.matchMedia('(max-width: 767px)').matches) return;
+
+        this.createOverflow();
+        this.bindEvents();
+
+        this.ro = new ResizeObserver(() => requestAnimationFrame(() => this.update()));
+        this.ro.observe(this.navbar.closest('.navbar__content'));
+        window.addEventListener('resize', () => requestAnimationFrame(() => this.update()));
+        this.update();
+    }
+
+    reinit() {
+        if (this.ro) this.ro.disconnect();
+        if (this.overflowEl) {
+            this.overflowEl.remove();
+            this.overflowEl = null;
+        }
+        if (this.overflowMenu) {
+            this.overflowMenu.remove();
+            this.overflowMenu = null;
+        }
+        this.init();
+    }
+
+    createOverflow() {
+        this.overflowEl = document.createElement('div');
+        this.overflowEl.className = 'navbar-dropdown__overflow';
+
+        this.overflowBtn = document.createElement('button');
+        this.overflowBtn.type = 'button';
+        this.overflowBtn.className = 'navbar-dropdown__item navbar-dropdown__overflow-btn';
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '18');
+        svg.setAttribute('height', '18');
+        svg.setAttribute('viewBox', '0 0 256 256');
+        svg.setAttribute('fill', 'currentColor');
+        [128, 48, 208].forEach(cx => {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', String(cx));
+            circle.setAttribute('cy', '128');
+            circle.setAttribute('r', '20');
+            svg.appendChild(circle);
+        });
+        this.overflowBtn.appendChild(svg);
+
+        // Menu lives in body (portal) so backdrop-filter works
+        this.overflowMenu = document.createElement('div');
+        this.overflowMenu.className = 'navbar-dropdown__overflow-menu';
+        this.overflowMenu.setAttribute('hx-boost', 'true');
+        this.overflowMenu.setAttribute('hx-target', '#main');
+        this.overflowMenu.setAttribute('hx-swap', 'outerHTML transition:true');
+        document.body.appendChild(this.overflowMenu);
+
+        this.overflowEl.appendChild(this.overflowBtn);
+        this.itemsContainer.appendChild(this.overflowEl);
+    }
+
+    openMenu() {
+        if (!this.overflowBtn || !this.overflowMenu || !window.FloatingUIDOM) return;
+
+        this.overflowMenu.classList.add('is-open');
+        this.overflowEl.classList.add('is-open');
+
+        if (this._floatingCleanup) this._floatingCleanup();
+
+        const F = window.FloatingUIDOM;
+        this._floatingCleanup = F.autoUpdate(
+            this.overflowBtn, this.overflowMenu, () => {
+                F.computePosition(this.overflowBtn, this.overflowMenu, {
+                    placement: 'bottom-end',
+                    strategy: 'fixed',
+                    middleware: [
+                        F.offset(8),
+                        F.flip({ fallbackPlacements: ['bottom-start', 'top-end', 'top-start'] }),
+                        F.shift({ padding: 8 }),
+                        F.size({
+                            padding: 8,
+                            apply: ({ availableHeight, elements }) => {
+                                elements.floating.style.maxHeight = Math.min(availableHeight, 400) + 'px';
+                            },
+                        }),
+                    ],
+                }).then(({ x, y }) => {
+                    Object.assign(this.overflowMenu.style, {
+                        position: 'fixed',
+                        left: x + 'px',
+                        top: y + 'px',
+                        right: '',
+                    });
+                });
+            },
+            { ancestorScroll: true, ancestorResize: true, elementResize: true }
+        );
+    }
+
+    closeMenu() {
+        this.overflowMenu?.classList.remove('is-open');
+        this.overflowEl?.classList.remove('is-open');
+        if (this._floatingCleanup) {
+            this._floatingCleanup();
+            this._floatingCleanup = null;
+        }
+    }
+
+    bindEvents() {
+        this.overflowBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.overflowMenu.classList.contains('is-open') ? this.closeMenu() : this.openMenu();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (this.overflowEl && !this.overflowEl.contains(e.target) && !this.overflowMenu.contains(e.target)) {
+                this.closeMenu();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.closeMenu();
+        });
+
+        // Close on HTMX navigation
+        document.addEventListener('htmx:beforeRequest', () => this.closeMenu());
+    }
+
+    checkOverflow() {
+        const itemsRight = this.itemsContainer.getBoundingClientRect().right;
+        const actionsLeft = this.actionsEl.getBoundingClientRect().left;
+        return (actionsLeft - itemsRight) < 24;
+    }
+
+    update() {
+        if (!this.items.length || !this.overflowEl) return;
+
+        const navLeft = this.navbar.closest('.navbar__left');
+        const navContent = this.navbar.closest('.navbar__content');
+
+        // Collect collapsible elements
+        const collapsibles = {
+            socials: navLeft?.querySelector('.navbar__socials'),
+            widgets: navLeft?.querySelector('.navbar__widgets'),
+            separators: navLeft?.querySelectorAll('.navbar__separator'),
+            actionWidgets: navContent?.querySelector('.navbar__action-widgets'),
+        };
+
+        // Reset everything
+        this.items.forEach(item => item.removeAttribute('data-priority-hidden'));
+        this.overflowEl.style.display = 'none';
+        this.overflowEl.classList.remove('is-open');
+
+        if (collapsibles.socials) collapsibles.socials.removeAttribute('data-priority-hidden');
+        if (collapsibles.widgets) collapsibles.widgets.removeAttribute('data-priority-hidden');
+        if (collapsibles.actionWidgets) collapsibles.actionWidgets.removeAttribute('data-priority-hidden');
+        collapsibles.separators?.forEach(s => s.removeAttribute('data-priority-hidden'));
+
+        if (!this.checkOverflow()) return;
+
+        // Phase 1: collapse nav items from the end
+        this.overflowEl.style.display = '';
+
+        const hidden = [];
+        for (let i = this.items.length - 1; i >= 0; i--) {
+            this.items[i].setAttribute('data-priority-hidden', '');
+            hidden.unshift({
+                el: this.items[i],
+                triggerId: this.items[i].getAttribute('data-morph-trigger'),
+            });
+            if (!this.checkOverflow()) break;
+        }
+
+        // Phase 2: collapse action widgets (search, hotkeys, balance)
+        if (this.checkOverflow() && collapsibles.actionWidgets) {
+            collapsibles.actionWidgets.setAttribute('data-priority-hidden', '');
+        }
+
+        // Phase 3: collapse left widgets (stats badges)
+        if (this.checkOverflow() && collapsibles.widgets) {
+            collapsibles.widgets.setAttribute('data-priority-hidden', '');
+        }
+
+        // Phase 4: collapse socials
+        if (this.checkOverflow() && collapsibles.socials) {
+            collapsibles.socials.setAttribute('data-priority-hidden', '');
+        }
+
+        // Phase 5: collapse separators
+        if (this.checkOverflow()) {
+            collapsibles.separators?.forEach(s => s.setAttribute('data-priority-hidden', ''));
+        }
+
+        this.buildMenu(hidden);
+    }
+
+    buildMenu(hidden) {
+        while (this.overflowMenu.firstChild) {
+            this.overflowMenu.removeChild(this.overflowMenu.firstChild);
+        }
+
+        let lastGroup = null;
+
+        hidden.forEach(({ el, triggerId }) => {
+            if (triggerId) {
+                const label = el.querySelector('span')?.textContent?.trim();
+                const content = document.querySelector(`[data-morph-content="${triggerId}"]`);
+                if (!content) return;
+
+                const links = content.querySelectorAll('.navbar-dropdown__menu-link');
+                if (!links.length) return;
+
+                // Group separator (thin line between groups)
+                if (lastGroup) {
+                    const sep = document.createElement('div');
+                    sep.className = 'navbar-dropdown__overflow-sep';
+                    this.overflowMenu.appendChild(sep);
+                }
+
+                if (label) {
+                    const heading = document.createElement('div');
+                    heading.className = 'navbar-dropdown__overflow-heading';
+                    heading.textContent = label;
+                    this.overflowMenu.appendChild(heading);
+                }
+
+                links.forEach(link => {
+                    const title = link.querySelector('.navbar-dropdown__menu-title')?.textContent?.trim();
+                    if (!title) return;
+                    const icon = link.querySelector('.navbar-dropdown__menu-icon');
+                    this.overflowMenu.appendChild(
+                        this.createLink(link.href, title, icon, link.target, link.rel)
+                    );
+                });
+
+                lastGroup = triggerId;
+            } else {
+                if (lastGroup) {
+                    const sep = document.createElement('div');
+                    sep.className = 'navbar-dropdown__overflow-sep';
+                    this.overflowMenu.appendChild(sep);
+                    lastGroup = null;
+                }
+
+                const span = el.querySelector('span[itemprop="name"]') || el.querySelector('span');
+                const text = span?.textContent?.trim();
+                if (!text) return;
+                const icon = el.querySelector('.navbar-dropdown__item-icon');
+                this.overflowMenu.appendChild(
+                    this.createLink(el.href || '#', text, icon, el.target, el.rel)
+                );
+            }
+        });
+
+        // Enable HTMX on dynamically created links
+        if (window.htmx) {
+            window.htmx.process(this.overflowMenu);
+        }
+    }
+
+    createLink(href, text, iconEl, target, rel) {
+        const a = document.createElement('a');
+        a.href = href;
+        a.className = 'navbar-dropdown__overflow-item';
+        if (target) { a.target = target; a.rel = rel || 'noopener'; }
+        if (iconEl) a.appendChild(iconEl.cloneNode(true));
+        const s = document.createElement('span');
+        s.textContent = text;
+        a.appendChild(s);
+        return a;
+    }
+}
+
 /**
  * Transparent Navbar Handler - handles scroll-based transitions for pill-transparent nav style
  */
@@ -3367,6 +3658,7 @@ class TransparentNavbarHandler {
 let app;
 let notyf;
 let navbarMorphDropdown;
+let navbarPriorityPlus;
 let transparentNavbarHandler;
 let profileDropdown;
 
@@ -3374,6 +3666,7 @@ $(document).ready(function () {
     app = new FluteApp();
     notyf = app.notyf;
     navbarMorphDropdown = new NavbarMorphDropdown();
+    navbarPriorityPlus = new NavbarPriorityPlus();
     transparentNavbarHandler = new TransparentNavbarHandler();
     profileDropdown = new ProfileDropdownManager();
 });

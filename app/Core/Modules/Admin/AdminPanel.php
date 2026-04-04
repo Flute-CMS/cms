@@ -165,6 +165,16 @@ class AdminPanel
         return $this->packageFactory->getAllMenuItems();
     }
 
+    public function getModuleMenuItems(): array
+    {
+        return $this->packageFactory->getModuleMenuItems();
+    }
+
+    public function getModuleUrlPrefixes(): array
+    {
+        return $this->packageFactory->getModuleUrlPrefixes();
+    }
+
     private function recompileTranslations()
     {
         $flushed = Support\AbstractAdminPackage::$flushedLocales;

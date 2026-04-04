@@ -243,7 +243,14 @@ class EditPaymentGatewayScreen extends Screen
         $data = request()->input();
         $files = request()->files;
 
-        $data['currencies'] = array_map('intval', (array) ( $data['currencies'] ?? [] ));
+        $data['currencies'] = array_values(array_filter(
+            array_map('intval', (array) ( $data['currencies'] ?? [] )),
+            static fn($id) => $id > 0,
+        ));
+
+        if (isset($data['driverKey']) && is_array($data['driverKey'])) {
+            $data['driverKey'] = $data['driverKey'][0] ?? null;
+        }
 
         if (!$this->validate($this->getValidationRules($data), $data)) {
             return;
@@ -258,7 +265,7 @@ class EditPaymentGatewayScreen extends Screen
                 $this->gateway->minimumAmount = !empty($data['minimum_amount'])
                     ? (float) $data['minimum_amount']
                     : null;
-                $this->gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
+                $this->gateway->enabled = filter_var($data['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
                 $imageFile = $files->get('image');
                 if ($imageFile instanceof UploadedFile) {
@@ -272,21 +279,19 @@ class EditPaymentGatewayScreen extends Screen
                     }
                 }
 
-                if (isset($data['currencies'])) {
-                    $currentCurrencies = rep(Currency::class)->findAll();
-                    foreach ($currentCurrencies as $currency) {
-                        if ($currency->hasPayment($this->gateway)) {
-                            $currency->removePayment($this->gateway);
-                            $currency->save();
-                        }
+                $currentCurrencies = rep(Currency::class)->findAll();
+                foreach ($currentCurrencies as $currency) {
+                    if ($currency->hasPayment($this->gateway)) {
+                        $currency->removePayment($this->gateway);
+                        $currency->save();
                     }
+                }
 
-                    foreach ($data['currencies'] as $currencyId) {
-                        $currency = Currency::findByPK($currencyId);
-                        if ($currency) {
-                            $currency->addPayment($this->gateway);
-                            $currency->save();
-                        }
+                foreach ($data['currencies'] as $currencyId) {
+                    $currency = Currency::findByPK($currencyId);
+                    if ($currency) {
+                        $currency->addPayment($this->gateway);
+                        $currency->save();
                     }
                 }
 
@@ -332,7 +337,7 @@ class EditPaymentGatewayScreen extends Screen
                 $gateway->bonus = isset($data['bonus']) ? (float) $data['bonus'] : 0;
                 $gateway->minimumAmount = !empty($data['minimum_amount']) ? (float) $data['minimum_amount'] : null;
                 $gateway->adapter = $data['driverKey'];
-                $gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
+                $gateway->enabled = filter_var($data['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
                 $imageFile = $files->get('image');
                 if ($imageFile instanceof UploadedFile) {
@@ -509,8 +514,10 @@ class EditPaymentGatewayScreen extends Screen
             $rules['driverKey'] = ['required', 'string'];
         }
 
-        if (isset($data['driverKey']) && $this->driverFactory->hasDriver($data['driverKey'])) {
-            $driver = $this->driverFactory->make($data['driverKey']);
+        $driverKey = $data['driverKey'] ?? null;
+
+        if ($driverKey && is_string($driverKey) && $this->driverFactory->hasDriver($driverKey)) {
+            $driver = $this->driverFactory->make($driverKey);
             $rules = array_merge($rules, $driver->getValidationRules());
         }
 

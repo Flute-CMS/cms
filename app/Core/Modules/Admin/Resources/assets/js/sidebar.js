@@ -50,21 +50,25 @@ $(document).ready(function () {
     });
 
     // Toggle tooltips for menu items based on sidebar state
+    var tooltipSelector = '.sidebar .menu-item[data-tooltip-text], .sidebar .sidebar__back-btn[data-tooltip-text], .sidebar .sidebar__module-trigger[data-tooltip-text]';
+
     function toggleMenuTooltips(show) {
-        $('.sidebar .menu-item[data-tooltip-text]').each(function () {
-            const $item = $(this);
-            if (show) {
-                $item.attr('data-tooltip', $item.attr('data-tooltip-text'));
-            } else {
-                $item.removeAttr('data-tooltip');
-            }
-        });
-        $('.sidebar .menu-item[data-tooltip]').each(function () {
+        // First pass: migrate any existing data-tooltip to data-tooltip-text
+        $('.sidebar .menu-item[data-tooltip], .sidebar .sidebar__back-btn[data-tooltip], .sidebar .sidebar__module-trigger[data-tooltip]').each(function () {
             const $item = $(this);
             if (!$item.attr('data-tooltip-text')) {
                 $item.attr('data-tooltip-text', $item.attr('data-tooltip'));
             }
             if (!show) {
+                $item.removeAttr('data-tooltip');
+            }
+        });
+        // Second pass: toggle based on state
+        $(tooltipSelector).each(function () {
+            const $item = $(this);
+            if (show) {
+                $item.attr('data-tooltip', $item.attr('data-tooltip-text'));
+            } else {
                 $item.removeAttr('data-tooltip');
             }
         });
@@ -258,8 +262,145 @@ $(document).ready(function () {
         $('.sidebar').removeClass('active');
         toggleOverlay(false);
         $('.cloned-menu-sub').remove();
+        autoDetectLevel();
         updateIndicator();
     });
+
+    // --- Two-level sidebar (main / modules) ---
+    function getModuleUrlPrefixes() {
+        try {
+            var el = document.getElementById('sidebar-module-urls');
+            return el ? JSON.parse(el.textContent) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function isModulePage(pathname) {
+        var prefixes = getModuleUrlPrefixes();
+        if (!pathname) pathname = window.location.pathname;
+        for (var i = 0; i < prefixes.length; i++) {
+            if (pathname === prefixes[i] || pathname.indexOf(prefixes[i] + '/') === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function showModulesLevel() {
+        $('.sidebar').removeClass('sidebar--module-detail').addClass('sidebar--modules');
+        $('.sidebar__level--module-detail').removeClass('active');
+        try { sessionStorage.setItem('sidebar-level', 'modules'); sessionStorage.removeItem('sidebar-module-detail'); } catch (e) {}
+    }
+
+    function showMainLevel() {
+        $('.sidebar').removeClass('sidebar--modules sidebar--module-detail');
+        $('.sidebar__level--module-detail').removeClass('active');
+        try { sessionStorage.setItem('sidebar-level', 'main'); sessionStorage.removeItem('sidebar-module-detail'); } catch (e) {}
+    }
+
+    function showModuleDetail(moduleIdx) {
+        $('.sidebar').removeClass('sidebar--modules').addClass('sidebar--module-detail');
+        $('.sidebar__level--module-detail').removeClass('active');
+        $('.sidebar__level--module-detail[data-module-level="' + moduleIdx + '"]').addClass('active');
+        try { sessionStorage.setItem('sidebar-level', 'module-detail'); sessionStorage.setItem('sidebar-module-detail', moduleIdx); } catch (e) {}
+    }
+
+    function isNestedMode() {
+        return $('.sidebar__level--main').length > 0;
+    }
+
+    $(document).on('click', '[data-sidebar-open-modules]', function (e) {
+        e.preventDefault();
+        showModulesLevel();
+    });
+
+    $(document).on('click', '[data-sidebar-back]', function (e) {
+        e.preventDefault();
+        showMainLevel();
+    });
+
+    $(document).on('click', '[data-sidebar-open-module]', function (e) {
+        e.preventDefault();
+        var idx = $(this).attr('data-sidebar-open-module');
+        showModuleDetail(idx);
+    });
+
+    $(document).on('click', '[data-sidebar-back-to-modules]', function (e) {
+        e.preventDefault();
+        showModulesLevel();
+    });
+
+    $(document).on('click', '[data-sidebar-mode-toggle]', function (e) {
+        e.preventDefault();
+        var current = getCookie('admin-sidebar-mode') || 'nested';
+        var next = current === 'nested' ? 'flat' : 'nested';
+        setCookie('admin-sidebar-mode', next, 365);
+        if (typeof window.refreshAdminSidebar === 'function') {
+            window.refreshAdminSidebar();
+        } else {
+            window.location.reload();
+        }
+    });
+
+    function getBigModuleUrlMap() {
+        try {
+            var el = document.getElementById('sidebar-big-module-urls');
+            return el ? JSON.parse(el.textContent) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function findBigModuleForPath(pathname) {
+        var map = getBigModuleUrlMap();
+        if (!pathname) pathname = window.location.pathname;
+        for (var idx in map) {
+            var urls = map[idx];
+            for (var i = 0; i < urls.length; i++) {
+                if (pathname === urls[i] || pathname.indexOf(urls[i] + '/') === 0) {
+                    return idx;
+                }
+            }
+        }
+        return null;
+    }
+
+    function autoDetectLevel() {
+        if (!isNestedMode()) return;
+
+        var bigModIdx = findBigModuleForPath();
+        if (bigModIdx !== null) {
+            showModuleDetail(bigModIdx);
+            return;
+        }
+
+        if (isModulePage()) {
+            showModulesLevel();
+            return;
+        }
+
+        var saved = 'main';
+        try { saved = sessionStorage.getItem('sidebar-level') || 'main'; } catch (e) {}
+
+        if (saved === 'module-detail') {
+            var detailIdx = null;
+            try { detailIdx = sessionStorage.getItem('sidebar-module-detail'); } catch (e) {}
+            if (detailIdx !== null && $('.sidebar__level--module-detail[data-module-level="' + detailIdx + '"]').length) {
+                showModuleDetail(detailIdx);
+                return;
+            }
+            saved = 'modules';
+        }
+
+        if (saved === 'modules' && $('.sidebar__level--modules').length) {
+            showModulesLevel();
+        } else {
+            showMainLevel();
+        }
+    }
+
+    autoDetectLevel();
 
     function updateIndicator() {
         const currentUrl = u(window.location.pathname.slice(1));
@@ -308,6 +449,7 @@ $(document).ready(function () {
                         updateIndicator();
                         toggleMenuTooltips(wasCollapsed);
                         initSectionCollapse();
+                        autoDetectLevel();
                     }
                 }
             })

@@ -13,4 +13,9 @@ return [
     'content' => 'Conteúdo',
     'finance' => 'Finanças',
     'system' => 'Informação',
+
+    'modules_nav' => 'Módulos',
+    'back' => 'Voltar',
+    'mode_nested' => 'Agrupar módulos',
+    'mode_flat' => 'Mostrar tudo',
 ];

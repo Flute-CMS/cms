@@ -492,6 +492,17 @@ class MainSettingsPackageService
         $filteredData = collect($data)->only($tabSettings[$currentTab])->toArray();
         $rules = $this->getValidationRules()[$currentTab] ?? [];
 
+        foreach ($filteredData as $key => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+            $ruleSet = $rules[$key] ?? '';
+            $ruleArray = is_array($ruleSet) ? $ruleSet : explode('|', $ruleSet);
+            if (!in_array('array', $ruleArray, true) && !in_array('array-implode', $ruleArray, true)) {
+                $filteredData[$key] = $value[0] ?? null;
+            }
+        }
+
         if ($currentTab === ( $this->tabSlugs['mail'] ?? '' )) {
             $smtpEnabled = filter_var($filteredData['smtp'] ?? false, FILTER_VALIDATE_BOOLEAN);
 

@@ -47,12 +47,29 @@
     html[data-nav-style="pill"],
     html[data-nav-style="pill-transparent"],
     html[data-nav-style="pill-full"] {
+        .flute_header {
+            position: sticky;
+            background: transparent;
+            pointer-events: auto;
+            padding: 0;
+            display: block;
+        }
+
         .navbar {
             max-width: none;
             width: 100%;
             margin: 0 !important;
             border-radius: 0;
             padding: var(--space-md) 0;
+            background: var(--blurred-background);
+            backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            border-color: var(--transp-1);
+            box-shadow: 0 1px 2px #00000030;
+
+            &__content {
+                justify-content: space-between;
+            }
 
             &__left {
                 width: 100%;
@@ -61,6 +78,10 @@
             &__logo {
                 opacity: 1;
                 transform: translateY(0);
+            }
+
+            &__separator {
+                display: none;
             }
         }
     }

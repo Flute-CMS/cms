@@ -441,6 +441,12 @@ class ServerEditScreen extends Screen
     {
         $data = request()->input();
 
+        foreach (['mod', 'ranks', 'ranks_format'] as $selectField) {
+            if (isset($data[$selectField]) && is_array($data[$selectField])) {
+                $data[$selectField] = $data[$selectField][0] ?? null;
+            }
+        }
+
         if (request()->input('tab-server-edit') === Str::slug(__('admin-server.tabs.db_connections'))) {
             $this->flashMessage(__('admin-server.messages.save_not_for_db_connections'), 'error');
 
@@ -519,6 +525,12 @@ class ServerEditScreen extends Screen
         }
 
         $data = request()->input();
+
+        foreach (['custom_mod', 'dbname'] as $selectField) {
+            if (isset($data[$selectField]) && is_array($data[$selectField])) {
+                $data[$selectField] = $data[$selectField][0] ?? null;
+            }
+        }
 
         $validation = $this->validate([
             'custom_mod' => ['required', 'string', 'max-str-len:255'],
@@ -759,6 +771,12 @@ class ServerEditScreen extends Screen
             $this->flashMessage(__('admin-server.messages.connection_not_found'), 'error');
 
             return;
+        }
+
+        foreach (['custom_mod', 'dbname'] as $selectField) {
+            if (isset($data[$selectField]) && is_array($data[$selectField])) {
+                $data[$selectField] = $data[$selectField][0] ?? null;
+            }
         }
 
         $validation = $this->validate([

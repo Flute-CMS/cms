@@ -13,4 +13,9 @@ return [
     'content' => 'Kontent',
     'finance' => 'Moliya',
     'system' => "Ma'lumot",
+
+    'modules_nav' => 'Modullar',
+    'back' => 'Orqaga',
+    'mode_nested' => 'Modullarni guruhlash',
+    'mode_flat' => 'Hammasini koʻrsatish',
 ];

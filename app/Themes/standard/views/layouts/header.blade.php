@@ -75,11 +75,13 @@
                                     <x-header.socials />
                                 @endif
 
-                                @stack('navbar-logo')
+                                <div class="navbar__widgets" data-navbar-widget>
+                                    @stack('navbar-logo')
 
-                                @if (isset($sections['navbar-logo']))
-                                    {!! $sections['navbar-logo'] !!}
-                                @endif
+                                    @if (isset($sections['navbar-logo']))
+                                        {!! $sections['navbar-logo'] !!}
+                                    @endif
+                                </div>
                                 <div class="navbar__separator"></div>
                             @endif
 
@@ -185,11 +187,13 @@
                             <ul class="navbar__actions" aria-label="User actions">
                                 <x-header.language-selector />
                                 @if (!config('app.maintenance_mode') || (config('app.maintenance_mode') && user()->can('admin.pages')))
-                                    @stack('navbar-actions')
+                                    <li class="navbar__action-widgets" data-navbar-widget>
+                                        @stack('navbar-actions')
 
-                                    @if (isset($sections['navbar-actions']))
-                                        {!! $sections['navbar-actions'] !!}
-                                    @endif
+                                        @if (isset($sections['navbar-actions']))
+                                            {!! $sections['navbar-actions'] !!}
+                                        @endif
+                                    </li>
                                 @endif
                                 <div class="navbar__separator"></div>
                                 <x-header.theme-switcher />
