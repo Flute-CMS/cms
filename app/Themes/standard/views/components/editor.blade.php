@@ -17,6 +17,13 @@
     $langs = \Flute\Admin\Platform\Fields\TranslatableInput::getLanguagesData();
     $isMultilang = isset($translatable) && $translatable && count($langs) >= 2;
     $plainValue = $isMultilang ? $value : transValue($value ?? '');
+
+    $defaultLang = config('lang.locale', 'en');
+    $editorInitialContent = $plainValue;
+    if ($isMultilang && $value) {
+        $decoded = is_string($value) ? json_decode($value, true) : null;
+        $editorInitialContent = is_array($decoded) ? ($decoded[$defaultLang] ?? reset($decoded) ?: '') : $value;
+    }
 @endphp
 
 @if ($isMultilang)
@@ -32,11 +39,12 @@
             <textarea {{ $attributes }} id="{{ $inputId }}"
                 data-translatable-input
                 data-translatable-name="{{ $name }}"
+                data-translatable-value="{{ $value }}"
                 data-editor="richtext" data-height="{{ $height ?? 300 }}"
                 {!! isset($spellcheck) ? ' data-spellcheck="' . ($spellcheck ? 'true' : 'false') . '"' : '' !!}
                 {!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}
                 {!! isset($imageUploadEndpoint) ? ' data-upload-url="' . $imageUploadEndpoint . '"' : '' !!}
-            >{{ $value }}</textarea>
+            >{{ $editorInitialContent }}</textarea>
 
             @error($name)
                 <span class="input__error">{{ $message }}</span>
