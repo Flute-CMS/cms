@@ -47,3 +47,4 @@ storage/app/vapid_keys.json
 .superpowers
 tools/
 .playwright-mcp
+.agents
