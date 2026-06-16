@@ -8,6 +8,7 @@ use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserSocialNetwork;
 use Flute\Core\Exceptions\NeedRegistrationException;
+use Flute\Core\Modules\Auth\Events\SocialProviderAddedEvent;
 use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 use Flute\Core\Services\DiscordService;
 use Hybridauth\User\Profile;
@@ -316,6 +317,8 @@ trait HandlesSocialAuth
         if ($social['entity']->key === 'Discord') {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);
         }
+
+        events()->dispatch(new SocialProviderAddedEvent($socialNetworkEntity, $user), SocialProviderAddedEvent::NAME);
 
         $this->updateAvatarFromProfileIfNeeded($user, $profile);
 

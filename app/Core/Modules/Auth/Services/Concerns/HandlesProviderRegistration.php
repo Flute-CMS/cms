@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Auth\Services\Concerns;
 
 use Flute\Core\Database\Entities\SocialNetwork;
-use Flute\Core\Modules\Auth\Events\SocialProviderAddedEvent;
 
 trait HandlesProviderRegistration
 {
@@ -51,7 +50,6 @@ trait HandlesProviderRegistration
             'entity' => $socialNetwork,
         ], $settings);
 
-        events()->dispatch(new SocialProviderAddedEvent($socialNetwork), SocialProviderAddedEvent::NAME);
     }
 
     public function addSocial(string $key, array $settings, string $icon, bool $enabled = true): SocialNetwork

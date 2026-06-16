@@ -3,6 +3,7 @@
 namespace Flute\Core\Rcon;
 
 use Flute\Core\Database\Entities\Server;
+use Flute\Core\Rcon\Drivers\GoldSrcRconDriver;
 use Flute\Core\Rcon\Drivers\RustRconDriver;
 use Flute\Core\Rcon\Drivers\SourceRconDriver;
 use RuntimeException;
@@ -32,13 +33,20 @@ class RconService
      * Mods that use Source RCON (TCP binary protocol).
      * Also used by Minecraft Java Edition.
      */
+    /**
+     * Mods that use GoldSrc RCON (UDP protocol).
+     */
+    private const GOLDSRC_RCON_MODS = [
+        '10', // Counter-Strike 1.6
+        'all_hl_games_mods',
+    ];
+
     private const SOURCE_RCON_MODS = [
         '730',
         '240',
-        '10',
         '440',
         '550',
-        '4000', // CS2, CSS, CS1.6, TF2, L4D2, GMod
+        '4000', // CSS, TF2, L4D2, GMod
         '221100',
         '107410',
         '346110',
@@ -46,7 +54,6 @@ class RconService
         '304930',
         '108600',
         '282440', // Unturned, PZ, QuakeLive
-        'all_hl_games_mods',
         'minecraft', // Minecraft uses same TCP RCON protocol
     ];
 
@@ -219,6 +226,14 @@ class RconService
             }
 
             return $this->drivers[$class];
+        }
+
+        if (in_array($mod, self::GOLDSRC_RCON_MODS, true)) {
+            if (!isset($this->drivers[GoldSrcRconDriver::class])) {
+                $this->drivers[GoldSrcRconDriver::class] = new GoldSrcRconDriver();
+            }
+
+            return $this->drivers[GoldSrcRconDriver::class];
         }
 
         if (in_array($mod, self::SOURCE_RCON_MODS, true)) {
