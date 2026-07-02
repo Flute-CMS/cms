@@ -39,7 +39,7 @@ class SessionService implements SessionInterface
      */
     public function listen(EventDispatcher $eventDispatcher): void
     {
-        $eventDispatcher->addListener(LangChangedEvent::class, [$this, 'onLangChanged']);
+        $eventDispatcher->addListener(LangChangedEvent::NAME, [$this, 'onLangChanged']);
     }
 
     /**

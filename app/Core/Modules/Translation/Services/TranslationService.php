@@ -142,6 +142,8 @@ class TranslationService
 
     public function getLocale(): string
     {
+        $this->syncLocaleWithApp();
+
         return $this->translator->getLocale();
     }
 
@@ -200,7 +202,7 @@ class TranslationService
     public function trans(string $key, array $replacements = [], ?string $locale = null): string
     {
         $translator = $this->getTranslator();
-        $locale ??= $translator->getLocale();
+        $locale ??= $this->syncLocaleWithApp();
 
         if (strpos($key, '.') !== false) {
             [$domain, $translationKey] = explode('.', $key, 2);
@@ -239,6 +241,17 @@ class TranslationService
         }
 
         return $translator->trans($key, $extendedReplacements, null, $locale);
+    }
+
+    protected function syncLocaleWithApp(): string
+    {
+        $locale = app()->getLang() ?: $this->translator->getLocale();
+
+        if ($locale !== $this->translator->getLocale()) {
+            $this->onLangChanged(new LangChangedEvent($locale));
+        }
+
+        return $locale;
     }
 
     /**
@@ -763,9 +776,18 @@ class TranslationService
      */
     protected function determinePrimaryFallback(array $availableLangs, string $current): ?string
     {
-        if (in_array('en', $availableLangs, true) && $current !== 'en') {
+        // 'en' is the source locale and is always complete: it must never fall
+        // back to another natural language (e.g. 'ru'), otherwise missing keys
+        // on English pages render foreign text and the compiled 'en' catalogue
+        // gets merged with the fallback locale.
+        if ($current === 'en') {
+            return null;
+        }
+
+        if (in_array('en', $availableLangs, true)) {
             return 'en';
         }
+
         foreach ($availableLangs as $lang) {
             if ($lang !== $current) {
                 return $lang;

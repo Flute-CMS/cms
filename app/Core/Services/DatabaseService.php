@@ -158,34 +158,10 @@ class DatabaseService
             $query->where('mod', 'IN', new Parameter($mods));
         }
 
-        $modes = $query->fetchAll();
-        $this->hydrateServerConnections($modes);
-
-        return self::$modesCache[$cacheKey] = $modes;
-    }
-
-    /**
-     * @param array<int, DatabaseConnection> $modes
-     */
-    private function hydrateServerConnections(array $modes): void
-    {
-        $connectionsByServer = [];
-
-        foreach ($modes as $mode) {
-            if (!$mode->server) {
-                continue;
-            }
-
-            $connectionsByServer[$mode->server->id][] = $mode;
-        }
-
-        foreach ($modes as $mode) {
-            if (!$mode->server) {
-                continue;
-            }
-
-            $mode->server->dbconnections = $connectionsByServer[$mode->server->id] ?? [];
-        }
+        // Never assign the filtered result into $server->dbconnections: the HasMany
+        // is cascade-enabled, so a later $server->save() would sync the collection
+        // and unlink (server_id = NULL) every connection missing from the subset.
+        return self::$modesCache[$cacheKey] = $query->fetchAll();
     }
 
     /**
