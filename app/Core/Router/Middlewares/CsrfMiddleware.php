@@ -64,7 +64,7 @@ class CsrfMiddleware extends BaseMiddleware
             return false;
         }
 
-        if (!$allMethods && ($request->isMethod('GET') || $request->isMethod('HEAD'))) {
+        if (!$allMethods && ( $request->isMethod('GET') || $request->isMethod('HEAD') )) {
             return false;
         }
 

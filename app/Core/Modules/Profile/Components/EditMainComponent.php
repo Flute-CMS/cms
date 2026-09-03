@@ -294,7 +294,10 @@ class EditMainComponent extends FluteComponent
             }
 
             if (!password_verify($this->current_password, $this->user->password)) {
-                $this->inputError('current_password', __('profile.edit.main.change_password.current_password_incorrect'));
+                $this->inputError(
+                    'current_password',
+                    __('profile.edit.main.change_password.current_password_incorrect'),
+                );
 
                 return;
             }

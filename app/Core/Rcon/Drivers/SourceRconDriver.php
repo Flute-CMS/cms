@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Rcon\Drivers;
 
-use Flute\Core\Rcon\RconDriverInterface;
 use Flute\Core\Rcon\RconAuthException;
+use Flute\Core\Rcon\RconDriverInterface;
 use RuntimeException;
 
 /**
