@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Rcon\Drivers;
 
+use Flute\Core\Rcon\RconAuthException;
 use Flute\Core\Rcon\RconDriverInterface;
 use RuntimeException;
 use xPaw\SourceQuery\Exception\AuthenticationException;
@@ -30,7 +31,7 @@ class GoldSrcRconDriver implements RconDriverInterface
 
             return $result ?: '';
         } catch (AuthenticationException $e) {
-            throw new RuntimeException('RCON auth failed: ' . $e->getMessage(), 0, $e);
+            throw new RconAuthException('RCON auth failed: ' . $e->getMessage(), 0, $e);
         } catch (SocketException|InvalidPacketException $e) {
             throw new RuntimeException("RCON connection failed to {$ip}:{$port}: " . $e->getMessage(), 0, $e);
         } finally {

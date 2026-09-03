@@ -3,6 +3,7 @@
 namespace Flute\Core\Rcon\Drivers;
 
 use Flute\Core\Rcon\RconDriverInterface;
+use Flute\Core\Rcon\RconAuthException;
 use RuntimeException;
 
 /**
@@ -82,7 +83,7 @@ class SourceRconDriver implements RconDriverInterface
         $response = $this->readPacket($socket);
 
         if ($response === null) {
-            throw new RuntimeException('RCON auth failed: no response from server');
+            throw new RconAuthException('RCON auth failed: no response from server');
         }
 
         // If we got a RESPONSE_VALUE, read the actual AUTH_RESPONSE
@@ -90,12 +91,12 @@ class SourceRconDriver implements RconDriverInterface
             $response = $this->readPacket($socket);
 
             if ($response === null) {
-                throw new RuntimeException('RCON auth failed: no auth response from server');
+                throw new RconAuthException('RCON auth failed: no auth response from server');
             }
         }
 
         if ($response['id'] === -1) {
-            throw new RuntimeException('RCON auth failed: invalid password');
+            throw new RconAuthException('RCON auth failed: invalid password');
         }
     }
 

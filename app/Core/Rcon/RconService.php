@@ -92,6 +92,9 @@ class RconService
             $this->recordSuccess($key);
 
             return $result;
+        } catch (RconAuthException $e) {
+            // Сервер ответил, просто пароль неверный — не повод объявлять его недоступным.
+            throw $e;
         } catch (\Throwable $e) {
             $this->recordFailure($key);
 
@@ -128,8 +131,14 @@ class RconService
 
         $port = $this->getRconPort($server);
         $key = $this->breakerKey($server, $port);
+
+        // Проверку запускает админ вручную, и провал чаще означает опечатку в пароле,
+        // а не мёртвый сервер — поэтому неудача брейкер не открывает.
         $ok = $driver->test($server->ip, $port, $server->rcon, $timeout);
-        $ok ? $this->recordSuccess($key) : $this->recordFailure($key);
+
+        if ($ok) {
+            $this->recordSuccess($key);
+        }
 
         return $ok;
     }

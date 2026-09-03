@@ -6,6 +6,7 @@ use Exception;
 use Flute\Admin\Packages\Server\Contracts\ModDriverInterface;
 use Flute\Admin\Packages\Server\Factories\ModDriverFactory;
 use Flute\Core\Database\Entities\DatabaseConnection;
+use Flute\Core\Rcon\RconService;
 use Flute\Core\Database\Entities\Server;
 use Flute\Core\Services\DatabaseService;
 
@@ -298,6 +299,10 @@ class AdminServersService
         }
 
         $server->save(false);
+
+        // Админ поправил адрес/порт/пароль — снимаем «сервер недоступен»,
+        // иначе после трёх неудачных проверок RCON молчит ещё 5 минут.
+        app(RconService::class)->resetBreaker($server);
 
         return $server;
     }
