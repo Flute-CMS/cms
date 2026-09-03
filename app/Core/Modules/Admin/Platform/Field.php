@@ -377,15 +377,33 @@ class Field implements Fieldable, Htmlable
     }
 
     /**
+     * Memoized results of the allow-list match, keyed by pattern set + attribute.
+     *
+     * Str::is() runs preg_quote()+preg_match() for every (attribute, pattern)
+     * pair, and a listing screen renders the same handful of field types
+     * hundreds of times — so without this the same regexes are rebuilt over and
+     * over. On a 203-product screen this was ~31% of the whole request.
+     *
+     * @var array<string, bool>
+     */
+    private static array $allowAttributeCache = [];
+
+    /**
      * Gets the allowed attributes for the field.
      */
     protected function getAllowAttributes(): ComponentAttributeBag
     {
         $allow = array_merge($this->universalAttributes, $this->inlineAttributes);
+        $allowKey = implode('|', $allow);
 
-        $attributes = collect($this->getAttributes())
-            ->filter(static fn($value, $attribute) => Str::is($allow, $attribute))
-            ->toArray();
+        $attributes = collect($this->getAttributes())->filter(static function ($value, $attribute) use (
+            $allow,
+            $allowKey,
+        ): bool {
+            $key = $allowKey . "\0" . $attribute;
+
+            return self::$allowAttributeCache[$key] ??= Str::is($allow, $attribute);
+        })->toArray();
 
         return ( new ComponentAttributeBag() )->merge($attributes);
     }

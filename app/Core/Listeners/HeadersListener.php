@@ -18,7 +18,7 @@ class HeadersListener
         $session = session();
         $sessionName = $session->getName();
         $hasSessionCookie = $sessionName !== '' && isset($_COOKIE[$sessionName]);
-        $shouldUseSession = $session->isStarted() || $hasSessionCookie;
+        $shouldUseSession = !$session->isClosed() && ( $session->isStarted() || $hasSessionCookie );
         $isLoggedIn = $shouldUseSession && $session->has('user_id');
 
         header_remove('X-Powered-By');

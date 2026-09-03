@@ -111,7 +111,14 @@ class GatewayInitializer
     {
         events()->dispatch(new RegisterPaymentFactoriesEvent(), RegisterPaymentFactoriesEvent::NAME);
 
-        $gatewayEntities = PaymentGatewayEntity::findAll(['enabled' => true]);
+        $gatewayEntities = array_filter(
+            (array) cache()->callback(
+                'flute.payment_gateways',
+                static fn() => PaymentGatewayEntity::query()->fetchAll(),
+                3600,
+            ),
+            static fn($gateway) => (bool) $gateway->enabled,
+        );
 
         foreach ($gatewayEntities as $gatewayEntity) {
             if (!$this->gatewayExists($gatewayEntity->adapter)) {

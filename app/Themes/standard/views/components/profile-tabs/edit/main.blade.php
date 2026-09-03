@@ -56,6 +56,20 @@
                                 </x-alert>
                             </div>
                         @endif
+
+                        @if ($user->password && ($email ?? $user->email) !== $user->email)
+                            <div class="mt-2">
+                                <x-forms.label for="email_password" required>
+                                    {{ __('profile.edit.main.change_password.fields.current_password') }}:
+                                </x-forms.label>
+                                <x-fields.input type="password" name="email_password" id="email_password"
+                                    autocomplete="current-password" required
+                                    placeholder="{{ __('profile.edit.main.change_password.fields.current_password_placeholder') }}" />
+                                <x-fields.small>
+                                    {{ __('profile.edit.main.basic_information.email_password_required') }}
+                                </x-fields.small>
+                            </div>
+                        @endif
                     </x-forms.field>
                 </div>
                 <div class="col-md-6">

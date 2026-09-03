@@ -27,6 +27,9 @@ class ValveQueryDriver implements QueryDriverInterface
 
     private const HEADER_SPLIT = "\xFF\xFF\xFF\xFE";
 
+    /** Сколько ждать A2S_PLAYER после того, как INFO уже получен. */
+    private const PLAYER_GRACE_SECONDS = 1;
+
     private const RESPONSE_INFO_SOURCE = 0x49;
 
     private const RESPONSE_INFO_GOLDSRC = 0x6D;
@@ -104,27 +107,19 @@ class ValveQueryDriver implements QueryDriverInterface
             return $result;
         }
 
+        $playerTimeout = (int) max(1, min($timeout, self::PLAYER_GRACE_SECONDS));
         stream_set_blocking($socket2, true);
-        stream_set_timeout($socket2, $timeout);
+        stream_set_timeout($socket2, $playerTimeout);
 
         try {
+            $this->readTimeout = $playerTimeout;
             $players = $this->queryPlayers($socket2);
 
             if ($players !== null && !empty($players)) {
-                $filtered = array_filter(
-                    $players,
-                    static fn($p) => (
-                        !empty(trim($p['name']))
-                        && isset($p['time'])
-                        && (int) $p['time'] >= 0
-                        && (int) $p['time'] < 86400
-                    ),
-                );
-                $filtered = array_values($filtered);
-
-                $result->playersData = $filtered;
+                $result->playersData = $this->filterPlayers($players);
             }
         } finally {
+            $this->readTimeout = $timeout;
             fclose($socket2);
         }
 
@@ -214,17 +209,7 @@ class ValveQueryDriver implements QueryDriverInterface
                 continue;
             }
 
-            $filtered = array_values(array_filter(
-                $players,
-                static fn($p) => (
-                    !empty(trim($p['name']))
-                    && isset($p['time'])
-                    && (int) $p['time'] >= 0
-                    && (int) $p['time'] < 86400
-                ),
-            ));
-
-            $results[$id]->playersData = $filtered;
+            $results[$id]->playersData = $this->filterPlayers($players);
         }
 
         // === FALLBACK: Steam Web API for servers that didn't respond via UDP ===
@@ -269,15 +254,31 @@ class ValveQueryDriver implements QueryDriverInterface
         $playerChallenged = [];
 
         $deadline = microtime(true) + $timeout;
+        // Серверы с закрытым A2S_PLAYER (типично для CS2) молчат до конца таймаута
+        // и держат весь батч. Как только собраны все INFO — даём PLAYER короткое окно.
+        $playerGraceApplied = false;
 
         while (microtime(true) < $deadline) {
-            $allWaiting = $infoPending + $infoChallenged + $playerPending + $playerChallenged;
+            if (!$playerGraceApplied && empty($infoPending) && empty($infoChallenged)) {
+                $playerGraceApplied = true;
+                $deadline = min($deadline, microtime(true) + self::PLAYER_GRACE_SECONDS);
+            }
+
+            // Ключи наборов — id серверов и совпадают между INFO и PLAYER,
+            // поэтому объединять их через '+' нельзя: PLAYER-сокеты выпадали из выборки.
+            $allWaiting = [];
+
+            foreach ([$infoPending, $infoChallenged, $playerPending, $playerChallenged] as $set) {
+                foreach ($set as $sock) {
+                    $allWaiting[] = $sock;
+                }
+            }
 
             if (empty($allWaiting)) {
                 break;
             }
 
-            $read = array_values($allWaiting);
+            $read = $allWaiting;
             $write = null;
             $except = null;
 
@@ -617,6 +618,28 @@ class ValveQueryDriver implements QueryDriverInterface
         }
 
         return $players;
+    }
+
+    /**
+     * Отсеивает мусорные записи GoldSrc (пустое имя, NaN/отрицательное время).
+     * Верхняя граница намеренно большая: на сервере без рестарта игрок или бот
+     * реально висит дольше суток, и старый порог в 86400 выкидывал живых игроков.
+     *
+     * @param array<int, array{name: string, score: int, time: float}> $players
+     * @return array<int, array{name: string, score: int, time: float}>
+     */
+    private function filterPlayers(array $players): array
+    {
+        return array_values(array_filter(
+            $players,
+            static fn($p) => (
+                !empty(trim($p['name']))
+                && isset($p['time'])
+                && is_finite((float) $p['time'])
+                && (float) $p['time'] >= 0
+                && (float) $p['time'] < 2592000
+            ),
+        ));
     }
 
     private function sendAndRead($socket, string $payload, int $maxSize = 4096): string

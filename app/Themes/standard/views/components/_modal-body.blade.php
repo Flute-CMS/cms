@@ -16,7 +16,7 @@
         <div class="modal__content dialog-body" id="{{ $id }}-content">
             @if($loadUrl)
                 <div hx-get="{{ $loadUrl }}" hx-target="{{ $loadTarget ?? '#'.$id.'-content' }}" hx-trigger="intersect"
-                    hx-swap="innerHTML focus-scroll:false">
+                    hx-swap="innerHTML focus-scroll:false" hx-disinherit="*" yoyo:ignore>
 
                     @if($skeleton)
                         {!! $skeleton !!}

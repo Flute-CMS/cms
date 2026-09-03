@@ -293,6 +293,10 @@ class AdminPackageFactory
         // Module items stored separately for two-level sidebar
         $this->moduleMenuItemsCache = [];
         foreach ($moduleItems as $moduleName => $items) {
+            if (count($items) === 1 && empty($items[0]['url']) && !empty($items[0]['children'])) {
+                $items = array_values($items[0]['children']);
+            }
+
             if (!empty($items)) {
                 $this->moduleMenuItemsCache[] = [
                     'title' => $moduleName,

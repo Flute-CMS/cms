@@ -368,6 +368,13 @@ class FluteApp {
             if (csrfToken) {
                 evt.detail.headers["X-CSRF-Token"] = csrfToken;
             }
+
+            if (
+                evt.detail.path === "render" &&
+                window.Yoyo?.url
+            ) {
+                evt.detail.path = Yoyo.url;
+            }
         });
 
         // Refresh CSRF token from response header

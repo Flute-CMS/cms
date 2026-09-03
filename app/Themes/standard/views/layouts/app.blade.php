@@ -176,7 +176,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
+    <link rel="icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
+    <link rel="shortcut icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
+    <link rel="apple-touch-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="alternate" href="{{ url()->current() }}" hreflang="x-default">
 
@@ -373,6 +375,9 @@
     @if (isset($sections['content-after']))
         {!! $sections['content-after'] !!}
     @endif
+
+    {{-- OOB-модалки страницы: при htmx-навигации #modals не перерисовывается, они доезжают сюда --}}
+    @stack('modals-oob')
 
     @includeIf('flute::partials.confirmation')
 

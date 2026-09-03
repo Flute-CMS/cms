@@ -53,6 +53,7 @@ return [
                 "resend_confirmation" => "Resend",
                 "cancel_change" => "Cancel",
                 "email_changed_success" => "Email changed successfully.",
+                "email_password_required" => "Confirm your current password to change the email.",
             ],
 
             "profile_images" => [

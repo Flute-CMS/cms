@@ -404,10 +404,32 @@ abstract class Screen extends FluteComponent implements ScreenInterface
     }
 
     // clear opcache & jit cache
-    protected function clearOpcache()
+    protected function clearOpcache(array|string|null $files = null): void
     {
+        foreach ((array) ( $files ?? [] ) as $file) {
+            if (is_string($file) && $file !== '' && is_file($file) && function_exists('opcache_invalidate')) {
+                @opcache_invalidate($file, true);
+            }
+        }
+
         if (function_exists('opcache_reset')) {
-            opcache_reset();
+            @opcache_reset();
+        }
+    }
+
+    protected function refreshRuntimeAfterFileChange(array|string|null $files = null): void
+    {
+        $this->clearOpcache($files);
+
+        foreach ([
+            path('storage/app/cache/routes_compiled_front.php'),
+            path('storage/app/cache/routes_compiled_front.php.lock'),
+            path('storage/app/cache/routes_compiled_admin.php'),
+            path('storage/app/cache/routes_compiled_admin.php.lock'),
+        ] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
         }
     }
 

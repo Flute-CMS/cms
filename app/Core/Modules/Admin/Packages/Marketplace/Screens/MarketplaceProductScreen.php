@@ -105,7 +105,14 @@ class MarketplaceProductScreen extends Screen
                         $download = $moduleInstaller->downloadModule($module);
                     } catch (Throwable $e2) {
                         logs()->error($e2);
-                        $this->flashMessage(__('def.internal_server_error'), 'error');
+                        $this->flashMessage(
+                            $e2->getMessage() === 'MARKETPLACE_BAD_REQUEST'
+                                ? __('admin-marketplace.messages.download_unauthorized', [
+                                    'reason' => $moduleInstaller->lastDownloadError,
+                                ])
+                                : __('def.internal_server_error'),
+                            'error',
+                        );
                         $this->isLoading = false;
 
                         return;

@@ -66,7 +66,7 @@ class ModuleInformation
         $this->version = $file->version ?? '1.0.0';
         $this->authors = $file->authors ?? [];
         $this->url = $file->url ?? '';
-        $this->providers = $file->providers;
+        $this->providers = $file->providers ?? [];
         $this->dependencies = (array) $file->dependencies ?? [];
     }
 }

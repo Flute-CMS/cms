@@ -182,10 +182,15 @@ class PaymentProcessor
      *
      * @param string $transactionId Transaction ID.
      *
+     * @param bool  $skipAmountVerification Skip gateway amount verification for an explicit admin action.
+     *
      * @throws PaymentException
      */
-    public function setInvoiceAsPaid(string $transactionId, ?float $verifyAmount = null): void
-    {
+    public function setInvoiceAsPaid(
+        string $transactionId,
+        ?float $verifyAmount = null,
+        bool $skipAmountVerification = false,
+    ): void {
         $database = db();
 
         $database->begin();
@@ -222,7 +227,7 @@ class PaymentProcessor
             $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
             $toleranceAbs = max(0.01, $expectedAmount * ( $tolerancePercent / 100 ));
 
-            if ($expectedAmount > 0) {
+            if ($expectedAmount > 0 && !$skipAmountVerification) {
                 if ($verifyAmount === null) {
                     logs()->warning(
                         "Payment amount verification failed (null) for transaction {$transactionId}, expected {$expectedAmount}",

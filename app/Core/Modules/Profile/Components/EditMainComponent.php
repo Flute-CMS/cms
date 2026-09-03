@@ -7,6 +7,7 @@ use Flute\Core\Support\FileUploader;
 use Flute\Core\Support\FluteComponent;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Throwable;
 
 class EditMainComponent extends FluteComponent
 {
@@ -23,6 +24,8 @@ class EditMainComponent extends FluteComponent
     public ?string $privacy = null;
 
     public ?string $current_password = null;
+
+    public ?string $email_password = null;
 
     public ?string $new_password = null;
 
@@ -66,10 +69,14 @@ class EditMainComponent extends FluteComponent
     public function saveMain()
     {
         if ($this->validateSaveMain()) {
-            try {
-                $newEmail = $this->email;
-                $emailChanged = $newEmail && $newEmail !== $this->user->email;
+            $newEmail = $this->email;
+            $emailChanged = $newEmail && $newEmail !== $this->user->email;
 
+            if ($emailChanged && !$this->confirmEmailChange()) {
+                return;
+            }
+
+            try {
                 // Don't let updateUserMainInfo touch email — we handle it via pending flow
                 $this->email = $this->user->email;
                 $this->updateUserMainInfo();
@@ -83,6 +90,7 @@ class EditMainComponent extends FluteComponent
                 }
 
                 user()->updateUser($this->user);
+                $this->email_password = null;
 
                 if ($emailChanged && config('auth.registration.confirm_email')) {
                     $this->sendPendingEmailConfirmation($newEmail);
@@ -94,6 +102,52 @@ class EditMainComponent extends FluteComponent
                 $this->inputError('name', $e->getMessage());
             }
         }
+    }
+
+    /**
+     * Changing the email hands over the password-reset channel, so re-authenticate first.
+     * Accounts without a local password (social login only) have nothing to verify against.
+     */
+    protected function confirmEmailChange(): bool
+    {
+        if (empty($this->user->password)) {
+            return true;
+        }
+
+        if (empty($this->email_password)) {
+            $this->inputError('email_password', __('profile.edit.main.basic_information.email_password_required'));
+
+            return false;
+        }
+
+        if (!$this->throttlePasswordCheck()) {
+            return false;
+        }
+
+        if (!password_verify($this->email_password, $this->user->password)) {
+            $this->inputError('email_password', __('profile.edit.main.change_password.current_password_incorrect'));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Both password prompts on this page (email change + password change) are online guessing
+     * oracles against a hijacked session, so they share one budget.
+     */
+    protected function throttlePasswordCheck(): bool
+    {
+        try {
+            throttler()->throttle(['action' => 'profile_password_check', 'user' => $this->user->id], 5, 300, 1);
+        } catch (Throwable $e) {
+            $this->flashMessage(__('def.too_many_requests'), 'error');
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -234,10 +288,19 @@ class EditMainComponent extends FluteComponent
             return;
         }
 
-        if (!empty($this->user->password) && !password_verify($this->current_password, $this->user->password)) {
-            $this->inputError('current_password', __('profile.edit.main.change_password.current_password_incorrect'));
+        if (!empty($this->user->password)) {
+            if (!$this->throttlePasswordCheck()) {
+                return;
+            }
 
-            return;
+            if (!password_verify($this->current_password, $this->user->password)) {
+                $this->inputError(
+                    'current_password',
+                    __('profile.edit.main.change_password.current_password_incorrect'),
+                );
+
+                return;
+            }
         }
 
         try {

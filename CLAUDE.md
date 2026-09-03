@@ -1,36 +1,49 @@
 # CLAUDE.md
 
-Assistant guidance in this repo: **commands, layout, style, tests, commits, PRs, security -> `AGENTS.md`.**
+**READ FIRST EACH SESSION:** `docs/INDEX.md` (≤50 lines) + `docs/LLM_RULES.md`. Nothing else by default.
+
+**Token economy rules: `docs/LLM_RULES.md`.** Lazy load. Grep > Read. Edit > rewrite. No sub-agents for <50 lines / <3 files.
 
 ## Stack
 
-Flute CMS (gaming communities); PHP 8.2+; Symfony; Cycle ORM; Blade (`jenssegers/blade`).
+Flute CMS (gaming communities); PHP 8.2+; Symfony; Cycle ORM (ActiveRecord); Blade (`jenssegers/blade`).
 
-## Architecture (Flute-specific)
+## Where to look (load only the matching one)
 
-- **App** (`app/Core/App.php`): singleton; traits for container, router, theme, language, logger.
-- **Router**: `#[Route]` on controllers; middlewares in `app/Core/Router/Router.php` (`auth`, `admin`, `csrf`, …).
-- **DB**: Cycle Active Record; entities in `app/Core/Database/Entities/`; extend `Cycle\ActiveRecord\ActiveRecord`; `php flute generate:migration`.
-- **Views**: `<x-icon path="ph.bold.scales-bold" />` (Phosphor icon paths).
-- **Module** (`app/Modules/Name/`): `module.json`, `Providers/`, `Controllers/`, `Resources/views`, `Resources/lang/`, `database/migrations/`, `Services/`.
-- **PSR-4**: `Flute\` → `app/`; `Flute\Admin\` → `app/Core/Modules/Admin/`; `Flute\Modules\Name\` → `app/Modules/Name/`.
+- Architecture, container, bootstrap → `docs/HANDOVER_CORE_AI.md`
+- Routes, middleware → `docs/HANDOVER_ROUTER_AI.md`
+- DB, entities, migrations → `docs/HANDOVER_DB_AI.md`
+- Blade, components, icons → `docs/HANDOVER_VIEWS_AI.md`
+- Modules layout, list, deps → `docs/HANDOVER_MODULES_AI.md`
+- Admin Platform/Screen → `docs/HANDOVER_ADMIN_AI.md`
+- Payment gateways → `docs/HANDOVER_PAYMENTS_AI.md`
+- Global helpers → `docs/HANDOVER_HELPERS_AI.md`
+- Themes → `docs/HANDOVER_THEMES_AI.md`
+- Events/listeners → `docs/HANDOVER_EVENTS_AI.md`
+- "where is X?" → `docs/CODE_MAP.md`
+- Human verbose Russian docs → `docs/01..21*.md` (do NOT auto-load)
 
-## Admin (`Flute\Admin\Platform\Screen`)
+## Conventions (non-negotiable)
 
-`$name`, `$description`, `$permission`; `mount()`, `commandBar()`, `layout()` via `LayoutFactory` (Fields, Tabs, Tables, Modals); public methods for actions; helpers `rep()`, `user()->can()`, `breadcrumb()`, `auth()`, `router()`.
-
-## Modules
-
-Check APIs when calling other modules; respect `module.json` dependencies.
+- PSR-4: `Flute\` → `app/`; `Flute\Admin\` → `app/Core/Modules/Admin/`; `Flute\Modules\Name\` → `app/Modules/Name/`.
+- Routes: `#[Route]` attribute only. No route files.
+- DB: entities extend `Cycle\ActiveRecord\ActiveRecord`. Migrations only via `php flute generate:migration`.
+- Views: `<x-icon path="ph.bold.scales-bold" />` for icons.
+- Module APIs: call public Services/Contracts only; respect `module.json` deps.
+- File size caps: controller/service/helper ≤400; view ≤300; >500 → split.
 
 ## Branches
 
-`main` — stable; `early` — default development.
+`main` — stable; `early` — default dev.
 
 ## Git Safety
 
-Assistants must not run `git commit` or `git push` without explicit user approval in the current conversation. Push approval must be requested every time.
+Assistants must not run `git commit` or `git push` without explicit user approval in the current conversation. Push approval is required every time.
 
-## CLI beyond AGENTS.md
+## CLI
 
-`php flute`: `template:cache:clear`, `logs:clear`, `logs:cleanup`, `cache:warmup`, `generate:module`, `routes:list`, `route:detail`, `cron:run`.
+`php flute`: `template:clear`, `cache:clear`, `cache:warmup`, `logs:clear`, `logs:cleanup`, `generate:module`, `generate:migration`, `route:list`, `route:detail`, `cron:run`.
+
+## After any task
+
+Append 1–2 fact lines to the matching `docs/HANDOVER_*_AI.md` (format `KEY: value`). Never rewrite. Never copy. No "why" — only "what + where". If feature completed, 1 line to `docs/PROGRESS.md`.

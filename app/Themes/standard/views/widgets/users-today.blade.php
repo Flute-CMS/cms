@@ -16,7 +16,7 @@
                     @foreach ($users as $user)
                         <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="user-avatar"
                             title="{{ $user->name }}">
-                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
+                            <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}"
                                 data-tooltip="{{ $user->name }}" loading="lazy" decoding="async">
                         </x-link>
                     @endforeach
@@ -26,7 +26,7 @@
                     @foreach ($users as $user)
                         <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card
                             class="user-avatar-compact" title="{{ $user->name }}">
-                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
+                            <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}"
                                 data-tooltip="{{ $user->name }}" loading="lazy" decoding="async">
                         </x-link>
                     @endforeach

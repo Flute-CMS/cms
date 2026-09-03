@@ -48,7 +48,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '1.0.6';
+    public const VERSION = '1.0.7';
 
     /**
      * Set the base path of the application
@@ -335,6 +335,8 @@ final class App
 
             return;
         }
+
+        SWRQueue::beginRequest();
 
         if (!defined('FLUTE_ROUTER_START')) {
             define('FLUTE_ROUTER_START', microtime(true));

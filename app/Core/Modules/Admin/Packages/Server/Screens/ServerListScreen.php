@@ -169,7 +169,7 @@ class ServerListScreen extends Screen
             $server = Server::findByPK($id);
             if ($server) {
                 $server->enabled = true;
-                $server->save();
+                $server->save(false);
             }
         }
         $this->flashMessage(__('admin-server.messages.servers_enabled'), 'success');
@@ -185,7 +185,7 @@ class ServerListScreen extends Screen
             $server = Server::findByPK($id);
             if ($server) {
                 $server->enabled = false;
-                $server->save();
+                $server->save(false);
             }
         }
         $this->flashMessage(__('admin-server.messages.servers_disabled'), 'warning');
