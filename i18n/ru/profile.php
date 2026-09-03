@@ -53,6 +53,7 @@ return [
                 'resend_confirmation' => 'Отправить повторно',
                 'cancel_change' => 'Отменить',
                 'email_changed_success' => 'Email успешно изменён.',
+                'email_password_required' => 'Для смены email подтвердите текущий пароль.',
             ],
 
             'profile_images' => [

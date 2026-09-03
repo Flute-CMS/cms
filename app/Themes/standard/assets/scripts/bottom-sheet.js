@@ -139,8 +139,16 @@ document.body.addEventListener('htmx:afterSettle', (event) => {
     scheduleA11yDialogInit(event.detail?.target || event.detail?.elt || event.target || document);
 });
 
+document.body.addEventListener('htmx:oobAfterSwap', (event) => {
+    scheduleA11yDialogInit(event.detail?.target || event.target || document);
+});
+
 function openModal(modalId) {
     const modalElement = document.getElementById(modalId);
+
+    if (modalElement && !modalElement.dialogInstance) {
+        initializeA11yDialog(modalElement);
+    }
 
     if (modalElement && modalElement.dialogInstance) {
         if (window.flute && window.flute.dropdowns) {

@@ -9,7 +9,7 @@ trait RulesDb
 {
     public static function unique(FluteValidator $validator, $data, $pattern, $rule, $parameters)
     {
-        $table = static::resolveTableName($parameters[0]);
+        $table = $parameters[0];
         static::validateIdentifier($table);
 
         foreach (FluteValidator::getValues($data, $pattern) as $attribute => $value) {
@@ -46,7 +46,7 @@ trait RulesDb
             );
         }
 
-        $table = static::resolveTableName($parameters[0]);
+        $table = $parameters[0];
         $column = $parameters[1];
         $except = $parameters[2] ?? null;
         $idColumn = $parameters[3] ?? 'id';
@@ -82,19 +82,5 @@ trait RulesDb
                 "Invalid SQL identifier: '{$identifier}'. Only alphanumeric characters, underscores, and dots are allowed.",
             );
         }
-    }
-
-    protected static function resolveTableName(string $table): string
-    {
-        if (str_contains($table, '.')) {
-            return $table;
-        }
-
-        $prefix = db()->getPrefix();
-        if ($prefix === '' || str_starts_with($table, $prefix)) {
-            return $table;
-        }
-
-        return $prefix . $table;
     }
 }

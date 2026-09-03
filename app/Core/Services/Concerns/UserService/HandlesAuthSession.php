@@ -145,7 +145,13 @@ trait HandlesAuthSession
 
     protected function sessionExpired(): void
     {
-        auth()->logout();
+        session()->clear();
         session()->invalidate();
+
+        $this->currentUser = null;
+        $this->permissionsCache = null;
+        $this->rolesCache = null;
+        $this->highestPriority = null;
+        $this->triedToLogin = true;
     }
 }

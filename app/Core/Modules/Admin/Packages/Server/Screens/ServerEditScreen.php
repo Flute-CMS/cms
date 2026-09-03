@@ -14,6 +14,7 @@ use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\DatabaseConnection;
 use Flute\Core\Database\Entities\Server;
 
 class ServerEditScreen extends Screen
@@ -134,7 +135,7 @@ class ServerEditScreen extends Screen
             return;
         }
 
-        $this->dbConnections = $this->server->dbconnections;
+        $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
         $this->name = __('admin-server.title.edit') . ': ' . $this->server->name;
     }
 }

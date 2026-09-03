@@ -23,7 +23,7 @@ class CsrfMiddleware extends BaseMiddleware
             return $next($request);
         }
 
-        if ($this->shouldValidateToken($request) && !$this->isTokenValid($request)) {
+        if ($this->shouldValidateToken($request, in_array('all', $args, true)) && !$this->isTokenValid($request)) {
             $response = $this->error()->forbidden(__('def.csrf_expired'));
 
             if ($request->isXmlHttpRequest() || $request->headers->has('HX-Request')) {
@@ -57,9 +57,14 @@ class CsrfMiddleware extends BaseMiddleware
         return is_installed();
     }
 
-    private function shouldValidateToken(FluteRequest $request): bool
+    private function shouldValidateToken(FluteRequest $request, bool $allMethods = false): bool
     {
-        if ($request->isMethod('GET') || $request->isMethod('HEAD') || $request->isMethod('OPTIONS')) {
+        // ponytail: `all` is for endpoints where a GET can still change state (Yoyo /live actions).
+        if ($request->isMethod('OPTIONS')) {
+            return false;
+        }
+
+        if (!$allMethods && ($request->isMethod('GET') || $request->isMethod('HEAD'))) {
             return false;
         }
 

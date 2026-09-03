@@ -20,6 +20,13 @@ class SessionService implements SessionInterface
     private ?FluteRequest $request;
 
     /**
+     * Set once the request explicitly closed the session (long-lived streams do
+     * this up front). Re-opening would re-acquire the session file lock and hold
+     * it until the response ends, freezing every other request from that browser.
+     */
+    private bool $closed = false;
+
+    /**
      * SessionService constructor.
      */
     public function __construct(EventDispatcher $eventDispatcher, ?FluteRequest $request = null)
@@ -67,6 +74,10 @@ class SessionService implements SessionInterface
      */
     public function start(): bool
     {
+        if ($this->closed) {
+            return false;
+        }
+
         if (!$this->session->isStarted()) {
             $this->applyCookieConfiguration();
             $started = $this->session->start();
@@ -89,6 +100,10 @@ class SessionService implements SessionInterface
      */
     public function set(string $name, $value): void
     {
+        if ($this->closed) {
+            return;
+        }
+
         $this->session->set($name, $value);
     }
 
@@ -101,6 +116,10 @@ class SessionService implements SessionInterface
      */
     public function get(string $name, $default = null): mixed
     {
+        if ($this->closed) {
+            return $default;
+        }
+
         return $this->session->get($name, $default);
     }
 
@@ -109,7 +128,7 @@ class SessionService implements SessionInterface
      */
     public function all(): array
     {
-        return $this->session->all();
+        return $this->closed ? [] : $this->session->all();
     }
 
     /**
@@ -120,7 +139,7 @@ class SessionService implements SessionInterface
      */
     public function has(string $name): bool
     {
-        return $this->session->has($name);
+        return !$this->closed && $this->session->has($name);
     }
 
     /**
@@ -130,7 +149,7 @@ class SessionService implements SessionInterface
      */
     public function remove(string $name): mixed
     {
-        return $this->session->remove($name);
+        return $this->closed ? null : $this->session->remove($name);
     }
 
     /**
@@ -194,7 +213,21 @@ class SessionService implements SessionInterface
      */
     public function save(): void
     {
+        if ($this->closed) {
+            return;
+        }
+
+        $this->closed = true;
         $this->session->save();
+    }
+
+    /**
+     * True once save() ran: the data is still readable in memory, but the
+     * session must not be re-opened for the rest of this request.
+     */
+    public function isClosed(): bool
+    {
+        return $this->closed;
     }
 
     /**
@@ -262,6 +295,7 @@ class SessionService implements SessionInterface
     private function applyCookieConfiguration(): void
     {
         $options = $this->cookieOptions;
+        $this->applyStorageConfiguration($options);
 
         session_set_cookie_params([
             'lifetime' => $options['lifetime'],
@@ -275,6 +309,42 @@ class SessionService implements SessionInterface
         if (!empty($options['name'])) {
             session_name($options['name']);
         }
+    }
+
+    /**
+     * Keep app sessions out of the shared PHP session directory and align GC with auth lifetime.
+     */
+    private function applyStorageConfiguration(array $options): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        $savePath = (string) ( config('app.session.save_path') ?: storage_path('framework/sessions') );
+        if ($savePath !== '' && !is_dir($savePath)) {
+            @mkdir($savePath, 0775, true);
+        }
+
+        if ($savePath !== '' && is_dir($savePath) && is_writable($savePath)) {
+            ini_set('session.save_path', $savePath);
+        }
+
+        $gcMaxLifetime = $this->resolveGcMaxLifetime((int) $options['lifetime']);
+        ini_set('session.gc_maxlifetime', (string) $gcMaxLifetime);
+    }
+
+    private function resolveGcMaxLifetime(int $sessionLifetime): int
+    {
+        if ($sessionLifetime > 0) {
+            return $sessionLifetime;
+        }
+
+        $rememberDuration = config('auth.remember_me') ? config('auth.remember_me_duration') : null;
+        if (is_int($rememberDuration) || is_string($rememberDuration) && ctype_digit($rememberDuration)) {
+            return max(1440, (int) $rememberDuration);
+        }
+
+        return max(1440, (int) ini_get('session.gc_maxlifetime'));
     }
 
     /**
@@ -319,9 +389,17 @@ class SessionService implements SessionInterface
         $allowedSameSite = ['Lax', 'Strict', 'None'];
         $sameSite = in_array($sameSite, $allowedSameSite, true) ? $sameSite : 'Lax';
 
+        $lifetime = $sessionConfig['lifetime'] ?? 0;
+        if ((int) $lifetime <= 0 && config('auth.remember_me')) {
+            $rememberDuration = config('auth.remember_me_duration');
+            if (is_int($rememberDuration) || is_string($rememberDuration) && ctype_digit($rememberDuration)) {
+                $lifetime = (int) $rememberDuration;
+            }
+        }
+
         return [
             'name' => $sessionConfig['name'] ?? 'flute_session',
-            'lifetime' => $sessionConfig['lifetime'] ?? 0,
+            'lifetime' => (int) $lifetime,
             'path' => $sessionConfig['path'] ?? '/',
             'domain' => $sessionConfig['domain'] ?? null,
             'secure' => $secure,

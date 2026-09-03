@@ -317,11 +317,18 @@ class PaymentInvoiceScreen extends Screen
             return;
         }
 
-        payments()->processor()->setInvoiceAsPaid($transactionId);
+        try {
+            payments()->processor()->setInvoiceAsPaid($transactionId, null, true);
 
-        $this->flashMessage(__('admin-payment.messages.invoice_marked_paid'), 'success');
-
-        $this->invoices = PaymentInvoice::query();
+            $this->flashMessage(__('admin-payment.messages.invoice_marked_paid'), 'success');
+            $this->invoices = PaymentInvoice::query();
+        } catch (Throwable $e) {
+            logs()->warning('admin.payment.invoice_mark_paid_failed', [
+                'transaction_id' => $transactionId,
+                'error' => $e->getMessage(),
+            ]);
+            $this->flashMessage($e->getMessage(), 'error');
+        }
     }
 
     public function bulkMarkInvoicesPaid(): void
@@ -341,7 +348,7 @@ class PaymentInvoiceScreen extends Screen
 
             try {
                 if (!empty($invoice->transactionId)) {
-                    payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
+                    payments()->processor()->setInvoiceAsPaid($invoice->transactionId, null, true);
                 } else {
                     // Fallback: mark directly if processor needs transactionId
                     $invoice->isPaid = true;
@@ -349,7 +356,10 @@ class PaymentInvoiceScreen extends Screen
                     $invoice->save();
                 }
             } catch (Throwable $e) {
-                // continue
+                logs()->warning('admin.payment.bulk_mark_paid_failed', [
+                    'invoice_id' => $invoice->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
         $this->invoices = PaymentInvoice::query();
@@ -371,7 +381,10 @@ class PaymentInvoiceScreen extends Screen
             try {
                 $invoice->delete();
             } catch (Throwable $e) {
-                // continue
+                logs()->warning('admin.payment.bulk_delete_failed', [
+                    'invoice_id' => $invoice->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
         $this->invoices = PaymentInvoice::query();

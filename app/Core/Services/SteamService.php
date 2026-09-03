@@ -50,11 +50,11 @@ class SteamService
         $this->apiKey = $apiKey;
         $this->cache = $cache;
 
-        $proxyConfig = [];
-        $social = SocialNetwork::findOne(['key' => 'Steam']) ?? SocialNetwork::findOne(['key' => 'HttpsSteam']);
-        if ($social) {
-            $proxyConfig = $social->getGuzzleProxyConfig();
-        }
+        $proxyConfig = (array) cache()->callback('flute.steam.proxy_config', static function (): array {
+            $social = SocialNetwork::findOne(['key' => 'Steam']) ?? SocialNetwork::findOne(['key' => 'HttpsSteam']);
+
+            return $social ? (array) $social->getGuzzleProxyConfig() : [];
+        }, 3600);
 
         $this->httpClient = new Client(array_merge([
             'base_uri' => 'https://api.steampowered.com/',

@@ -37,7 +37,7 @@ class DatabaseConnection extends ActiveRecord
     #[Column(type: "text", nullable: true)]
     public ?string $additional;
 
-    #[BelongsTo(target: Server::class, nullable: true, cascade: true)]
+    #[BelongsTo(target: Server::class, nullable: true, cascade: false)]
     public ?Server $server = null;
 
     #[Column(type: "datetime")]

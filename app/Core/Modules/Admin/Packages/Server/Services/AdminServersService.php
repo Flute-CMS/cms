@@ -266,6 +266,8 @@ class AdminServersService
     {
         if (!$server) {
             $server = new Server();
+        } elseif (isset($server->id)) {
+            $server = Server::findByPK($server->id) ?? $server;
         }
 
         $server->name = $data['name'];

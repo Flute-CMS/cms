@@ -12,6 +12,8 @@ use Throwable;
 
 trait HandlesModuleDownload
 {
+    public string $lastDownloadError = '';
+
     /**
      * @throws Exception
      */
@@ -59,12 +61,22 @@ trait HandlesModuleDownload
                 ],
             ]);
 
-            if ($response->getStatusCode() === 401) {
+            $status = $response->getStatusCode();
+            if ($status !== 200) {
+                $this->lastDownloadError = $this->readFailedDownloadBody();
                 $this->cleanupFailedDownloadArtifact();
-                throw new Exception('MARKETPLACE_BAD_REQUEST');
-            }
-            if ($response->getStatusCode() !== 200) {
-                $this->cleanupFailedDownloadArtifact();
+
+                logs()->error(sprintf(
+                    'Marketplace download failed: HTTP %d for %s | %s',
+                    $status,
+                    $downloadUrl,
+                    $this->lastDownloadError !== '' ? $this->lastDownloadError : 'no response body',
+                ));
+
+                if ($status === 401 || $status === 403) {
+                    throw new Exception('MARKETPLACE_BAD_REQUEST');
+                }
+
                 throw new Exception(__('admin-marketplace.messages.download_failed'));
             }
 
@@ -153,6 +165,22 @@ trait HandlesModuleDownload
         if ($trusted === [] || !isset($trusted[$host])) {
             throw new Exception(__('admin-marketplace.messages.download_url_not_allowed'));
         }
+    }
+
+    /**
+     * Ответ площадки уходит в sink-файл вместо потока — читаем его оттуда,
+     * иначе причина отказа (ключ/домен/лицензия) теряется вместе с архивом.
+     */
+    protected function readFailedDownloadBody(): string
+    {
+        if ($this->moduleArchivePath === null || !is_file($this->moduleArchivePath)) {
+            return '';
+        }
+
+        $body = (string) @file_get_contents($this->moduleArchivePath, false, null, 0, 500);
+        $decoded = json_decode($body, true);
+
+        return trim(is_array($decoded) ? (string) ( $decoded['error'] ?? $decoded['message'] ?? $body ) : $body);
     }
 
     protected function cleanupFailedDownloadArtifact(): void

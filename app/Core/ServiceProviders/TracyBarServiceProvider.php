@@ -19,9 +19,20 @@ class TracyBarServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        if (is_debug() && !is_cli()) {
+        if (is_debug() && !is_cli() && !self::isEventStream()) {
             $container->get(FluteTracyBar::class);
         }
+    }
+
+    /**
+     * Tracy keeps its debug-bar payload in a file that it locks exclusively for
+     * the whole request. An SSE response lasts for minutes, so enabling Tracy on
+     * one freezes every other request from the same browser (same tracy-session
+     * cookie) until the stream ends. A stream renders no bar anyway.
+     */
+    private static function isEventStream(): bool
+    {
+        return str_contains((string) ( $_SERVER['HTTP_ACCEPT'] ?? '' ), 'text/event-stream');
     }
 
     public function getEventListeners(): array

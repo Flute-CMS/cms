@@ -48,3 +48,8 @@ storage/app/vapid_keys.json
 tools/
 .playwright-mcp
 .agents
+.serena/
+/storage/framework/
+/storage/local_backup/
+/storage/web_server.log
+.code-graph/

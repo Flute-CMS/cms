@@ -131,7 +131,7 @@ class CookieService
             return $expire;
         }
 
-        if (is_int($expire)) {
+        if (is_int($expire) || is_string($expire) && ctype_digit($expire)) {
             return ( new DateTimeImmutable() )->modify("+{$expire} seconds");
         }
 

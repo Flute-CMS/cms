@@ -42,7 +42,7 @@ Assistants must not run `git commit` or `git push` without explicit user approva
 
 ## CLI
 
-`php flute`: `template:cache:clear`, `logs:clear`, `logs:cleanup`, `cache:warmup`, `generate:module`, `generate:migration`, `routes:list`, `route:detail`, `cron:run`.
+`php flute`: `template:clear`, `cache:clear`, `cache:warmup`, `logs:clear`, `logs:cleanup`, `generate:module`, `generate:migration`, `route:list`, `route:detail`, `cron:run`.
 
 ## After any task
 

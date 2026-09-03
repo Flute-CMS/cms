@@ -59,7 +59,7 @@ class Server extends ActiveRecord
     #[Column(type: "text", nullable: true)]
     public ?string $additional = null;
 
-    #[HasMany(target: "DatabaseConnection", cascade: true, nullable: true)]
+    #[HasMany(target: "DatabaseConnection", cascade: false, nullable: true)]
     public array $dbconnections;
 
     #[Column(type: "datetime")]

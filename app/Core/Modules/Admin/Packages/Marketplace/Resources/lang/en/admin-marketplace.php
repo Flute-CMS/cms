@@ -133,6 +133,7 @@ return [
         'concurrent_marketplace_operation' => 'Another marketplace install or update is already running. Please wait and try again.',
         'invalid_zip' => 'Downloaded file is not a valid ZIP archive or is too small.',
         'directory_not_writable' => 'Directory is missing or not writable: :path',
+        'download_unauthorized' => 'The marketplace refused the module download. Check the Flute key in main settings and the domain/IP binding in your account on flute-cms.com. :reason',
         'download_url_not_allowed' => 'Download URL is not allowed (host must match marketplace mirrors).',
     ],
 ];

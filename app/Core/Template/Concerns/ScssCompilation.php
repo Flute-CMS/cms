@@ -31,7 +31,7 @@ trait ScssCompilation
         sort($sortedScssFiles);
         $partials = array_map(fn($path): string => $this->assetCacheIdentity($path), $this->additionalPartials);
         $cacheKey = sha1(
-            'scss-v3|'
+            'scss-v4|'
             . $this->assetCacheIdentity($scssPath)
             . implode(',', $sortedScssFiles)
             . implode(',', $partials)
@@ -65,7 +65,7 @@ trait ScssCompilation
         if ($needsRecompile) {
             $lockFile = $cssFullPath . '.lock';
 
-            if ($cssMtime === 0 && $cssStaleMtime === 0) {
+            if ($this->debugMode || $cssMtime === 0 && $cssStaleMtime === 0) {
                 $this->withFileLock($lockFile, function () use (
                     $scssPath,
                     $additionalFiles,
@@ -80,6 +80,11 @@ trait ScssCompilation
                 if (!file_exists($cssFullPath)) {
                     $this->compileScssToCacheFile($scssPath, $cssFullPath);
                     $this->refreshScssManifest($manifestFullPath, $sourceRoots, $scssPath, $additionalFiles);
+                }
+
+                if ($this->debugMode) {
+                    $cssMtime = file_exists($cssFullPath) ? filemtime($cssFullPath) : 0;
+                    $needsRecompile = false;
                 }
             } else {
                 SWRQueue::queue('assets.scss.' . $cacheKey, function () use (
@@ -340,7 +345,7 @@ trait ScssCompilation
 
                     $found = false;
                     foreach ($candidates as $candidate) {
-                        if (file_exists($candidate)) {
+                        if (is_file($candidate)) {
                             $dependencies = array_merge($dependencies, $this->collectScssDependencies(
                                 $candidate,
                                 $visited,

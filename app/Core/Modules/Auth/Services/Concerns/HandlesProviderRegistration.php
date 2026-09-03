@@ -49,7 +49,6 @@ trait HandlesProviderRegistration
             'enabled' => true,
             'entity' => $socialNetwork,
         ], $settings);
-
     }
 
     public function addSocial(string $key, array $settings, string $icon, bool $enabled = true): SocialNetwork

@@ -39,6 +39,8 @@
         'slot' => $slot,
     ])
  @elseif(request()->htmx()->isBoosted() || $boosted)
+     {{-- Через стек, иначе прямой вывод шаблона попадает в ответ ДО <!DOCTYPE> и htmx его не применяет --}}
+     @push('modals-oob')
      <div hx-swap-oob="beforeend:#modals" hx-trigger="none">
          @include('flute::components._modal-body', [
             'attributes' => $attributes,
@@ -53,6 +55,7 @@
             'slot' => $slot,
         ])
      </div>
+     @endpush
  @else
      @push('modals')
          @include('flute::components._modal-body', [

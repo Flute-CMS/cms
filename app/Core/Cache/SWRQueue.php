@@ -20,6 +20,14 @@ final class SWRQueue
     /** @var array<string,int> */
     private static array $taskEpochs = [];
 
+    /**
+     * Reset the per-request guard for persistent PHP workers.
+     */
+    public static function beginRequest(): void
+    {
+        self::$ran = false;
+    }
+
     public static function queue(string $id, callable $task): void
     {
         if (self::$ran) {
@@ -44,6 +52,7 @@ final class SWRQueue
         self::$tasks = [];
         self::$taskEpochs = [];
         self::$epochAtFlush = $GLOBALS['flute_cache_epoch'] ?? 0;
+        self::$ran = false;
     }
 
     public static function hasTasks(): bool
@@ -92,6 +101,7 @@ final class SWRQueue
 
                 $taskEpoch = self::$taskEpochs[$id] ?? 0;
                 if ($taskEpoch < $currentEpoch) {
+                    unset(self::$tasks[$id], self::$taskEpochs[$id]);
                     $count++;
 
                     continue;
@@ -128,6 +138,8 @@ final class SWRQueue
                         logs()->warning($e);
                     }
                 }
+
+                unset(self::$tasks[$id], self::$taskEpochs[$id]);
 
                 $count++;
             }

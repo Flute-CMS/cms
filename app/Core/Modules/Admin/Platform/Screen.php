@@ -406,7 +406,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
     // clear opcache & jit cache
     protected function clearOpcache(array|string|null $files = null): void
     {
-        foreach ((array) ($files ?? []) as $file) {
+        foreach ((array) ( $files ?? [] ) as $file) {
             if (is_string($file) && $file !== '' && is_file($file) && function_exists('opcache_invalidate')) {
                 @opcache_invalidate($file, true);
             }

@@ -130,7 +130,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $path = $this->isAdminPath() ? self::LIVE_COMPONENT_ADMIN_PATH : self::LIVE_COMPONENT_PATH;
             $this->router
                 ->any($path, [YoyoController::class, 'handle'])
-                ->middleware(['web', 'csrf'])
+                ->middleware(['web', 'csrf:all'])
                 ->name('yoyo.update');
         } catch (Throwable $e) {
             logs()->error('Exception while registering Yoyo route: ' . $e->getMessage());

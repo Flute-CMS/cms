@@ -93,12 +93,12 @@ class PageManager
                     static function () use ($routePath) {
                         $page = Page::findOne(['route' => $routePath]);
 
-                        return $page ? $page->id : null;
+                        return $page ? $page->id : 0;
                     },
                     is_performance() ? self::PAGE_CACHE_TIME : 30,
                 );
 
-                $this->currentPage = $pageId ? Page::findByPK($pageId) : Page::findOne(['route' => $routePath]);
+                $this->currentPage = $pageId ? Page::findByPK($pageId) : null;
 
                 if ($this->currentPage) {
                     $this->loadPermissions();

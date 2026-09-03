@@ -65,11 +65,16 @@
                     @endforeach
                 @else
                     <div class="tab-skeleton-content">
-                        @if (!empty($tab['skeletons']))
-                            @include('admin::partials.layouts.skeleton', ['skeletons' => $tab['skeletons']])
-                        @else
-                            @include('admin::partials.layouts.skeleton', ['skeletons' => [['type' => 'generic']]])
-                        @endif
+                        {{-- Rendered in isolation instead of via @include: an include inherits
+                             every variable in scope, including $result — the *active* tab's
+                             built layout, left over from the loop above. Illuminate's
+                             View::gatherData() renders any Renderable it finds in view data, so
+                             each lazy tab would silently re-render the whole active tab and throw
+                             the result away. On a 203-row screen with 28 category tabs that was
+                             5684 row renders instead of 203, and ~16s instead of 0.6s. --}}
+                        {!! view('admin::partials.layouts.skeleton', [
+                            'skeletons' => !empty($tab['skeletons']) ? $tab['skeletons'] : [['type' => 'generic']],
+                        ])->render() !!}
                     </div>
                 @endif
             @endif
