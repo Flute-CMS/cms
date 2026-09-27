@@ -2,7 +2,7 @@
 
 return [
     'sections' => [
-        'management' => 'Gestão',
+        'management' => 'Gerenciamento',
         'finance' => 'Finanças',
         'extensions' => 'Extensões',
         'system' => 'Sistema',
@@ -12,10 +12,11 @@ return [
     'users' => 'Usuários',
     'content' => 'Conteúdo',
     'finance' => 'Finanças',
-    'system' => 'Informação',
+    'system' => 'Informações',
+    'notifications' => 'Notificações',
 
     'modules_nav' => 'Módulos',
     'back' => 'Voltar',
     'mode_nested' => 'Agrupar módulos',
-    'mode_flat' => 'Mostrar tudo',
+    'mode_flat' => 'Mostrar todos',
 ];

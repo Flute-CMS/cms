@@ -2,24 +2,24 @@
 
 return [
     'vars' => [
-        'name' => 'Nome do Usuário',
+        'name' => 'Nome do usuário',
         'ip' => 'Endereço IP',
-        'device' => 'Dispositivo / Navegador',
-        'time' => 'Data e Hora',
+        'device' => 'Dispositivo / navegador',
+        'time' => 'Data e hora',
         'amount' => 'Valor',
-        'balance' => 'Saldo Atual',
-        'gateway' => 'Método de Pagamento',
-        'transaction_id' => 'ID da Transação',
+        'balance' => 'Saldo atual',
+        'gateway' => 'Método de pagamento',
+        'transaction_id' => 'ID da transação',
     ],
 
     'welcome' => [
         'title' => 'Bem-vindo, {name}!',
-        'content' => 'Obrigado por se registrar. Ficamos felizes em ver você!',
+        'content' => 'Obrigado por se registrar. Ficamos felizes em ter você conosco!',
     ],
 
     'new_device_login' => [
-        'title' => 'Login em novo dispositivo',
-        'content' => 'Um login a partir de um novo dispositivo foi detectado: {device} (IP: {ip}) em {time}. Se não foi você, altere sua senha imediatamente.',
+        'title' => 'Login em um novo dispositivo',
+        'content' => 'Foi detectado um login em um novo dispositivo: {device} (IP: {ip}) em {time}. Se não foi você, altere sua senha imediatamente.',
     ],
 
     'password_changed' => [
@@ -40,12 +40,12 @@ return [
 
     'invoice_created' => [
         'title' => 'Fatura criada',
-        'content' => 'Uma fatura de {amount} foi criada via {gateway}. Complete o pagamento para recarregar seu saldo.',
+        'content' => 'Uma fatura de {amount} foi criada via {gateway}. Conclua o pagamento para recarregar seu saldo.',
         'pay_now' => 'Pagar agora',
     ],
 
     'email_verified' => [
         'title' => 'E-mail confirmado',
-        'content' => 'Seu endereço de e-mail foi verificado com sucesso. Todos os recursos estão agora disponíveis.',
+        'content' => 'Seu endereço de e-mail foi verificado com sucesso. Todos os recursos já estão disponíveis.',
     ],
 ];

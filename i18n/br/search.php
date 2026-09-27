@@ -4,7 +4,7 @@
     "search_input" => "Campo de pesquisa",
     "to_navigate" => "para navegar",
     "to_select" => "para selecionar",
-    "search_results_for" => "Resultados da pesquisa por \"%query%\"",
+    "search_results_for" => "Resultados da pesquisa para \"%query%\"",
     "no_results_found" => "Nenhum resultado encontrado",
     "available_commands" => "Comandos disponíveis",
     "no_commands_available" => "Nenhum comando encontrado",
